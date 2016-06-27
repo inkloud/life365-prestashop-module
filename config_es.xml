@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+	<name>life365</name>
+	<displayName><![CDATA[Inkloud Dropshipping]]></displayName>
+	<version><![CDATA[1.2.48]]></version>
+	<description><![CDATA[Expanda su negocio. Empiece a vender ahora miles de referencias por Dropshipping!]]></description>
+	<author><![CDATA[Giancarlo Spadini]]></author>
+	<tab><![CDATA[quick_bulk_update]]></tab>
+	<confirmUninstall><![CDATA[Esta seguro que quiere desinstalar?]]></confirmUninstall>
+	<is_configurable>1</is_configurable>
+	<need_instance>1</need_instance>
+	<limited_countries></limited_countries>
+</module>
