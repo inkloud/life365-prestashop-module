@@ -39,7 +39,7 @@ class Life365 extends Module
 	{
 		$this->name = 'life365';
 		$this->tab = 'quick_bulk_update';
-		$this->version = '1.2.55';
+		$this->version = '1.2.56';
 		$this->author = 'Giancarlo Spadini';
 		$this->need_instance = 1;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.7');
@@ -659,7 +659,7 @@ class Life365 extends Module
 
 		$result_html .= '
 			<script>
-				function getProds1(k, loadUrl, selected_category, not_used = 0, n_try = 0)
+				function getProds1(k, loadUrl, selected_category, not_used, n_try)
                 {
 					var todo_cat = todo_categories[selected_category];
 					for(g=0;g<todo_cat.length;g++)
@@ -690,7 +690,7 @@ class Life365 extends Module
 					}
                 }
 
-				function getProds0(k, loadUrl, selected_category, g = 0, n_try = 0)
+				function getProds0(k, loadUrl, selected_category, g, n_try)
                 {
 					var todo_cat = todo_categories[selected_category];
 					if (g<todo_cat.length)
@@ -717,12 +717,15 @@ class Life365 extends Module
 							})
 							.fail(function (msg, textStatus, errorThrown) {
 								$("#result_"+selected_category).append("ERROR: " + textStatus + " - " + errorThrown + "<br />");
+								console.log(errorThrown);
 								if (n_try<5)
 								{
 									$("#result_"+selected_category).append("Retrying "+todo_cat[g]+" ("+n_try+") ...<br />");
 									getProds0(k, loadUrl, selected_category, g, n_try+1);
 								}
-								console.log(errorThrown);
+								else {
+									getProds0(0, loadUrl, selected_category, g+1, 0);
+								}
 							})
 					}
 					else
