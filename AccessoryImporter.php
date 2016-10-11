@@ -191,7 +191,7 @@ class AccessoryImporter extends ProductImporter{
 	protected function GetTags()
 	{
 		$meta_keywords = $this->product->meta_keywords;
-		$meta_keywords = preg_replace('/[<>;=#{}]/ui',' ',$meta_keywords);
+		$meta_keywords = preg_replace('/[!<;>;?=+#"°{}_$%]/ui',' ',$meta_keywords);
 
 		$str_tags = str_replace(" ", ",", $meta_keywords);
 		$tags = explode(",", $str_tags);
