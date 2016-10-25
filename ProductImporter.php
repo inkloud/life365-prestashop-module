@@ -252,20 +252,27 @@ abstract class ProductImporter{
 		
 		if(empty($alltags)) return;
 		
-		// Delete tags for this id product, for no duplicating error
-		Tag::deleteTagsForProduct($this->object->id);
-
-		$tag = new Tag();
 		
-		$this->object->tags = self::createMultiLangField($alltags);
-		foreach($this->object->tags AS $key => $tags)
-		{
-			$isTagAdded = $tag->addTags($key, $this->object->id, $tags);
-			if(!$isTagAdded)
+		try {
+			// Delete tags for this id product, for no duplicating error
+			Tag::deleteTagsForProduct($this->object->id);
+
+			$tag = new Tag();
+			
+			$this->object->tags = self::createMultiLangField($alltags);
+			foreach($this->object->tags AS $key => $tags)
 			{
-				echo "Tags not added: ";
-				p($tags);
+				$isTagAdded = $tag->addTags($key, $this->object->id, $tags);
+				if(!$isTagAdded)
+				{
+					echo "Tags not added: ";
+					p($tags);
+				}
 			}
+		}
+		//catch exception
+		catch(Exception $e) {
+			p('Message: ' .$e->getMessage());
 		}
 	}
 	
