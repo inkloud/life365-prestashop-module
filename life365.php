@@ -39,10 +39,10 @@ class Life365 extends Module
 	{
 		$this->name = 'life365';
 		$this->tab = 'quick_bulk_update';
-		$this->version = '1.2.58';
+		$this->version = '1.2.59';
 		$this->author = 'Giancarlo Spadini';
 		$this->need_instance = 1;
-		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.7');
+		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.8');
 		$this->module_key = '17fe516516b4f12fb1d877a3600dbedc';
 
 		parent::__construct();
@@ -419,7 +419,8 @@ class Life365 extends Module
 			<br />
 			<div>
 				<b>'.$this->l('Cron url').': </b>
-				'.$cron_url.'
+				'.$cron_url.'<br>
+				<font size="-2"><a href="https://www.easycron.com/?ref=70609" target="_blank">A free CRON scheduler</a></font>
 			</div>
 		</fieldset>
 		<br />
