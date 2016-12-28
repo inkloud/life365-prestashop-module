@@ -97,8 +97,8 @@ class Life365 extends Module
 
 	public function uninstallDB()
 	{
-		Db::getInstance()->execute('DROP TABLE `'._DB_PREFIX_.$this->name.'_product`');
-		Db::getInstance()->execute('DROP TABLE `'._DB_PREFIX_.$this->name.'_category`');
+		Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.$this->name.'_product`');
+		Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.$this->name.'_category`');
 
 		return true;
 	}
@@ -644,6 +644,7 @@ class Life365 extends Module
 
 		foreach ($root_cats as $cat)
 		{
+			$categories = array();
 			$categories[] = $cat["Cat1"];
 			$selected_categories_array = Configuration::get($this->name.'_'.$cat["Cat1"].'_categories');
 			$result_html .= '
@@ -741,7 +742,7 @@ class Life365 extends Module
 			$(document).ready(function() {
 				var loadUrl = "'.$this->siteURL().__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php?action=getProds&token='.Tools::getAdminToken($this->name).'";
 
-				var selected_categories = '.json_encode($categories).'
+				var selected_categories = '.Tools::jsonEncode($categories).'
 
 				for (var i=0;i<selected_categories.length;i++)
 				{
