@@ -39,7 +39,7 @@ class Life365 extends Module
 	{
 		$this->name = 'life365';
 		$this->tab = 'quick_bulk_update';
-		$this->version = '1.2.59';
+		$this->version = '1.2.60';
 		$this->author = 'Giancarlo Spadini';
 		$this->need_instance = 1;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.8');
@@ -642,9 +642,9 @@ class Life365 extends Module
 			</script>
 		';
 
+		$categories = array();
 		foreach ($root_cats as $cat)
 		{
-			$categories = array();
 			$categories[] = $cat["Cat1"];
 			$selected_categories_array = Configuration::get($this->name.'_'.$cat["Cat1"].'_categories');
 			$result_html .= '
