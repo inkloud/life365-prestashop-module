@@ -47,6 +47,9 @@ abstract class ProductImporter{
 			// skip;
 			return 0;
 		}
+		
+		StockAvailable::setQuantity($this->GetProductID(), null, 0, null);
+		
 		$this->object->active = false;
 		$this->object->update();
 	}

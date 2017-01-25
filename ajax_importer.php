@@ -76,7 +76,7 @@ function getModuleInfo($info)
 {
 	$module_name = 'life365';
 	$_api_url = 'http://api.life365.eu/v2.php';
-	$user_app = 'PrestaShop module ver: 1.2.59';
+	$user_app = 'PrestaShop module ver: 1.2.60';
 
 	switch ($info)
 	{
