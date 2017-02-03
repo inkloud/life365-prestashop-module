@@ -110,7 +110,12 @@ class AccessoryImporter extends ProductImporter{
 	
 	protected function GetEan13()
 	{
-		return (string)$this->product->barcode;
+		$ean13 = (string)$this->product->barcode;
+		if ($ean13 == "0000000000000")
+			$ean13 = null;
+
+		return $ean13;
+
 	}
 
 	protected function GetReference()
