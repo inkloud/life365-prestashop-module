@@ -24,26 +24,26 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-class AccessoryImporter extends ProductImporter{
-	
-	protected $product; //row source	
-	protected $image_basepath;
-	
-	public function SetProductSource(&$p){
-		if(empty($p))
-			throw new Exception("No Product Source");
+class AccessoryImporter extends productImporter{
 
-		$this->product = $p;
+    protected $product; //row source	
+    protected $image_basepath;
+
+	public function SetProductSource(&$p){
+        if(empty($p))
+            throw new Exception("No Product Source");
+
+        $this->product = $p;
 	}
-	
+
 	public function setImageBasePath($path){
 		if (Tools::substr($path, Tools::strlen($path) - 1) != '/') {
 			$path .= '/';
 		}
 		$this->image_basepath = $path;
-	}
+    }
 	
-	protected function GetPrice(){
+    protected function GetPrice(){
 		$price_limit = (bool)Configuration::get('life365_price_limit');
 		
 		$price_overhead = Db::getInstance()->getValue('
@@ -69,7 +69,7 @@ class AccessoryImporter extends ProductImporter{
 	{
 		return (float)0;
 	}
-	
+
 	protected function GetHeight()
 	{
 		return (float)0;
@@ -107,8 +107,8 @@ class AccessoryImporter extends ProductImporter{
 
 		return $meta_description;
 	}
-	
-	protected function GetEan13()
+
+    protected function GetEan13()
 	{
 		$ean13 = (string)$this->product->barcode;
 		if ($ean13 == "0000000000000")
@@ -135,7 +135,7 @@ class AccessoryImporter extends ProductImporter{
 
 		return (string)Tools::substr($meta_keywords, 0, 255);
 	}
-	
+
 	protected function GetMetaTitle()
 	{
 		$meta_title = (string)$this->product->meta_title;
@@ -184,7 +184,7 @@ class AccessoryImporter extends ProductImporter{
 	{
 		return (string)$this->product->quantity;
 	}
-	
+
 	protected function GetImages()
 	{
 		$img_arr = array();

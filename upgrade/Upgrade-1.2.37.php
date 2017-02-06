@@ -24,12 +24,10 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-?>				    	
-<?php
 if (!defined('_PS_VERSION_'))
-	exit;
+    exit;
 
 function upgrade_module_1_2_37($module)
-{	
-	return true;
+{
+    return true;
 }

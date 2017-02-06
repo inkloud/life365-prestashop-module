@@ -24,7 +24,7 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-abstract class ProductImporter{
+abstract class productImporter{
 	private $id_product; //product id in prestashop
 	private $object; //object of type Product
 	private $module_name='life365';
@@ -35,7 +35,7 @@ abstract class ProductImporter{
 
 	}
 	
-	public function Disable(){
+	public function disable(){
 		$this->id_product = $this->IfExist();
 
 		if(!$this->id_product) {
@@ -116,7 +116,7 @@ abstract class ProductImporter{
 				$description_short_limit = (int)Configuration::get('PS_PRODUCT_SHORT_DESC_LIMIT');
 				if ($description_short_limit <= 0)
 					$description_short_limit = 800;
-				$this->object->description_short[$id_lang] = self::CropString($this->GetShortDesciption(), $description_short_limit);
+				$this->object->description_short[$id_lang] = self::cropString($this->GetShortDesciption(), $description_short_limit);
 				$this->object->meta_keywords[$id_lang] = $this->GetMetaKeyword();
 				$tags = $this->GetTags();
 				$this->AddTags($tags);
@@ -145,7 +145,7 @@ abstract class ProductImporter{
 			$description_short_limit = (int)Configuration::get('PS_PRODUCT_SHORT_DESC_LIMIT');
 			if ($description_short_limit <= 0)
 				$description_short_limit = 800;
-			$this->object->description_short[$id_lang] = self::CropString($this->GetShortDesciption(),$description_short_limit);
+			$this->object->description_short[$id_lang] = self::cropString($this->GetShortDesciption(),$description_short_limit);
 			$this->object->link_rewrite[$id_lang] = $link_rewrite;
 			$this->object->meta_description[$id_lang] = $this->GetMetaDescription();
 			$this->object->meta_keywords[$id_lang] = $this->GetMetaKeyword();
@@ -185,7 +185,7 @@ abstract class ProductImporter{
 	protected function GetProductID(){
 		return $this->object->id;
 	}
-	
+
 	/**
 	 * 
 	 * @param $images Array
@@ -226,14 +226,14 @@ abstract class ProductImporter{
 		if (!empty($_errors))
 			var_dump($_errors);
 	}
-	
+
 	/**
 	 * 
 	 * @param $object Product
 	 * @param $featuers Array
 	 * @return unknown_type Void
 	 */
-	private function AddFeature($features){
+    private function AddFeature($features){
 		foreach ($features AS $feature => $value){
 			if(trim($value)=='')continue;
 			if($value=='1')$value='Yes';
@@ -261,7 +261,7 @@ abstract class ProductImporter{
 			Tag::deleteTagsForProduct($this->object->id);
 
 			$tag = new Tag();
-			
+
 			$this->object->tags = self::createMultiLangField($alltags);
 			foreach($this->object->tags AS $key => $tags)
 			{
@@ -764,7 +764,7 @@ abstract class ProductImporter{
 			$target = $value;
 	}
 
-	public static function CropString($str, $length)
+	public static function cropString($str, $length)
 	{
 		if(Tools::strlen($str)>$length)
 		{

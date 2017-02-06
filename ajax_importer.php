@@ -304,7 +304,7 @@ function getProds() {
 
 			$accessroyImport = new AccessoryImporter();
 			$accessroyImport->SetProductSource($objectProduct);
-			$accessroyImport->Disable();
+			$accessroyImport->disable();
 			
 		}
 	}
@@ -440,7 +440,6 @@ function setDropshipOrder($dropship_address, $dropship_products, $access_token)
 
 		$new_url = "http://$country_id.life365.eu/_login.asp?L=$login&P=$password&url=http://$country_id.life365.eu/carrello.asp?drop_on=on";
 		Tools::redirect($new_url);
-		die();
 
 		if($res['response_code'] == "1") {
 			// echo $res['response_detail'];
