@@ -217,7 +217,7 @@ class AccessoryImporter extends productImporter{
 
 		return $default_category;
 	}
-	
+
 	/**
 	* This method checkc if current product already exist 
 	* you can implement any logic to check if item already exist.

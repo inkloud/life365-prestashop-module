@@ -123,7 +123,11 @@ abstract class productImporter{
 			}
 			if($sync_category) {
 				$this->object->id_category_default = $this->GetCategoryDefault();
-				$this->object->id_category[] = $this->object->id_category_default;
+				$parent_categories = (bool)Configuration::get($this->module_name . '_parent_categories');
+				if ($parent_categories)
+					$this->object->id_category[] = GetCategoryTree($this->object->id_category_default);
+				else
+					$this->object->id_category[] = $this->object->id_category_default;
 			}
 			if($sync_price) {
 				$this->object->price = self::CleanAmount($this->GetPrice());
@@ -365,6 +369,30 @@ abstract class productImporter{
 		else
 			return 1;
 	}
+
+	protected function GetCategoryParent($id_category)
+	{
+		
+		return $parent_category;
+	}
+	
+	protected function GetCategoryTree($id_category)
+	{
+		$categoryTree[] = $id_category;
+		$current_category = $id_category;
+		while ($id_category > 1)
+		{
+			$parent_category = Db::getInstance()->getValue('
+				SELECT id_parent FROM ps_category WHERE id_category = ' . $current_category .';'
+			);
+			if(empty($parent_category))
+				$current_category = 0;
+			else
+				$categoryTree[] = $current_category;
+		}
+
+		return $categoryTree;
+	}
 	
 	protected function GetShortDesciption()
 	{
@@ -460,7 +488,7 @@ abstract class productImporter{
 		if($this->object->id)
 			return $this->object->upc;
 		else
-			return 0;
+			return null;
 	}
 	
 	protected function GetOnSale()

@@ -39,7 +39,7 @@ class Life365 extends Module
 	{
 		$this->name = 'life365';
 		$this->tab = 'quick_bulk_update';
-		$this->version = '1.2.60';
+		$this->version = '1.2.61';
 		$this->author = 'Giancarlo Spadini';
 		$this->need_instance = 1;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.8');
@@ -185,6 +185,7 @@ class Life365 extends Module
 			Configuration::updateValue($this->name.'_debug_mode', Tools::getValue($this->name.'_debug_mode'));
 			Configuration::updateValue($this->name.'_import_method', Tools::getValue($this->name.'_import_method'));
 			Configuration::updateValue($this->name.'_price_limit', Tools::getValue($this->name.'_price_limit'));
+			Configuration::updateValue($this->name.'_parent_categories', Tools::getValue($this->name.'_parent_categories'));
 		}
 
 		if (Tools::isSubmit($this->name.'_submit'))
@@ -435,6 +436,11 @@ class Life365 extends Module
 						<li><input type="checkbox" name="'.$this->name.'_sync_category'.'" '.(Configuration::get($this->name.'_sync_category') ? 'checked="checked"' : '').' /> '.$this->l('Reset association with local categories').'</li>
 						<li><input type="checkbox" name="'.$this->name.'_sync_price'.'" '.(Configuration::get($this->name.'_sync_price') ? 'checked="checked"' : '').' /> '.$this->l('Product price').'</li>
 					</ul>
+				</div>
+				<div class="clear"></div>
+				<label>'.$this->l('Associate to parent categories').'</label>
+				<div class="margin-form">
+					<input type="checkbox" name="'.$this->name.'_parent_categories'.'" '.(Configuration::get($this->name.'_parent_categories') ? 'checked="checked"' : '').' /> '.$this->l('Connect products with all parent categories').'
 				</div>
 				<div class="clear"></div>
 				<label>'.$this->l('Price limit').'</label>
