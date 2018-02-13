@@ -230,9 +230,9 @@ class AccessoryImporter extends productImporter{
 	protected function IfExist()
 	{
 		$id_product=0;
-			
+
 		//first check in mapping table
-		$sql = 'SELECT id_product_ps FROM '._DB_PREFIX_.'life365_product WHERE id_product_external = '.$this->product->id;
+		$sql = 'SELECT id_product_ps FROM '._DB_PREFIX_.'life365_product WHERE id_product_external = '.(int)$this->product->id;
 		$res = Db::getInstance()->getRow($sql);
 		if($res){
 			$id_product = $res['id_product_ps'];
@@ -254,8 +254,13 @@ class AccessoryImporter extends productImporter{
 	{
 		if(!$this->IfExist())
 		{
-			$t_sql = 'INSERT INTO `'._DB_PREFIX_.'life365_product` (`id_product_external`, `date_import`, `id_product_ps`)';
-			$t_sql .= ' VALUES ('.(int)$this->product->id.', CURRENT_TIMESTAMP, '.(int)$this->GetProductID().')';
+			$t_sql = 'INSERT INTO `'._DB_PREFIX_.'life365_product` (`id_product_external`, `date_import`, `id_product_ps`, `version`)';
+			$t_sql .= ' VALUES ('.(int)$this->product->id.', CURRENT_TIMESTAMP, '.(int)$this->GetProductID().', '.(int)$this->product->version.')';
+			Db::getInstance()->execute($t_sql);
+		}
+		else
+		{
+			$t_sql = 'UPDATE `'._DB_PREFIX_.'life365_product` SET `version` = '.(int)$this->product->version.' WHERE `id_product_external` = '.(int)$this->product->id.';';
 			Db::getInstance()->execute($t_sql);
 		}
 		parent::AfterAdd();

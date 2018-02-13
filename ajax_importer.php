@@ -26,7 +26,7 @@
 
 ini_set('max_execution_time', 7200);
 
-include_once('../../config/config.inc.php');
+require_once(dirname(__FILE__).'/../../config/config.inc.php');
 
 require_once(dirname(__FILE__).'/ProductImporter.php');
 require_once(dirname(__FILE__).'/AccessoryImporter.php');
@@ -41,24 +41,32 @@ if (!function_exists('p'))
 }
 
 $module_name = getModuleInfo('name');
-$action_token = Tools::getValue('token');
+if (PHP_SAPI === 'cli') {
+    $action = $argv[1];
+    $action_token = $argv[2];
+    $opt_cat = $argv[3];
+}
+else {
+    $action_token = Tools::getValue('token');
+    $action = Tools::getValue('action');
+	$opt_cat = Tools::getValue('cat');
+}
 if ($action_token != Tools::getAdminToken($module_name))
 	die('Invalid token');
 
 $emplo = new Employee(1);
 $context->employee = $emplo;
 
-$action = Tools::getValue('action');
 switch ($action)
 {
 	case 'checkLogon':
 		print checkLogon();
-			break;
+		break;
 	case 'dropship':
 		dropship();
 		break;
 	case 'getProds':
-		print getProds();
+		print getProds($opt_cat);
 		break;
 	case 'cron':
 		print runCron();
@@ -76,12 +84,22 @@ function getModuleInfo($info)
 {
 	$module_name = 'life365';
 	$_api_url = 'http://api.life365.eu/v2.php';
-	$user_app = 'PrestaShop module ver: 1.2.61';
+	$user_app = 'PrestaShop module ver: 1.2.64';
+	$api_url_jwt = 'http://api.life365.eu/v4/auth/?f=check';
+
+	$api_url_new = ['IT' => 'http://it2.life365.eu', 'PT' => 'http://pt2.life365.eu', 'ES' => 'http://es2.life365.eu', 'CN' => 'http://new.inkloud.cn'];
+	$country_id = Configuration::get($module_name.'_country');
 
 	switch ($info)
 	{
+		case 'api_url_new':
+			$detail = $api_url_new[$country_id];
+			break;
 		case 'api_url':
 			$detail = $_api_url;
+			break;
+		case 'api_url_jwt':
+			$detail = $api_url_jwt;
 			break;
 		case 'name':
 			$detail = $module_name;
@@ -134,20 +152,58 @@ function getAccessToken()
 	return $token;
 }
 
-function getProducts($category_id, $qty, $offset, $access_token)
+
+function getAccessJWT()
 {
-	$_api_url = getModuleInfo('api_url');
 	$module_name = getModuleInfo('name');
 
-	$debug = (bool)Configuration::get($module_name.'_debug_mode');
+	$api_url_jwt = getModuleInfo('api_url_jwt');
+	$country_id = Configuration::get($module_name.'_country');
+	$login = Configuration::get($module_name.'_login');
+	$password = Configuration::get($module_name.'_password');
+	$referer = $_SERVER['HTTP_HOST'];
 
 	$con = curl_init();
-	$url = $_api_url."?f=getProductsByCat&access_token=".$access_token;
-	$my_values = array('category_id' => $category_id, 'qty' => $qty, 'offset' => $offset);
+	$url = $api_url_jwt;
+	$my_values = array('country' => $country_id, 'login' => $login, 'password' => $password, 'role' => 'cliente');
 
 	curl_setopt($con, CURLOPT_URL, $url);
 	curl_setopt($con, CURLOPT_POST, true);
 	curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
+	curl_setopt($con, CURLOPT_HEADER, false);
+	curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+
+	$res_curl = curl_exec($con);
+	$res_code = curl_getinfo($con, CURLINFO_HTTP_CODE);
+	curl_close($con);
+
+	if ($res_code == 200)
+	{
+		$res = Tools::jsonDecode($res_curl, true);
+		$jwt = $res['jwt'];
+		return $jwt;
+	}
+	else
+		return 0;
+}
+
+
+function getProducts2($category_id)
+{
+	$_api_url = getModuleInfo('api_url');
+	$module_name = getModuleInfo('name');
+	$jwt = getAccessJWT();
+
+	$debug = (bool)Configuration::get($module_name.'_debug_mode');
+
+	$api_url_new = getModuleInfo('api_url_new');
+	
+
+	$con = curl_init();
+	$url = $api_url_new."/api/products/level_3/".$category_id."?jwt=".$jwt;
+	$my_values = array();
+
+	curl_setopt($con, CURLOPT_URL, $url);
 	curl_setopt($con, CURLOPT_HEADER, false);
 	curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
 
@@ -167,19 +223,22 @@ function getProducts($category_id, $qty, $offset, $access_token)
 	
 	$res = Tools::jsonDecode($res_curl, true);
 
-	return $res['response_detail'];
+	return $res;
 }
 
-function getProductsDisabled($category_id, $qty, $offset, $access_token)
+
+function getProductsDisabled($category_id, $qty=100, $offset=0, $access_token)
 {
 	$_api_url = getModuleInfo('api_url');
 	$module_name = getModuleInfo('name');
 
 	$debug = (bool)Configuration::get($module_name.'_debug_mode');
+	if ((int)$qty == 0)
+		$qty = 100;
 
 	$con = curl_init();
 	$url = $_api_url.'?f=getProductsDisabled&access_token='.$access_token;
-	$my_values = array('category_id' => $category_id, 'qty' => $qty, 'offset' => $offset);
+	$my_values = array('category_id' => $category_id, 'qty' => $qty, 'offset' => (int)$offset);
 
 	curl_setopt($con, CURLOPT_URL, $url);
 	curl_setopt($con, CURLOPT_POST, true);
@@ -268,17 +327,26 @@ function checkLogon() {
 	return "<img src='".dirname($_SERVER['PHP_SELF']).'/../../'."img/admin/disabled.gif' /><font color='red'>".$res['response_text'].'</font>';
 }
 
-function getProds() {
+
+function getProds($opt_cat = 0) {
 	$module_name = getModuleInfo('name');
 
 	$debug = (bool)Configuration::get($module_name.'_debug_mode');
-	$cat = Tools::getValue('cat');
 	$offset = Tools::getValue('offset');
 	$qty = Tools::getValue('qty');
+	$country_l = strtolower(Configuration::get($module_name.'_country'));
+
+	if ($opt_cat == 0)
+		$cat = Tools::getValue('cat');
+	else
+		$cat = $opt_cat;
+
+	if ($offset > 0)
+		return '';
 
 	$access_token = getAccessToken();
 	$result_html = '';
-	if (array_filter($products = getProducts($cat, $qty, $offset, $access_token)))
+	if (array_filter($products = getProducts2($cat)))
 	{
 		$result_html .= 'CATEGORY '.$cat.': IMPORT offset '.$offset.'<br />';
 		foreach ($products as $product) {
@@ -286,6 +354,21 @@ function getProds() {
 				p($product);
 			$result_html .= 'Importing product '.$product['id'].'<br />';
 			$objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), FALSE);
+			
+			//convert to old format
+			$objectProduct->reference = $objectProduct->code_simple;
+			$objectProduct->name = $objectProduct->title->{$country_l};
+			$objectProduct->meta_keywords = $objectProduct->keywords;
+			$objectProduct->price = $objectProduct->price->price;
+			$objectProduct->street_price = $objectProduct->price_a;
+			$objectProduct->description = $objectProduct->descr->{$country_l};
+			$objectProduct->quantity = $objectProduct->stock;
+			$objectProduct->url_image = json_decode(json_encode($objectProduct->photos), true)[0];
+			$objectProduct->local_category = $objectProduct->level_3;
+			$objectProduct->meta_description = '';
+			$objectProduct->meta_title = $objectProduct->name;
+			$objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
+			$objectProduct->version = $objectProduct->last_update;
 
 			$accessroyImport = new AccessoryImporter();
 			$accessroyImport->SetProductSource($objectProduct);
@@ -313,6 +396,7 @@ function getProds() {
 	return $result_html;
 }
 
+
 function getRootCategories()
 {
 	$available_cats = availableCategories();
@@ -338,6 +422,7 @@ function getRootCategories()
 
 function runCron() {
 	$module_name = getModuleInfo('name');
+	$country_l = strtolower(Configuration::get($module_name.'_country'));
 
 	$qty = 30;
 	$result_html = '';
@@ -350,17 +435,31 @@ function runCron() {
 		$cats_array = explode(",", Configuration::get($module_name.'_'.$root_cat["Cat1"].'_categories'));
 		foreach ($cats_array as $cat)
 		{
-			$result_html .= 'Section: '.$root_cat['description1'].'<br />';
+			p('Section: '.$root_cat['description1'].'<br />');
 			if (Tools::strlen($cat)>0)
 			{
 				$offset = 0;
-				while(array_filter($proucts = getProducts($cat, $qty, $offset, $access_token)) and $offset<5)
+				while(array_filter($proucts = getProducts2($cat)) and $offset<1)
 				{
-					$result_html .= 'CATEGORY '.$cat.': IMPORT offset '.$offset.'<br />';
+					p('CATEGORY '.$cat.': IMPORT offset '.$offset.'<br />');
 					foreach ($proucts as $product)
 					{
-						$result_html .= 'Importing product '.$product['id'].'<br />';
+						p('Importing product '.$product['id']);
 						$objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), FALSE);
+
+						$objectProduct->reference = $objectProduct->code_simple;
+						$objectProduct->name = $objectProduct->title->{$country_l};
+						$objectProduct->meta_keywords = $objectProduct->keywords;
+						$objectProduct->price = $objectProduct->price->price;
+						$objectProduct->street_price = $objectProduct->price_a;
+						$objectProduct->description = $objectProduct->descr->{$country_l};
+						$objectProduct->quantity = $objectProduct->stock;
+						$objectProduct->url_image = json_decode(json_encode($objectProduct->photos), true)[0];
+						$objectProduct->local_category = $objectProduct->level_3;
+						$objectProduct->meta_description = '';
+						$objectProduct->meta_title = $objectProduct->name;
+						$objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
+						$objectProduct->version = $objectProduct->last_update;
 
 						$accessroyImport = new AccessoryImporter();
 						$accessroyImport->SetProductSource($objectProduct);

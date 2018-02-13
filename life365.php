@@ -39,7 +39,7 @@ class Life365 extends Module
 	{
 		$this->name = 'life365';
 		$this->tab = 'quick_bulk_update';
-		$this->version = '1.2.61';
+		$this->version = '1.2.64';
 		$this->author = 'Giancarlo Spadini';
 		$this->need_instance = 1;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.8');
@@ -80,6 +80,7 @@ class Life365 extends Module
 				  `id_product_external` int(10) unsigned NOT NULL,
 				  `date_import` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 				  `id_product_ps` int(10) unsigned NOT NULL,
+				  `version` int(10) unsigned NOT NULL DEFAULT \'0\',
 				  PRIMARY KEY (`id_product_external`),
 				  UNIQUE KEY `id_product_ps_unique` (`id_product_ps`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8;';
