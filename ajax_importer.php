@@ -23,7 +23,7 @@
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
-
+session_start();
 ini_set('max_execution_time', 7200);
 
 require_once(dirname(__FILE__).'/../../config/config.inc.php');
@@ -40,7 +40,6 @@ if (!function_exists('p'))
 	}
 }
 
-$module_name = getModuleInfo('name');
 if (PHP_SAPI === 'cli') {
     $action = $argv[1];
     $action_token = $argv[2];
@@ -51,6 +50,7 @@ else {
     $action = Tools::getValue('action');
 	$opt_cat = Tools::getValue('cat');
 }
+$module_name = getModuleInfo('name');
 if ($action_token != Tools::getAdminToken($module_name))
 	die('Invalid token');
 
@@ -84,7 +84,7 @@ function getModuleInfo($info)
 {
 	$module_name = 'life365';
 	$_api_url = 'http://api.life365.eu/v2.php';
-	$user_app = 'PrestaShop module ver: 1.2.64';
+	$user_app = 'PrestaShop module ver: 1.2.65';
 	$api_url_jwt = 'http://api.life365.eu/v4/auth/?f=check';
 
 	$api_url_new = ['IT' => 'http://it2.life365.eu', 'PT' => 'http://pt2.life365.eu', 'ES' => 'http://es2.life365.eu', 'CN' => 'http://new.inkloud.cn'];
@@ -120,35 +120,40 @@ function getModuleInfo($info)
 
 function getAccessToken()
 {
-	$_api_url = getModuleInfo('api_url');
-	$module_name = getModuleInfo('name');
-	$user_app = getModuleInfo('user_app');
+    if(isset($_SESSION['access_token']) && !empty($_SESSION['access_token']))
+		$token = $_SESSION['access_token'];
+	else {
+        $_api_url = getModuleInfo('api_url');
+        $module_name = getModuleInfo('name');
+        $user_app = getModuleInfo('user_app');
 
-	$country_id = Configuration::get($module_name.'_country');
-	$login = Configuration::get($module_name.'_login');
-	$password = Configuration::get($module_name.'_password');
-	$referer = $_SERVER['HTTP_HOST'];
+        $country_id = Configuration::get($module_name.'_country');
+        $login = Configuration::get($module_name.'_login');
+        $password = Configuration::get($module_name.'_password');
+        $referer = $_SERVER['HTTP_HOST'];
 
-	$con = curl_init();
-	$url = $_api_url.'?f=getToken';
-	$my_values = array('country_id' => $country_id, 'login' => $login, 'password' => $password, 'referer' => $referer, 'user_app' => $user_app.' with CRON');
+        $con = curl_init();
+        $url = $_api_url.'?f=getToken';
+        $my_values = array('country_id' => $country_id, 'login' => $login, 'password' => $password, 'referer' => $referer, 'user_app' => $user_app.' with CRON');
 
-	curl_setopt($con, CURLOPT_URL, $url);
-	curl_setopt($con, CURLOPT_POST, true);
-	curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
-	curl_setopt($con, CURLOPT_HEADER, false);
-	curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($con, CURLOPT_URL, $url);
+        curl_setopt($con, CURLOPT_POST, true);
+        curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
+        curl_setopt($con, CURLOPT_HEADER, false);
+        curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
 
-	$res_curl = curl_exec($con);
-	curl_close($con);
+        $res_curl = curl_exec($con);
+        curl_close($con);
 
-	$res = Tools::jsonDecode($res_curl, true);
+        $res = Tools::jsonDecode($res_curl, true);
 
-	if ($res['response_code'] == '1')
-		$token = $res['response_detail'];
-	else
-		$token = false;
-
+        if ($res['response_code'] == '1') {
+            $token = $res['response_detail'];
+            $_SESSION['access_token'] = $token;
+		}
+        else
+            $token = false;
+    }
 	return $token;
 }
 
@@ -376,22 +381,22 @@ function getProds($opt_cat = 0) {
 		}
 	}
 
-	if (array_filter($products = getProductsDisabled($cat, $qty, $offset, $access_token)))
-	{
-		$result_html .= 'CATEGORY '.$cat.': CLEANING offset '.$offset.'<br />';
-		foreach ($products as $product) {
-			if ($debug)
-				p($product);
-			$result_html .= 'Cleaning product '.$product['id'].'<br />';
-			$objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), FALSE);
+	$products = getProductsDisabled($cat, $qty, $offset, $access_token);
+	if (!empty($products)) {
+        if (array_filter($products = getProductsDisabled($cat, $qty, $offset, $access_token))) {
+            $result_html .= 'CATEGORY '.$cat.': CLEANING offset '.$offset.'<br />';
+            foreach ($products as $product) {
+                if ($debug)
+                    p($product);
+                $result_html .= 'Cleaning product '.$product['id'].'<br />';
+                $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), FALSE);
 
-			$accessroyImport = new AccessoryImporter();
-			$accessroyImport->SetProductSource($objectProduct);
-			$accessroyImport->disable();
-			
-		}
+                $accessroyImport = new AccessoryImporter();
+                $accessroyImport->SetProductSource($objectProduct);
+                $accessroyImport->disable();
+            }
+        }
 	}
-	
 
 	return $result_html;
 }
