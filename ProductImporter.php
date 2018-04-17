@@ -125,7 +125,7 @@ abstract class productImporter{
 				$this->object->id_category_default = $this->GetCategoryDefault();
 				$parent_categories = (bool)Configuration::get($this->module_name . '_parent_categories');
 				if ($parent_categories)
-					$this->object->id_category[] = GetCategoryTree($this->object->id_category_default);
+					$this->object->id_category[] = $this->GetCategoryTree($this->object->id_category_default);
 				else
 					$this->object->id_category[] = $this->object->id_category_default;
 			}
@@ -383,7 +383,7 @@ abstract class productImporter{
 		while ($id_category > 1)
 		{
 			$parent_category = Db::getInstance()->getValue('
-				SELECT id_parent FROM ps_category WHERE id_category = ' . $current_category .';'
+				SELECT id_parent FROM ps_category WHERE id_category = ' . (int)$current_category .';'
 			);
 			if(empty($parent_category))
 				$current_category = 0;
