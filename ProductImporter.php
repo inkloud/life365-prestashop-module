@@ -383,7 +383,7 @@ abstract class productImporter{
 		while ($id_category > 1)
 		{
 			$parent_category = Db::getInstance()->getValue('
-				SELECT id_parent FROM ps_category WHERE id_category = ' . (int)$current_category .';'
+				SELECT id_parent FROM '._DB_PREFIX_.'category WHERE id_category = ' . (int)$current_category .';'
 			);
 			if(empty($parent_category))
 				$current_category = 0;

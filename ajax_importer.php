@@ -23,10 +23,10 @@
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
-session_start();
 ini_set('max_execution_time', 7200);
 
 require_once(dirname(__FILE__).'/../../config/config.inc.php');
+require_once(dirname(__FILE__).'/../../classes/Cookie.php');
 
 require_once(dirname(__FILE__).'/ProductImporter.php');
 require_once(dirname(__FILE__).'/AccessoryImporter.php');
@@ -84,7 +84,7 @@ function getModuleInfo($info)
 {
 	$module_name = 'life365';
 	$_api_url = 'http://api.life365.eu/v2.php';
-	$user_app = 'PrestaShop module ver: 1.2.65';
+	$user_app = 'PrestaShop module ver: 1.2.66';
 	$api_url_jwt = 'http://api.life365.eu/v4/auth/?f=check';
 
 	$api_url_new = ['IT' => 'http://it2.life365.eu', 'PT' => 'http://pt2.life365.eu', 'ES' => 'http://es2.life365.eu', 'CN' => 'http://new.inkloud.cn'];
@@ -120,8 +120,10 @@ function getModuleInfo($info)
 
 function getAccessToken()
 {
-    if(isset($_SESSION['access_token']) && !empty($_SESSION['access_token']))
-		$token = $_SESSION['access_token'];
+	$context = Context::getContext();
+
+    if(isset($context->cookie->access_token) && !empty($context->cookie->access_token))
+		$token = $context->cookie->access_token;
 	else {
         $_api_url = getModuleInfo('api_url');
         $module_name = getModuleInfo('name');
@@ -149,7 +151,7 @@ function getAccessToken()
 
         if ($res['response_code'] == '1') {
             $token = $res['response_detail'];
-            $_SESSION['access_token'] = $token;
+	        $context->cookie->__set('access_token', $token);
 		}
         else
             $token = false;
@@ -339,7 +341,7 @@ function getProds($opt_cat = 0) {
 	$debug = (bool)Configuration::get($module_name.'_debug_mode');
 	$offset = Tools::getValue('offset');
 	$qty = Tools::getValue('qty');
-	$country_l = strtolower(Configuration::get($module_name.'_country'));
+	$country_l = Tools::strtolower(Configuration::get($module_name.'_country'));
 
 	if ($opt_cat == 0)
 		$cat = Tools::getValue('cat');
@@ -427,7 +429,7 @@ function getRootCategories()
 
 function runCron() {
 	$module_name = getModuleInfo('name');
-	$country_l = strtolower(Configuration::get($module_name.'_country'));
+	$country_l = Tools::strtolower(Configuration::get($module_name.'_country'));
 
 	$qty = 30;
 	$result_html = '';
