@@ -168,7 +168,6 @@ function getAccessJWT()
 	$country_id = Configuration::get($module_name.'_country');
 	$login = Configuration::get($module_name.'_login');
 	$password = Configuration::get($module_name.'_password');
-	$referer = $_SERVER['HTTP_HOST'];
 
 	$con = curl_init();
 	$url = $api_url_jwt;
@@ -197,7 +196,6 @@ function getAccessJWT()
 
 function getProducts2($category_id)
 {
-	$_api_url = getModuleInfo('api_url');
 	$module_name = getModuleInfo('name');
 	$jwt = getAccessJWT();
 
@@ -431,10 +429,7 @@ function runCron() {
 	$module_name = getModuleInfo('name');
 	$country_l = Tools::strtolower(Configuration::get($module_name.'_country'));
 
-	$qty = 30;
 	$result_html = '';
-
-	$access_token = getAccessToken();
 
 	$root_cats = getRootCategories();
 	foreach ($root_cats as $root_cat)

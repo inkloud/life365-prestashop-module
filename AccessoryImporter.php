@@ -24,8 +24,8 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-class AccessoryImporter extends productImporter{
-
+class AccessoryImporter extends productImporter
+{
     protected $product; //row source	
     protected $image_basepath;
 
@@ -37,15 +37,15 @@ class AccessoryImporter extends productImporter{
 	}
 
 	public function setImageBasePath($path){
-		if (Tools::substr($path, Tools::strlen($path) - 1) != '/') {
-			$path .= '/';
-		}
-		$this->image_basepath = $path;
+        if (Tools::substr($path, Tools::strlen($path) - 1) != '/') {
+            $path .= '/';
+        }
+        $this->image_basepath = $path;
     }
-	
+
     protected function GetPrice(){
-		$price_limit = (bool)Configuration::get('life365_price_limit');
-		
+        $price_limit = (bool)Configuration::get('life365_price_limit');
+
 		$price_overhead = Db::getInstance()->getValue('
 			SELECT profit
 			FROM `'._DB_PREFIX_.'life365_category`
