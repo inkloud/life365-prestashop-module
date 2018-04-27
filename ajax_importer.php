@@ -87,7 +87,7 @@ function getModuleInfo($info)
 	$user_app = 'PrestaShop module ver: 1.2.66';
 	$api_url_jwt = 'http://api.life365.eu/v4/auth/?f=check';
 
-	$api_url_new = ['IT' => 'http://it2.life365.eu', 'PT' => 'http://pt2.life365.eu', 'ES' => 'http://es2.life365.eu', 'CN' => 'http://new.inkloud.cn'];
+	$api_url_new = array('IT' => 'http://it2.life365.eu', 'PT' => 'http://pt2.life365.eu', 'ES' => 'http://es2.life365.eu', 'CN' => 'http://new.inkloud.cn');
 	$country_id = Configuration::get($module_name.'_country');
 
 	switch ($info)
