@@ -370,12 +370,6 @@ abstract class productImporter{
 			return 1;
 	}
 
-	protected function GetCategoryParent($id_category)
-	{
-		
-		return $parent_category;
-	}
-	
 	protected function GetCategoryTree($id_category)
 	{
 		$categoryTree[] = $id_category;
