@@ -221,7 +221,7 @@ abstract class productImporter{
 				else
 				{
 					$_warnings[] = $image->legend[$id_lang].(isset($image->id_product) ? ' ('.$image->id_product.')' : '').' '.Tools::displayError('cannot be saved');
-					$_errors[] = ($fieldError !== true ? $fieldError : '').($langFieldError !== true ? $langFieldError : '').mysql_error();
+					$_errors[] = ($fieldError !== true ? $fieldError : '').($langFieldError !== true ? $langFieldError : '').Db::getInstance()->getLink()->errorInfo();
 				}
 			}
 		}
