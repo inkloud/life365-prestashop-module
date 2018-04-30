@@ -1,6 +1,6 @@
 <?php
 /**
-* 2007-2015 PrestaShop
+* 2007-2018 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,19 +18,20 @@
 * versions in the future. If you wish to customize PrestaShop for your
 * needs please refer to http://www.prestashop.com for more information.
 *
-*  @author    PrestaShop SA <contact@prestashop.com>
-*  @copyright 2007-2015 PrestaShop SA
+*  @author    Giancarlo Spadini <giancarlo@spadini.it>
+*  @copyright 2007-2018 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-if (!defined('_PS_VERSION_'))
+if (!defined('_PS_VERSION_')) {
     exit;
+}
 
 function upgrade_module_1_2_62($module)
 {
-	$t_sql = 'ALTER TABLE  `'._DB_PREFIX_.$module->name.'_product` ADD  `version` INT NOT NULL DEFAULT  \'0\'';
-	Db::getInstance()->execute($t_sql);
+    $t_sql = 'ALTER TABLE  `'._DB_PREFIX_.$module->name.'_product` ADD  `version` INT NOT NULL DEFAULT  \'0\'';
+    Db::getInstance()->execute($t_sql);
 
     return true;
 }

@@ -88,7 +88,12 @@ function getModuleInfo($info)
 	$user_app = 'PrestaShop module ver: 1.2.66';
 	$api_url_jwt = 'http://api.life365.eu/v4/auth/?f=check';
 
-	$api_url_new = array('IT' => 'http://it2.life365.eu', 'PT' => 'http://pt2.life365.eu', 'ES' => 'http://es2.life365.eu', 'CN' => 'http://new.inkloud.cn');
+	$api_url_new = array(
+        'IT' => 'http://it2.life365.eu',
+        'PT' => 'http://pt2.life365.eu',
+        'ES' => 'http://es2.life365.eu',
+        'CN' => 'http://new.inkloud.cn'
+    );
 	$country_id = Configuration::get($module_name.'_country');
 
 	switch ($info)
@@ -137,7 +142,13 @@ function getAccessToken()
 
         $con = curl_init();
         $url = $_api_url.'?f=getToken';
-        $my_values = array('country_id' => $country_id, 'login' => $login, 'password' => $password, 'referer' => $referer, 'user_app' => $user_app.' with CRON');
+        $my_values = array(
+            'country_id' => $country_id,
+            'login' => $login,
+            'password' => $password,
+            'referer' => $referer,
+            'user_app' => $user_app.' with CRON'
+        );
 
         curl_setopt($con, CURLOPT_URL, $url);
         curl_setopt($con, CURLOPT_POST, true);
@@ -203,11 +214,9 @@ function getProducts2($category_id)
 	$debug = (bool)Configuration::get($module_name.'_debug_mode');
 
 	$api_url_new = getModuleInfo('api_url_new');
-	
 
 	$con = curl_init();
 	$url = $api_url_new."/api/products/level_3/".$category_id."?jwt=".$jwt;
-	$my_values = array();
 
 	curl_setopt($con, CURLOPT_URL, $url);
 	curl_setopt($con, CURLOPT_HEADER, false);
@@ -478,57 +487,60 @@ function runCron() {
 }
 
 function dropship() {
-	$access_token = getAccessToken();
-	
-	$id_order = (int)Tools::getValue('id_o');
-	$cart = new Order((int)$id_order);
-	$address = new Address($cart->id_address_delivery);
+    $access_token = getAccessToken();
 
-	$dropship_address = array();
-	$dropship_products = array();
-	
-	$dropship_address['destination_firstname'] = $address->firstname;
-	$dropship_address['destination_lastname'] = $address->lastname;
-	$dropship_address['destination_company'] = $address->company;
-	$dropship_address['destination_address'] = $address->address1.' '.$address->address2;
-	$dropship_address['destination_postcode'] = $address->postcode;
-	$dropship_address['destination_country'] = $address->country;
-	$dropship_address['destination_city'] = $address->city;
-	
-	$destination_phone = $address->phone;
-	$destination_phone_mobile = $address->phone_mobile;
+    $id_order = (int)Tools::getValue('id_o');
+    $cart = new Order((int)$id_order);
+    $address = new Address($cart->id_address_delivery);
 
-	$dropship_address['destination_phone'] = $address->phone_mobile;
+    $dropship_address = array();
+    $dropship_products = array();
 
-	$products = $cart->getProducts();
-	foreach ($products as $product)
+    $dropship_address['destination_firstname'] = $address->firstname;
+    $dropship_address['destination_lastname'] = $address->lastname;
+    $dropship_address['destination_company'] = $address->company;
+    $dropship_address['destination_address'] = $address->address1.' '.$address->address2;
+    $dropship_address['destination_postcode'] = $address->postcode;
+    $dropship_address['destination_country'] = $address->country;
+    $dropship_address['destination_city'] = $address->city;
+
+    $destination_phone = $address->phone;
+    $destination_phone_mobile = $address->phone_mobile;
+
+    $dropship_address['destination_phone'] = $address->phone_mobile;
+
+    $products = $cart->getProducts();
+    foreach ($products as $product)
 	{
-		$new_drop_product = array('code' => $product['supplier_reference'], 'qty' => $product['product_quantity']);
+        $new_drop_product = array('code' => $product['supplier_reference'], 'qty' => $product['product_quantity']);
 
-		array_push($dropship_products, $new_drop_product);
-	}
-	
+        array_push($dropship_products, $new_drop_product);
+    }
+
 	$res = setDropshipOrder($dropship_address, $dropship_products, $access_token);
-	
+
 	return $res;
 }
 
 
 function setDropshipOrder($dropship_address, $dropship_products, $access_token)
 {
-	$_api_url = getModuleInfo('api_url');
-	$module_name = getModuleInfo('name');
-	$country_id = Configuration::get($module_name.'_country');
-	$login = Configuration::get($module_name.'_login');
-	$password = Configuration::get($module_name.'_password');
+    $_api_url = getModuleInfo('api_url');
+    $module_name = getModuleInfo('name');
+    $country_id = Configuration::get($module_name.'_country');
+    $login = Configuration::get($module_name.'_login');
+    $password = Configuration::get($module_name.'_password');
 
-	$access_token = getAccessToken();
+    $access_token = getAccessToken();
 
 	if (function_exists('curl_init'))
 	{
 		$con = curl_init();
 		$url = $_api_url.'?f=setDropshipOrder&access_token='.$access_token;
-		$my_values = array('dropship_address' => serialize($dropship_address), 'dropship_products' => serialize($dropship_products));
+		$my_values = array(
+            'dropship_address' => serialize($dropship_address),
+            'dropship_products' => serialize($dropship_products)
+        );
 
 		curl_setopt($con, CURLOPT_URL, $url);
 		curl_setopt($con, CURLOPT_POST, true);
@@ -540,17 +552,16 @@ function setDropshipOrder($dropship_address, $dropship_products, $access_token)
 		$res = Tools::jsonDecode($res_curl, true);
 		curl_close($con);
 
-		$new_url = "http://$country_id.life365.eu/_login.asp?L=$login&P=$password&url=http://$country_id.life365.eu/carrello.asp?drop_on=on";
-		Tools::redirect($new_url);
+        $new_url = "http://$country_id.life365.eu/_login.asp?L=$login&P=$password&url=http://$country_id.life365.eu/carrello.asp?drop_on=on";
+        Tools::redirect($new_url);
 
-		if($res['response_code'] == "1") {
-			// echo $res['response_detail'];
-			return true;
-		}
-		else {
-			return false;
-		}
-
+        if($res['response_code'] == "1") {
+            // echo $res['response_detail'];
+            return true;
+        }
+        else {
+            return false;
+        }
 	}
 	else
 		return false;
