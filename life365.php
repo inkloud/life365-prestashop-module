@@ -1,6 +1,6 @@
 <?php
 /**
-* 2007-2014 PrestaShop
+* 2007-2018 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,8 +18,8 @@
 * versions in the future. If you wish to customize PrestaShop for your
 * needs please refer to http://www.prestashop.com for more information.
 *
-*  @author    Giancarlo Spadini <info@anewbattery.com>
-*  @copyright 2007-2014 PrestaShop SA
+*  @author    Giancarlo Spadini <giancarlo@spadini.it>
+*  @copyright 2007-2018 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -32,11 +32,11 @@ require_once('AccessoryImporter.php');
 
 class Life365 extends Module
 {
-	private $c_html = '';
-	private $c_api_url = 'http://api.life365.eu/v2.php';
+    private $c_html = '';
+    private $c_api_url = 'http://api.life365.eu/v2.php';
 
-	public function __construct()
-	{
+    public function __construct()
+    {
 		$this->name = 'life365';
 		$this->tab = 'quick_bulk_update';
 		$this->version = '1.2.66';
@@ -163,13 +163,13 @@ class Life365 extends Module
 			$cats_array = Tools::getValue($this->name.'_categories');
 			foreach ($cats_array as $cat)
 			{
-				$profit = Tools::getValue('profit_'.$cat);
+				$profit = (int)(Tools::getValue('profit_'.$cat) * 100);
 				$ps_cat = Tools::getValue('cat_ps_'.$cat);
 
 				Db::getInstance()->delete($this->name.'_category', 'id_category_external = '.(int)$cat);
 				Db::getInstance()->insert($this->name.'_category', array(
 					'id_category_external' => (int)$cat,
-					'profit'      => $profit,
+					'profit'      => $profit / 100,
 					'id_category_ps' => (int)$ps_cat
 				));
 			}

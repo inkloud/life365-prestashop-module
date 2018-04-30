@@ -1,6 +1,6 @@
 <?php
 /**
-* 2007-2014 PrestaShop
+* 2007-2018 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,11 +18,12 @@
 * versions in the future. If you wish to customize PrestaShop for your
 * needs please refer to http://www.prestashop.com for more information.
 *
-*  @author    Giancarlo Spadini <info@anewbattery.com>
-*  @copyright 2007-2014 PrestaShop SA
+*  @author    Giancarlo Spadini <giancarlo@spadini.it>
+*  @copyright 2007-2018 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
+
 ini_set('max_execution_time', 7200);
 
 require_once(dirname(__FILE__).'/../../config/config.inc.php');

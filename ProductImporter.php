@@ -303,7 +303,7 @@ abstract class productImporter{
 			$price_overhead = Db::getInstance()->getValue('
 				SELECT profit
 				FROM `'._DB_PREFIX_.'life365_category`
-				WHERE id_category_external = '.$this->product->local_category
+				WHERE id_category_external = ' . (int)$this->product->local_category
 			);
 			$product_price = $this->object->price + ($this->object->price * $price_overhead / 100);
 
