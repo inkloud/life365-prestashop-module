@@ -26,7 +26,7 @@
 
 class AccessoryImporter extends productImporter
 {
-    protected $product; //row source	
+    protected $product; //row source
     protected $image_basepath;
 
 	public function SetProductSource(&$p){
@@ -43,7 +43,7 @@ class AccessoryImporter extends productImporter
         $this->image_basepath = $path;
     }
 
-    protected function GetPrice(){
+    protected function getPrice(){
         $price_limit = (bool)Configuration::get('life365_price_limit');
 
 		$price_overhead = Db::getInstance()->getValue('
@@ -59,13 +59,13 @@ class AccessoryImporter extends productImporter
 			return (float)$product_price;
 	}
 
-	protected function GetWholesalePrice()
-	{
-		$product_price = $this->product->price;
-		return (float)$product_price;
-	}
+    protected function getWholesalePrice()
+    {
+        $product_price = $this->product->price;
+        return (float)$product_price;
+    }
 
-	protected function GetWidth()
+	protected function getWidth()
 	{
 		return (float)0;
 	}
@@ -158,12 +158,12 @@ class AccessoryImporter extends productImporter
 	{
 		return (float) 0;
 	}
-	
+
 	protected function GetManufacturerName()
 	{
 		return (string)$this->product->manufactuter;
 	}
-	
+
 	protected function GetManufacturer()
 	{
 		return 0;

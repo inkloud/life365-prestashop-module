@@ -84,7 +84,7 @@ abstract class productImporter{
 		$this->object->id_tax_rules_group = $this->GetTax_Rules_Group();
 		$this->object->unity = $this->GetUnity();
 		$this->object->additional_shipping_cost= self::CleanAmount($this->GetAdditionalShippingCost());
-		$this->object->width= self::CleanAmount($this->GetWidth());
+		$this->object->width= self::CleanAmount($this->getWidth());
 		$this->object->height=self::CleanAmount($this->GetHeight());
 		$this->object->depth=self::CleanAmount($this->GetDepth());
 		$this->object->weight=self::CleanAmount($this->GetWeight());
@@ -130,9 +130,9 @@ abstract class productImporter{
 					$this->object->id_category[] = $this->object->id_category_default;
 			}
 			if($sync_price) {
-				$this->object->price = self::CleanAmount($this->GetPrice());
+				$this->object->price = self::CleanAmount($this->getPrice());
 				$this->object->unit_price = self::CleanAmount($this->GetUnitPrice());
-				$this->object->wholesale_price = self::CleanAmount($this->GetWholesalePrice());
+				$this->object->wholesale_price = self::CleanAmount($this->getWholesalePrice());
 			}
 
 			$this->object->active = true;
@@ -155,9 +155,9 @@ abstract class productImporter{
 			$this->object->meta_keywords[$id_lang] = $this->GetMetaKeyword();
 			$this->object->meta_title[$id_lang] = $this->GetMetaTitle();
 
-			$this->object->price = self::CleanAmount($this->GetPrice());
+			$this->object->price = self::CleanAmount($this->getPrice());
 			$this->object->unit_price = self::CleanAmount($this->GetUnitPrice());
-			$this->object->wholesale_price = self::CleanAmount($this->GetWholesalePrice());
+			$this->object->wholesale_price = self::CleanAmount($this->getWholesalePrice());
 
 			$this->object->active=$this->GetActive();
 			$this->object->online_only =$this->GetOnlineOnly();
@@ -295,7 +295,7 @@ abstract class productImporter{
 	abstract protected function IfExist();
 	abstract public function SetProductSource(&$p);
 	
-	protected function GetPrice(){
+	protected function getPrice(){
 		if($this->object->id)
 		{
 			$price_limit = (bool)Configuration::get($this->module_name . '_price_limit');
@@ -316,7 +316,7 @@ abstract class productImporter{
 			return 0.00;
 	}
 
-	protected function GetWidth(){
+	protected function getWidth(){
 		if($this->object->id)
 			return $this->object->width;
 		else
@@ -445,10 +445,12 @@ abstract class productImporter{
 	{
 		return $this->object->reference;
 	}
+
 	protected function GetSupplierReference(){
 		return $this->object->reference;
 	}
-	protected function GetWholesalePrice(){
+
+	protected function getWholesalePrice(){
 		if($this->object->id)
 			return $this->object->wholesale_price;
 		else

@@ -163,13 +163,13 @@ class Life365 extends Module
 			$cats_array = Tools::getValue($this->name.'_categories');
 			foreach ($cats_array as $cat)
 			{
-				$profit = (int)(Tools::getValue('profit_'.$cat) * 100);
+				$profit = Tools::getValue('profit_'.$cat) * 100;
 				$ps_cat = Tools::getValue('cat_ps_'.$cat);
 
 				Db::getInstance()->delete($this->name.'_category', 'id_category_external = '.(int)$cat);
 				Db::getInstance()->insert($this->name.'_category', array(
 					'id_category_external' => (int)$cat,
-					'profit'      => $profit / 100,
+					'profit'      => (int)$profit / 100,
 					'id_category_ps' => (int)$ps_cat
 				));
 			}
