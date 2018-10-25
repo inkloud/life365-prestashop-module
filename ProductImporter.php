@@ -78,7 +78,7 @@ abstract class productImporter{
         $sync_category = (bool)Configuration::get($this->module_name . '_sync_category');
         $sync_price = (bool)Configuration::get($this->module_name . '_sync_price');
 
-        $this->object->id_manufacturer = $this->GetManufacturer();
+//        $this->object->id_manufacturer = $this->GetManufacturer();
         $this->object->reference = $this->GetReference();
         $this->object->supplier_reference = $this->GetSupplierReference();
         $this->object->id_tax_rules_group = $this->GetTax_Rules_Group();
