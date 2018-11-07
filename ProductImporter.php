@@ -96,7 +96,7 @@ abstract class productImporter{
         $this->object->id_color[] = $this->object->id_color_default;
 //      $this->object->on_sale = $this->GetOnSale();
         $this->object->ean13 = $this->getEan13();
-        $this->object->upc = $this->GetUpc();
+//        $this->object->upc = $this->GetUpc();
         $this->object->ecotax = self::CleanAmount($this->GetEcoTax());
 
         /** either add or edit ***/
