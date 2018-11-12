@@ -33,7 +33,7 @@ require_once('AccessoryImporter.php');
 class Life365 extends Module
 {
     private $c_html = '';
-    private $c_api_url = 'http://api.life365.eu/v2.php';
+    private $c_api_url = 'https://api.life365.eu/v2.php';
 
     public function __construct()
     {
@@ -368,7 +368,7 @@ class Life365 extends Module
 				<option value="PT" '.(Configuration::get($this->name.'_country') == 'PT' ? 'selected="selected"' : '').'>Portugal</option>
 				<option value="ES" '.(Configuration::get($this->name.'_country') == 'ES' ? 'selected="selected"' : '').'>Spain</option>
 			</select>
-			<a href="#" onclick="javascript:window.open(\'http://\'+$(\'#'.$this->name.'_country\').attr(\'value\')+\'.life365.eu/registrazione.asp\', \'_blank\');">'.$this->l('Register new account').'</a>
+			<a href="#" onclick="javascript:window.open(\'https://\'+$(\'#'.$this->name.'_country\').attr(\'value\')+\'.life365.eu/registrazione.asp\', \'_blank\');">'.$this->l('Register new account').'</a>
 		  </div>
 		  <label>'.$this->l('Life365 Login').'</label>
 		  <div class="margin-form">

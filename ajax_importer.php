@@ -84,15 +84,15 @@ switch ($action)
 function getModuleInfo($info)
 {
 	$module_name = 'life365';
-	$_api_url = 'http://api.life365.eu/v2.php';
+	$_api_url = 'https://api.life365.eu/v2.php';
 	$user_app = 'PrestaShop module ver: 1.2.66';
-	$api_url_jwt = 'http://api.life365.eu/v4/auth/?f=check';
+	$api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
 
 	$api_url_new = array(
-        'IT' => 'http://it2.life365.eu',
-        'PT' => 'http://pt2.life365.eu',
-        'ES' => 'http://es2.life365.eu',
-        'CN' => 'http://new.inkloud.cn'
+        'IT' => 'https://it2.life365.eu',
+        'PT' => 'https://pt2.life365.eu',
+        'ES' => 'https://es2.life365.eu',
+        'CN' => 'https://new.inkloud.cn'
     );
 	$country_id = Configuration::get($module_name.'_country');
 
@@ -552,7 +552,7 @@ function setDropshipOrder($dropship_address, $dropship_products, $access_token)
 		$res = Tools::jsonDecode($res_curl, true);
 		curl_close($con);
 
-        $new_url = "http://$country_id.life365.eu/_login.asp?L=$login&P=$password&url=http://$country_id.life365.eu/carrello.asp?drop_on=on";
+        $new_url = "https://$country_id.life365.eu/_login.asp?L=$login&P=$password&url=https://$country_id.life365.eu/carrello.asp?drop_on=on";
         Tools::redirect($new_url);
 
         if($res['response_code'] == "1") {
