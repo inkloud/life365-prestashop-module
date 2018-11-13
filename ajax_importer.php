@@ -92,6 +92,7 @@ function getModuleInfo($info)
         'IT' => 'https://it2.life365.eu',
         'PT' => 'https://pt2.life365.eu',
         'ES' => 'https://es2.life365.eu',
+        'NL' => 'https://nl2.life365.eu',
         'CN' => 'https://new.inkloud.cn'
     );
 	$country_id = Configuration::get($module_name.'_country');
