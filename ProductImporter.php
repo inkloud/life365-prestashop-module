@@ -123,10 +123,10 @@ abstract class productImporter{
             }
             if($sync_category) {
                 $this->object->id_category_default = $this->GetCategoryDefault();
-                $parent_categories = (bool)Configuration::get($this->module_name . '_parent_categories');
-                if ($parent_categories)
-                    $this->object->id_category[] = $this->GetCategoryTree($this->object->id_category_default);
-                else
+//                $parent_categories = (bool)Configuration::get($this->module_name . '_parent_categories');
+//                if ($parent_categories)
+//                    $this->object->id_category[] = $this->GetCategoryTree($this->object->id_category_default);
+//                else
                     $this->object->id_category[] = $this->object->id_category_default;
             }
             if($sync_price) {
