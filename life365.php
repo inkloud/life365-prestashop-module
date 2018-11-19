@@ -587,7 +587,7 @@ class Life365 extends Module
 		$result_html = '';
 		$root_cats = $this->getRootCategories();
 
-		$result_html .= '<script src="//code.jquery.com/ui/1.11.3/jquery-ui.js"></script>';
+		$result_html .= '<script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>';
 		$result_html .= '<fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Manage categories to import').'</legend>';
 		if (is_array($root_cats))
 		{
