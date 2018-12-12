@@ -39,7 +39,7 @@ class Life365 extends Module
     {
 		$this->name = 'life365';
 		$this->tab = 'quick_bulk_update';
-		$this->version = '1.2.66';
+		$this->version = '1.2.67';
 		$this->author = 'Giancarlo Spadini';
 		$this->need_instance = 1;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.8');
@@ -154,7 +154,13 @@ class Life365 extends Module
 		if (Tools::isSubmit($this->name.'_importer'))
 			return $this->startImportAjax();
 
-		if (Tools::isSubmit($this->name.'_manage_cats'))			
+		if (Tools::isSubmit($this->name.'_action_cat_click'))
+        {
+            $managed_cat = Tools::getValue($this->name.'_cat_click');
+			return $this->manageCats2($managed_cat);
+        }
+
+        if (Tools::isSubmit($this->name.'_manage_cats'))
 			return $this->manageCats();
 
 		if (Tools::isSubmit($this->name.'_action_cats_b'))
@@ -582,45 +588,70 @@ class Life365 extends Module
 			return false;
 	}
 
-	private function manageCats()
+
+   	private function manageCats()
 	{
 		$result_html = '';
 		$root_cats = $this->getRootCategories();
 
-		$result_html .= '<script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>';
 		$result_html .= '<fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Manage categories to import').'</legend>';
 		if (is_array($root_cats))
 		{
-			$result_html .= '<script>
-				  $(function() {
-					$( "#tabs" ).tabs();
-				  });
-				  </script>
+			$result_html .= '<div class="col-sm-5">';
+			foreach ($root_cats as $cat)
+			{
+				$result_html .= '<div>
+					<form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_cats-'.$cat["Cat1"].'">
+						<input type="hidden" name="'.$this->name.'_cat_click" value="'.$cat["Cat1"].'" />
+						<input type="submit" name="'.$this->name.'_action_cat_click" value="'.$this->l('Manage category '). $cat["description1"] . '" class="button" />
+					</form></div>';
+			}
+			$result_html .= '</div>';
+
+		}
+		$result_html .= '
+			</div>			
+		</fieldset>';
+
+		return $result_html;
+	}
+
+
+	private function manageCats2($managed_cat)
+	{
+		$result_html = '';
+		$root_cats = $this->getRootCategories();
+
+		$result_html .= '<fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Manage categories to import').'</legend>';
+		if (is_array($root_cats))
+		{
+			$result_html .= '
 				<div id="tabs">
 				  <ul>';
 			foreach ($root_cats as $cat)
 			{
-				$result_html .= '<li><a href="#tabs-'.$cat["Cat1"].'">'.$cat["description1"].'</a></li>';
+                if ($cat["Cat1"] == $managed_cat)
+                {
+                    $root_cats_current = $cat;
+                    $result_html .= '<li><a href="#tabs-'.$cat["Cat1"].'">'.$cat["description1"].'</a></li>';
+                }
 			}
 			$result_html .= '</ul>';
 
-			foreach ($root_cats as $cat)
-			{
-				$cats_html = $this->displayExternalCatetories($cat["Cat1"]);
+            $cats_html = $this->displayExternalCatetories($managed_cat);
 
-				$result_html .= '<div id="tabs-'.$cat["Cat1"].'">
-					<form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_cats-'.$cat["Cat1"].'">
-						<div class="margin-form">
-							'.$cats_html.'
-						</div>
-						<input class="button" type="button" onclick="history.back()" value="'.$this->l('Cancel').'"></input>
-						<input type="submit" name="'.$this->name.'_action_cats_b" value="'.$this->l('Update settings').'" class="button" />
-					</form>
-			  </div>';
-			}
+            $result_html .= '<div id="tabs-'.$cat["Cat1"].'">
+                    <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_cats-'.$cat["Cat1"].'">
+                        <div class="margin-form">
+                            '.$cats_html.'
+                        </div>
+                        <input class="button" type="button" onclick="history.back()" value="'.$this->l('Cancel').'"></input>
+                        <input type="submit" name="'.$this->name.'_action_cats_b" value="'.$this->l('Update settings').'" class="button" />
+                    </form>
+                </div>';
 		}
 		$result_html .= '
-			</div>			
+			</div>
 		</fieldset>';
 
 		return $result_html;

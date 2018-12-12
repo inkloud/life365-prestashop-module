@@ -717,7 +717,21 @@ abstract class productImporter{
 
     public static function removeWhiteSpace($from, $to)
     {
-        $img = imagecreatefromjpeg($from);
+        $file_dimensions = getimagesize($from);
+        $image_type = strtolower($file_dimensions['mime']);
+
+        switch($image_type)
+        {
+        case 'image/png':
+            $img = imagecreatefrompng($from);
+            break;
+        case 'image/jpeg':
+            $img = imagecreatefromjpeg($from);
+            break;
+        default:
+            p('Unsupported File: ' . $image_type . ' - ' . $from); //output error
+            $img = imagecreatetruecolor(200, 200);
+        }
 
         //find the size of the borders
         $b_top = 0;
