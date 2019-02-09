@@ -39,7 +39,7 @@ class Life365 extends Module
     {
 		$this->name = 'life365';
 		$this->tab = 'quick_bulk_update';
-		$this->version = '1.2.67';
+		$this->version = '1.2.68';
 		$this->author = 'Giancarlo Spadini';
 		$this->need_instance = 1;
 		$this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.8');
@@ -736,11 +736,11 @@ class Life365 extends Module
 					if (g<todo_cat.length)
 					{
 						$.ajax({
-								type: "POST",
+								type: "GET",
 								url: loadUrl,
 								dataType : "html",
 								async: true,
-								data: {cat: todo_cat[g], offset: k, qty: 20}
+								data: {cat: todo_cat[g], offset: k, qty: 20, action: "getProds", token: "'.Tools::getAdminToken($this->name).'"}
 							}).done(function( msg ) {
 								if (msg.length > 0 && k<10)
 								{
@@ -778,7 +778,7 @@ class Life365 extends Module
                 }
 
 			$(document).ready(function() {
-				var loadUrl = "'.$this->siteURL().__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php?action=getProds&token='.Tools::getAdminToken($this->name).'";
+				var loadUrl = "'.$this->siteURL().__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php";
 
 				var selected_categories = '.Tools::jsonEncode($categories).'
 
