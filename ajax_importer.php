@@ -23,7 +23,9 @@
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
-
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST');
+header("Access-Control-Allow-Headers: X-Requested-With");
 ini_set('max_execution_time', 7200);
 
 require_once(dirname(__FILE__).'/../../config/config.inc.php');
@@ -85,7 +87,7 @@ function getModuleInfo($info)
 {
 	$module_name = 'life365';
 	$_api_url = 'https://api.life365.eu/v2.php';
-	$user_app = 'PrestaShop module ver: 1.2.67';
+	$user_app = 'PrestaShop module ver: 1.2.68';
 	$api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
 
 	$api_url_new = array(
