@@ -1,6 +1,5 @@
-<?php
-/**
-* 2007-2018 PrestaShop
+{*
+* 2007-2019 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -22,8 +21,7 @@
 *  @copyright  2007-2018 Giancarlo Spadini
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
-*/
-?>
+*}
 <div id="life365_news">
 <h5>Life365 updater</h5>
 Testo

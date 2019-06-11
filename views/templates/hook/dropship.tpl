@@ -1,6 +1,5 @@
-<?php
-/**
-* 2007-2018 PrestaShop
+{*
+* 2007-2019 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -22,8 +21,7 @@
 *  @copyright  2007-2018 Giancarlo Spadini
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
-*/
-?>
+*}
 <div id="life365_dropshipping" align="right">
 	<form method="GET" action="{$dropship_link|escape:'htmlall':'UTF-8'}" target="_blank">
 		<input type="hidden" name="token" value="{$dropship_token|escape:'htmlall':'UTF-8'}" />

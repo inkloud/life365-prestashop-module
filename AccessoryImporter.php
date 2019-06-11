@@ -24,23 +24,23 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-class AccessoryImporter extends productImporter
+class AccessoryImporter extends ProductImporter
 {
     protected $product; //row source
     protected $image_basepath;
 
-    public function SetProductSource(&$p)
+    public function setProductSource(&$p)
     {
-        if (empty($p))
+        if (empty($p)) {
             throw new Exception("No Product Source");
+        }
 
         $this->product = $p;
     }
 
     public function setImageBasePath($path)
     {
-        if (Tools::substr($path, Tools::strlen($path) - 1) != '/')
-        {
+        if (Tools::substr($path, Tools::strlen($path) - 1) != '/') {
             $path .= '/';
         }
         $this->image_basepath = $path;
@@ -58,10 +58,11 @@ class AccessoryImporter extends productImporter
         );
         $product_price = $this->product->price + ($this->product->price * $price_overhead / 100);
 
-        if ($product_price > $this->product->street_price && $price_limit)
+        if ($product_price > $this->product->street_price && $price_limit) {
             return (float)$this->product->street_price;
-        else
+        } else {
             return (float)$product_price;
+        }
     }
 
     protected function getWholesalePrice()
@@ -75,21 +76,21 @@ class AccessoryImporter extends productImporter
         return (float)0;
     }
 
-    protected function GetHeight()
+    protected function getHeight()
     {
         return (float)0;
     }
-    protected function GetDepth()
+    protected function getDepth()
     {
         return (float)0;
     }
     
-    protected function GetWeight()
+    protected function getWeight()
     {
         return (float)($this->product->weight / 1000);
     }
     
-    protected function GetShortDesciption()
+    protected function getShortDesciption()
     {
         $str_tmp = strip_tags($this->product->short_description);
         $str_tmp = str_replace("\r\n", "<br>", $str_tmp);
@@ -98,17 +99,17 @@ class AccessoryImporter extends productImporter
 //      return $str_tmp;
     }
     
-    protected function GetDesciption()
+    protected function getDesciption()
     {
         return (string)$this->product->description;
     }
     
-    protected function GetMetaDescription()
+    protected function getMetaDescription()
     {
         $meta_description = (string)$this->product->meta_description;
-        $meta_description = preg_replace('/[<>;=#{}]/ui',' ',$meta_description);
+        $meta_description = preg_replace('/[<>;=#{}]/ui', ' ', $meta_description);
 
-        $meta_description = (Tools::strlen($meta_description) > 255) ? Tools::substr($meta_description,0,255) : $meta_description;
+        $meta_description = (Tools::strlen($meta_description) > 255) ? Tools::substr($meta_description, 0, 255) : $meta_description;
 
         return $meta_description;
     }
@@ -116,66 +117,67 @@ class AccessoryImporter extends productImporter
     protected function getEan13()
     {
         $ean13 = (string)$this->product->barcode;
-        if ($ean13 == "0000000000000")
+        if ($ean13 == "0000000000000") {
             $ean13 = null;
+        }
 
         return $ean13;
-
     }
 
-    protected function GetReference()
+    protected function getReference()
     {
         return (string)$this->product->reference;
     }
     
-    protected function GetSupplierReference()
+    protected function getSupplierReference()
     {
         return (string)$this->product->reference;
     }
     
-    protected function GetMetaKeyword()
+    protected function getMetaKeyword()
     {
         $meta_keywords = $this->product->meta_keywords;
-        $meta_keywords = preg_replace('/[<>;=#{}]/ui',' ',$meta_keywords);
+        $meta_keywords = preg_replace('/[<>;=#{}]/ui', ' ', $meta_keywords);
 
         return (string)Tools::substr($meta_keywords, 0, 255);
     }
 
-    protected function GetMetaTitle()
+    protected function getMetaTitle()
     {
         $meta_title = (string)$this->product->meta_title;
-        $meta_title = preg_replace('/[<>;=#{}]/ui',' ',$meta_title);
+        $meta_title = preg_replace('/[<>;=#{}]/ui', ' ', $meta_title);
 
         return $meta_title;
     }
     
-    protected function GetName()
+    protected function getName()
     {
         $not_valid = array("#", "{", "}", "^", "<", ">", ";", "=");
-        $name = str_replace($not_valid , '', (string)$this->product->name);
-        if (empty($name))
+        $name = str_replace($not_valid, '', (string)$this->product->name);
+        if (empty($name)) {
             p((string)$this->product);
 //          throw Exception("Accessory Import Exception : Blank Name");
+        }
         return $name;
     }
     
-    protected function GetUnitPrice()
+    protected function getUnitPrice()
     {
         return (float) 0;
     }
 
-    protected function GetManufacturerName()
+    protected function getManufacturerName()
     {
         return (string)$this->product->manufactuter;
     }
 
-    protected function GetManufacturer()
+    protected function getManufacturer()
     {
         return 0;
 
 /*
         $res = Db::getInstance()->ExecuteS(
-            "SELECT id_manufacturer AS id FROM "._DB_PREFIX_."manufacturer WHERE link_rewrite = '".(string)Tools::link_rewrite($this->GetManufacturerName())."'"
+            "SELECT id_manufacturer AS id FROM "._DB_PREFIX_."manufacturer WHERE link_rewrite = '".(string)Tools::link_rewrite($this->getManufacturerName())."'"
         );
         if(count($res)==0){
             if(empty($name))
@@ -185,23 +187,23 @@ class AccessoryImporter extends productImporter
 */
     }
     
-    protected function GetQuantity()
+    protected function getQuantity()
     {
         return (string)$this->product->quantity;
     }
 
-    protected function GetImages()
+    protected function getImages()
     {
         $img_arr = array();
         $url = $this->product->url_image;
         $img_arr[]= $url;
-        return $img_arr;        
+        return $img_arr;
     }
 
-    protected function GetTags()
+    protected function getTags()
     {
         $meta_keywords = $this->product->meta_keywords;
-        $meta_keywords = preg_replace('/[!<;>;?=+#"°{}_$%]/ui',' ',$meta_keywords);
+        $meta_keywords = preg_replace('/[!<;>;?=+#"°{}_$%]/ui', ' ', $meta_keywords);
 
         $str_tags = str_replace(" ", ",", $meta_keywords);
         $tags = explode(",", $str_tags);
@@ -210,25 +212,26 @@ class AccessoryImporter extends productImporter
         return (array)$tags;
     }
     
-    protected function GetCategoryDefault()
+    protected function getCategoryDefault()
     {
-        $default_category = Db::getInstance()->getValue('
-            SELECT id_category_ps
+        $default_category = Db::getInstance()->getValue(
+            'SELECT id_category_ps
             FROM `'._DB_PREFIX_.'life365_category`
             WHERE id_category_external = '.(int)$this->product->local_category
         );
-        if(empty($default_category))
+        if (empty($default_category)) {
             $default_category = Configuration::get('life365_default_category');
+        }
 
         return $default_category;
     }
 
     /**
-    * This method checkc if current product already exist 
+    * This method check if current product already exist
     * you can implement any logic to check if item already exist.
     * only thing is that if you want to add item return 0 otherwise id_product
     * Here I am checking in a import table and return id_product if it is exist
-    * 
+    *
     *
     *
     */
@@ -239,11 +242,9 @@ class AccessoryImporter extends productImporter
         //first check in mapping table
         $sql = 'SELECT id_product_ps FROM '._DB_PREFIX_.'life365_product WHERE id_product_external = '.(int)$this->product->id;
         $res = Db::getInstance()->getRow($sql);
-        if ($res)
-        {
+        if ($res) {
             $id_product = $res['id_product_ps'];
-            if (!Product::existsInDatabase((int)($id_product), 'product'))
-            {
+            if (!Product::existsInDatabase((int)($id_product), 'product')) {
                 $t_sql = 'DELETE FROM '._DB_PREFIX_.'life365_product WHERE id_product_ps = '.(int)$id_product;
                 Db::getInstance()->execute($t_sql);
                 $id_product=0;
@@ -258,15 +259,12 @@ class AccessoryImporter extends productImporter
     **/
     protected function afterAdd()
     {
-        if (!$this->ifExist())
-        {
+        if (!$this->ifExist()) {
             $t_sql = 'INSERT INTO `'._DB_PREFIX_.'life365_product` (`id_product_external`, `date_import`, `id_product_ps`, `version`)';
             $t_sql .= ' VALUES ';
-            $t_sql .= '('.(int)$this->product->id.', CURRENT_TIMESTAMP, '.(int)$this->GetProductID().', '.(int)$this->product->version.')';
+            $t_sql .= '('.(int)$this->product->id.', CURRENT_TIMESTAMP, '.(int)$this->getProductID().', '.(int)$this->product->version.')';
             Db::getInstance()->execute($t_sql);
-        }
-        else
-        {
+        } else {
             $t_sql = 'UPDATE `'._DB_PREFIX_.'life365_product` SET `version` = '.(int)$this->product->version.' WHERE `id_product_external` = '.(int)$this->product->id.';';
             Db::getInstance()->execute($t_sql);
         }
