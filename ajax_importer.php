@@ -534,53 +534,14 @@ function dropship()
 
     setShippingAddress($dropship_address);
     
-    $res = setDropshipOrder($dropship_address, $dropship_products, $access_token);
+    $login = Configuration::get($module_name.'_login');
+    $password = Configuration::get($module_name.'_password');
+    $new_url = getModuleInfo('e_ecommerce_url')."/checkout?l=$login&p=$password";
+    Tools::redirect($new_url);
 
     return $res;
 }
 
-
-function setDropshipOrder($dropship_address, $dropship_products, $access_token)
-{
-    $_api_url = getModuleInfo('api_url');
-    $module_name = getModuleInfo('name');
-    $country_id = Configuration::get($module_name.'_country');
-    $login = Configuration::get($module_name.'_login');
-    $password = Configuration::get($module_name.'_password');
-
-    $access_token = getAccessToken();
-
-    if (function_exists('curl_init')) {
-        $con = curl_init();
-        $url = $_api_url.'?f=setDropshipOrder&access_token='.$access_token;
-        $my_values = array(
-            'dropship_address' => serialize($dropship_address),
-            'dropship_products' => serialize($dropship_products)
-        );
-
-        curl_setopt($con, CURLOPT_URL, $url);
-        curl_setopt($con, CURLOPT_POST, true);
-        curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
-        curl_setopt($con, CURLOPT_HEADER, false);
-        curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
-
-        $res_curl = curl_exec($con);
-        $res = Tools::jsonDecode($res_curl, true);
-        curl_close($con);
-
-        $new_url = getModuleInfo('e_ecommerce_url')."/checkout?l=$login&p=$password";
-        Tools::redirect($new_url);
-
-        if ($res['response_code'] == "1") {
-            // echo $res['response_detail'];
-            return true;
-        } else {
-            return false;
-        }
-    } else {
-        return false;
-    }
-}
 
 //restituisce il carrello attivo, quello meno recente se ce ne sono più di uno, ne crea uno nuovo se non ne esistono
 function getActiveCart()
@@ -711,7 +672,6 @@ function setShippingAddress($dropship_address)
     
     $debug = (bool)Configuration::get($module_name.'_debug_mode');
 
-    //per il formato selezionare PHP da postman
     $data =
         '{"type": "PUT_ADDR",
             "value": {"spedizione": {
@@ -746,6 +706,8 @@ function setShippingAddress($dropship_address)
     }
 
     curl_close($con);
+    
+    //fare una nuova put per mettere il FLAG DROPSHIP a true
 }
 
 function countryStringToNumber($countryString)
