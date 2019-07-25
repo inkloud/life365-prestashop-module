@@ -524,11 +524,7 @@ abstract class ProductImporter
 
     protected function getUpc()
     {
-        if ($this->object->id) {
-            return $this->object->upc;
-        } else {
-            return null;
-        }
+        return null;
     }
     
     protected function getOnSale()

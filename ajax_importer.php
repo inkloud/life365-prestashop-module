@@ -87,7 +87,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.69';
+    $user_app = 'PrestaShop module ver: 1.2.70';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
     $e_commerce_url = array(
         'IT' => 'https://www.life365.eu',
