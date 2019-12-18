@@ -742,9 +742,9 @@ abstract class ProductImporter
             foreach ($imagesTypes as $imageType) {
                 ImageManager::resize($newimage, $path.'-'.Tools::stripslashes($imageType['name']).'.jpg', $imageType['width'], $imageType['height']);
             }
-            if (in_array($imageType['id_image_type'], $watermark_types)) {
-                Module::hookExec('watermark', array('id_image' => $id_image, 'id_product' => $id_entity));
-            }
+//            if (in_array($imageType['id_image_type'], $watermark_types)) {
+//                Module::hookExec('watermark', array('id_image' => $id_image, 'id_product' => $id_entity));
+//            }
         } else {
             unlink($tmpfile);
             return false;

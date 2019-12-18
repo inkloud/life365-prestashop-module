@@ -87,7 +87,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.70';
+    $user_app = 'PrestaShop module ver: 1.2.72';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
     $e_commerce_url = array(
         'IT' => 'https://www.life365.eu',
@@ -195,7 +195,7 @@ function getAccessJWT()
 
     $con = curl_init();
     $url = $api_url_jwt;
-    $my_values = array('country' => $country_id, 'login' => $login, 'password' => $password, 'role' => 'cliente');
+    $my_values = array('country' => $country_id, 'login' => $login, 'password' => $password, 'role' => 'customer');
 
     curl_setopt($con, CURLOPT_URL, $url);
     curl_setopt($con, CURLOPT_POST, true);
