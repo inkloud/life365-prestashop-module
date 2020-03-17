@@ -87,14 +87,14 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.72';
+    $user_app = 'PrestaShop module ver: 1.2.73';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
     $e_commerce_url = array(
         'IT' => 'https://www.life365.eu',
         'PT' => 'https://www.life365.pt',
         'ES' => 'https://www.inkloud.es',
         'NL' => 'https://www.inkloud.eu',
-        'CN' => 'https://new.inkloud.cn/ecommerce'
+        'CN' => 'https://www.inkloud.cn'
     );
 
     $api_url_new = array(
@@ -500,7 +500,7 @@ function runCron()
  
 function dropship()
 {
-    $access_token = getAccessToken();
+    $module_name = getModuleInfo('name');
 
     $id_order = (int)Tools::getValue('id_o');
     $cart = new Order((int)$id_order);
