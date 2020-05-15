@@ -87,7 +87,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.73';
+    $user_app = 'PrestaShop module ver: 1.2.74';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
     $e_commerce_url = array(
         'IT' => 'https://www.life365.eu',
@@ -104,6 +104,22 @@ function getModuleInfo($info)
         'NL' => 'https://nl2.life365.eu',
         'CN' => 'https://new.inkloud.cn'
     );
+
+    $country_default = array(
+        'IT' => 102,
+        'PT' => 1,
+        'ES' => 17,
+        'NL' => 150,
+        'CN' => 39
+    );
+    $region_default = array(
+        'IT' => 1,
+        'PT' => 1,
+        'ES' => 1,
+        'NL' => 19,
+        'CN' => 1
+    );
+
     $country_id = Configuration::get($module_name.'_country');
 
     switch ($info) {
@@ -121,6 +137,12 @@ function getModuleInfo($info)
             break;
         case 'name':
             $detail = $module_name;
+            break;
+        case 'default_country_id':
+            $detail = $country_default[$country_id];
+            break;
+        case 'default_region_id':
+            $detail = $region_default[$country_id];
             break;
         case 'user_app':
             $detail = $user_app;
@@ -501,6 +523,7 @@ function runCron()
 function dropship()
 {
     $module_name = getModuleInfo('name');
+    $debug = (bool)Configuration::get($module_name.'_debug_mode');
 
     $id_order = (int)Tools::getValue('id_o');
     $cart = new Order((int)$id_order);
@@ -532,8 +555,11 @@ function dropship()
         array_push($dropship_products, $new_drop_product);
     }
 
+    if ($debug) {
+        p($dropship_address);
+    }
     setShippingAddress($dropship_address);
-    
+
     $login = Configuration::get($module_name.'_login');
     $password = Configuration::get($module_name.'_password');
     $new_url = getModuleInfo('e_ecommerce_url')."/checkout?l=$login&p=$password";
@@ -686,7 +712,7 @@ function setShippingAddress($dropship_address)
                 }
             }
         }';
-    
+
     curl_setopt($con, CURLOPT_URL, $url);
     curl_setopt($con, CURLOPT_HTTPHEADER, array("Content-Type: application/json"));
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
@@ -699,10 +725,12 @@ function setShippingAddress($dropship_address)
     }
     
     $retcode = curl_getinfo($con, CURLINFO_HTTP_CODE);
-    if ($retcode!=200) {
-        $info = curl_getinfo($con);
-        p($info);
-        p($res_curl);
+    if ($debug) {
+        if ($retcode!=200) {
+            $info = curl_getinfo($con);
+            p($info);
+            p($res_curl);
+        }
     }
 
     curl_close($con);
@@ -749,6 +777,13 @@ function countryStringToNumber($countryString)
             return $countries['id'];
         }
     }
+    foreach ($res as $countries) {
+        if ($countries['name'] == Configuration::get($module_name.'_country')) {
+            return $countries['id'];
+        }
+    }
+
+    return getModuleInfo('default_country_id');
 }
 
 function regionStringToNumber($regionString, $countryString)
@@ -788,10 +823,11 @@ function regionStringToNumber($regionString, $countryString)
     $res = Tools::jsonDecode($res_curl, true);
                      
     //ricerco fra i nomi delle nazioni e quando trovata restituisco il numero corrispondente
-    
     foreach ($res as $regions) {
         if ($regions['name'] == $regionString) {
             return $regions['id'];
         }
     }
+
+    return getModuleInfo('default_region_id');
 }
