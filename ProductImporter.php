@@ -395,7 +395,7 @@ abstract class ProductImporter
 
     protected function getCategoryTree($id_category)
     {
-        $categoryTree[] = null;
+        $categoryTree = array();
         $categoryTree[] = $id_category;
         $current_category = $id_category;
         while ($id_category > 1) {
@@ -693,7 +693,6 @@ abstract class ProductImporter
     public static function copyImg($id_entity, $url, $id_image = null, $entity = 'products')
     {
         $tmpfile = tempnam(_PS_TMP_IMG_DIR_, 'ps_import');
-        $watermark_types = explode(',', Configuration::get('WATERMARK_TYPES'));
 
         switch ($entity) {
             default:
@@ -742,6 +741,7 @@ abstract class ProductImporter
             foreach ($imagesTypes as $imageType) {
                 ImageManager::resize($newimage, $path.'-'.Tools::stripslashes($imageType['name']).'.jpg', $imageType['width'], $imageType['height']);
             }
+//            $watermark_types = explode(',', Configuration::get('WATERMARK_TYPES'));
 //            if (in_array($imageType['id_image_type'], $watermark_types)) {
 //                Module::hookExec('watermark', array('id_image' => $id_image, 'id_product' => $id_entity));
 //            }
