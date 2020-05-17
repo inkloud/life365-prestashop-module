@@ -42,7 +42,7 @@ abstract class ProductImporter
 
         if (!$this->id_product) {
             return 0;
-        } else if ((int)$this->id_product and Product::existsInDatabase((int)($this->id_product), 'product')) {
+        } elseif ((int)$this->id_product and Product::existsInDatabase((int)($this->id_product), 'product')) {
             $this->object = new Product((int)($this->id_product));
         } else {
             // if the subclass returned something other than false
@@ -63,7 +63,7 @@ abstract class ProductImporter
 
         if (!$this->id_product) {
             $this->object = self::createAndInitializeNewObject();
-        } else if ((int)$this->id_product and Product::existsInDatabase((int)($this->id_product), 'product')) {
+        } elseif ((int)$this->id_product and Product::existsInDatabase((int)($this->id_product), 'product')) {
             $this->object = new Product((int)($this->id_product));
         } else {
             // if the subclass returned something other than false
