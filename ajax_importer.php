@@ -542,7 +542,7 @@ function dropship()
     $dropship_address['destination_region'] = State::getNameById($address->id_state);
 
     $destination_phone = $address->phone;
-    $destination_phone_mobile = $address->phone_mobile;
+//    $destination_phone_mobile = $address->phone_mobile;
 
     $dropship_address['destination_phone'] = $address->phone_mobile;
 
@@ -565,7 +565,7 @@ function dropship()
     $new_url = getModuleInfo('e_ecommerce_url')."/checkout?l=$login&p=$password";
     Tools::redirect($new_url);
 
-    return $res;
+    return true;
 }
 
 
