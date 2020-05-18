@@ -300,7 +300,7 @@ class Life365 extends Module
       
                     $sql = 'SELECT `profit`, `id_category_ps`
                         FROM `'._DB_PREFIX_.$this->name.'_category`
-                        WHERE id_category_external = '.$cat['Cat3'];
+                        WHERE id_category_external = '.(int)$cat['Cat3'];
                     if ($row = Db::getInstance()->getRow($sql)) {
                         $id_cat_ps = $row['id_category_ps'];
                         $profit = $row['profit'];
