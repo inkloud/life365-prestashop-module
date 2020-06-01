@@ -326,8 +326,6 @@ class Life365 extends Module
         $cats_html .= '<input type="hidden" name="'.$this->name.'_cat1" value="'.$root_category.'" />';
         $cats_html .= '<input type="hidden" name="'.$this->name.'_list_cat3" value="'.$list_cat3.'" />';
 
-
-        // START::Thank you to Alessandro Nanni
         $cats_html .= '<select style="display:none;" id="all_categories">';
         $cats_html .= $this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), Configuration::get('PS_HOME_CATEGORY'), Configuration::get('PS_LANG_DEFAULT'));
         $cats_html .= '</select>';
@@ -345,7 +343,6 @@ class Life365 extends Module
                     $( this ).val(sel);
                 });
             });</script>';
-        // END::Thank you to Alessandro Nanni
 
         return $cats_html;
     }
@@ -354,6 +351,14 @@ class Life365 extends Module
     {
         // Get domain portion
         $myUrl = $this->siteURL();
+        $e_commerce_url = array(
+            'IT' => 'https://www.life365.eu',
+            'PT' => 'https://www.life365.pt',
+            'ES' => 'https://www.inkloud.es',
+            'NL' => 'https://www.inkloud.eu',
+            'CN' => 'https://www.inkloud.cn'
+        );
+        $country_id = Configuration::get($this->name.'_country');
 
         $cron_url = Tools::getHttpHost(true).__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php?action=cron&token='.Tools::getAdminToken($this->name);
         $this->c_html .= '
@@ -364,10 +369,12 @@ class Life365 extends Module
           <select id="'.$this->name.'_country" name="'.$this->name.'_country">
                 <option value="0">'.$this->l('-- Choose a country --').'</option>
                 <option value="IT" '.(Configuration::get($this->name.'_country') == 'IT' ? 'selected="selected"' : '').'>Italy</option>
+                <option value="CN" '.(Configuration::get($this->name.'_country') == 'CN' ? 'selected="selected"' : '').'>China</option>
+                <option value="NL" '.(Configuration::get($this->name.'_country') == 'NL' ? 'selected="selected"' : '').'>Netherlands</option>
                 <option value="PT" '.(Configuration::get($this->name.'_country') == 'PT' ? 'selected="selected"' : '').'>Portugal</option>
                 <option value="ES" '.(Configuration::get($this->name.'_country') == 'ES' ? 'selected="selected"' : '').'>Spain</option>
             </select>
-            <a href="#" onclick="javascript:window.open(\'https://\'+$(\'#'.$this->name.'_country\').attr(\'value\')+\'.life365.eu/registrazione.asp\', \'_blank\');">'.$this->l('Register new account').'</a>
+            <a href="#" onclick="javascript:window.open(\''.$e_commerce_url[$country_id].'/user\', \'_blank\');">'.$this->l('Register new account').'</a>
             </div>
             <label>'.$this->l('Life365 Login').'</label>
           <div class="margin-form">

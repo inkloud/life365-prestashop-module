@@ -74,6 +74,9 @@ switch ($action) {
     case 'cron':
         print runCron();
         break;
+    case 'cron2':
+        print runCron2();
+        break;
     case 'version':
         print getModuleInfo('user_app');
         print '<br>';
@@ -519,7 +522,57 @@ function runCron()
 
     return $result_html;
 }
+
  
+function runCron2()
+{
+    $module_name = getModuleInfo('name');
+    $country_l = Tools::strtolower(Configuration::get($module_name.'_country'));
+    $macro_cat = (int)Tools::getValue('mc');
+
+    $result_html = '';
+
+    $root_cats = getRootCategories();
+p($root_cats);
+
+    $cats_array = explode(",", Configuration::get($module_name.'_'.$macro_cat["Cat1"].'_categories'));
+    foreach ($cats_array as $cat) {
+        p('Section: '.$macro_cat['description1'].'<br />');
+        if (Tools::strlen($cat)>0) {
+            $offset = 0;
+            while (array_filter($proucts = getProducts2($cat)) and $offset<1) {
+                p('CATEGORY '.$cat.': IMPORT offset '.$offset.'<br />');
+                foreach ($proucts as $product) {
+                    p('Importing product '.$product['id']);
+                    $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
+
+                    $objectProduct->reference = $objectProduct->code_simple;
+                    $objectProduct->name = $objectProduct->title->{$country_l};
+                    $objectProduct->meta_keywords = $objectProduct->keywords;
+                    $objectProduct->price = $objectProduct->price->price;
+                    $objectProduct->street_price = $objectProduct->price_a;
+                    $objectProduct->description = $objectProduct->descr->{$country_l};
+                    $objectProduct->quantity = $objectProduct->stock;
+                    $objectProduct->url_image = json_decode(json_encode($objectProduct->photos), true)[0];
+                    $objectProduct->local_category = $objectProduct->level_3;
+                    $objectProduct->meta_description = '';
+                    $objectProduct->meta_title = $objectProduct->name;
+                    $objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
+                    $objectProduct->version = $objectProduct->last_update;
+
+                    $accessroyImport = new AccessoryImporter();
+                    $accessroyImport->setProductSource($objectProduct);
+                    $accessroyImport->save();
+                }
+                $offset += 1;
+            }
+        }
+    }
+
+    return $result_html;
+}
+ 
+
 function dropship()
 {
     $module_name = getModuleInfo('name');
