@@ -90,8 +90,10 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.74';
+    $user_app = 'PrestaShop module ver: 1.2.75';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
+    $stock_url = '/api/utils/csvdata/prodstock?l=USERID&p=PASSWORD&idcat=IDCAT';
+
     $e_commerce_url = array(
         'IT' => 'https://www.life365.eu',
         'PT' => 'https://www.life365.pt',
@@ -147,6 +149,14 @@ function getModuleInfo($info)
         case 'default_region_id':
             $detail = $region_default[$country_id];
             break;
+        case 'stock_cat_url':
+            $detail = $e_commerce_url[$country_id] . $stock_url;
+            $login = Configuration::get($module_name.'_login');
+            $password = Configuration::get($module_name.'_password');
+            
+            $detail = str_replace('USERID', $login, $detail);
+            
+            break;
         case 'user_app':
             $detail = $user_app;
             break;
@@ -164,8 +174,9 @@ function getModuleInfo($info)
 function getAccessToken()
 {
     $context = Context::getContext();
+    $token_expire = rand(0,200);
 
-    if (isset($context->cookie->access_token) && !empty($context->cookie->access_token)) {
+    if (isset($context->cookie->access_token) && !empty($context->cookie->access_token) && $token_expire > 1) {
         $token = $context->cookie->access_token;
     } else {
         $_api_url = getModuleInfo('api_url');
@@ -413,7 +424,6 @@ function getProds($opt_cat = 0)
             $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
 
             //convert to old format
-            
             $objectProduct->reference = $objectProduct->code_simple;
             $objectProduct->name = $objectProduct->title->{$country_l};
             $objectProduct->meta_keywords = $objectProduct->keywords;
@@ -531,9 +541,6 @@ function runCron2()
     $macro_cat = (int)Tools::getValue('mc');
 
     $result_html = '';
-
-    $root_cats = getRootCategories();
-p($root_cats);
 
     $cats_array = explode(",", Configuration::get($module_name.'_'.$macro_cat["Cat1"].'_categories'));
     foreach ($cats_array as $cat) {
