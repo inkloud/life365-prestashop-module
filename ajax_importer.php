@@ -176,7 +176,7 @@ function getAccessToken()
     $context = Context::getContext();
     $token_expire = rand(0,200);
 
-    if (isset($context->cookie->access_token) && !empty($context->cookie->access_token) && $token_expire > 1) {
+    if (isset($context->cookie->access_token) && !empty($context->cookie->access_token) && $token_expire > 1 && $token_expire < 1) {
         $token = $context->cookie->access_token;
     } else {
         $_api_url = getModuleInfo('api_url');
@@ -539,6 +539,7 @@ function runCron2()
     $module_name = getModuleInfo('name');
     $country_l = Tools::strtolower(Configuration::get($module_name.'_country'));
     $macro_cat = (int)Tools::getValue('mc');
+    $root_cats = getRootCategories();
 
     $result_html = '';
 
