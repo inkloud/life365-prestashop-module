@@ -90,7 +90,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.75';
+    $user_app = 'PrestaShop module ver: 1.2.76';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
     $stock_url = '/api/utils/csvdata/prodstock?l=USERID&p=PASSWORD&idcat=IDCAT';
 
@@ -388,7 +388,7 @@ function checkLogon()
     if ($res['response_code'] == '1') {
         return "<img src='".dirname($_SERVER['PHP_SELF']).'/../../'."img/admin/enabled.gif' /><font color='green'>Ok</font>";
     }
-    
+   
     return "<img src='".dirname($_SERVER['PHP_SELF']).'/../../'."img/admin/disabled.gif' /><font color='red'>".$res['response_text'].'</font>';
 }
 

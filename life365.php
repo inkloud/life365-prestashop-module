@@ -40,7 +40,7 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '1.2.75';
+        $this->version = '1.2.76';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.8');
@@ -389,7 +389,7 @@ class Life365 extends Module
                     </td>
                     <td><div id="res_logon"></div></td>
                     <td>
-                        <a href="#" onclick="javascript:check_user_pwd($(\'#'.$this->name.'_login\').attr(\'value\'), $(\'#'.$this->name.'_password\').attr(\'value\'), $(\'#'.$this->name.'_country\').attr(\'value\'));">'.$this->l('Test').'</a>
+                        <a href="#" onclick="javascript:check_user_pwd($(\'#'.$this->name.'_login\').attr(\'value\'), $(\'#'.$this->name.'_password\').attr(\'value\'), $(\'#'.$this->name.'_country\').val());">'.$this->l('Test').'</a>
                     </td>
                 </tr>
             </table>
