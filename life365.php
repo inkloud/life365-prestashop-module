@@ -40,7 +40,7 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '1.2.76';
+        $this->version = '1.2.77';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.8');
@@ -121,7 +121,8 @@ class Life365 extends Module
         return (
             $this->registerHook('backOfficeHome')
             && $this->registerHook('DisplayBackOfficeHeader')
-            && $this->registerHook('displayAdminOrderTabOrder')
+            && $this->registerHook('displayAdminOrderRight')
+            && $this->registerHook('displayAdminOrderSide')
         );
     }
     private function unregisterHooks()
@@ -134,7 +135,18 @@ class Life365 extends Module
 */
     }
 
-    public function hookDisplayAdminOrderTabOrder($params)
+    public function hookdisplayAdminOrderRight($params)
+    {
+        $this->smarty->assign(array('order' => $params['order'],
+        'dropship_link' => $this->_path.'ajax_importer.php',
+        'dropship_order' => $params['order']->id,
+        'dropship_token' => Tools::getAdminToken($this->name)
+        ));
+
+        return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
+    }
+
+    public function hookDisplayAdminOrderSide($params)
     {
         $this->smarty->assign(array('order' => $params['order'],
         'dropship_link' => $this->_path.'ajax_importer.php',
