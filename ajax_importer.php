@@ -543,9 +543,9 @@ function runCron2()
 
     $result_html = '';
 
-    $cats_array = explode(",", Configuration::get($module_name.'_'.$macro_cat["Cat1"].'_categories'));
+    $cats_array = explode(",", Configuration::get($module_name.'_'.$macro_cat.'_categories'));
     foreach ($cats_array as $cat) {
-        p('Section: '.$macro_cat['description1'].'<br />');
+        p('Section: '.$macro_cat.'<br />');
         if (Tools::strlen($cat)>0) {
             $offset = 0;
             while (array_filter($proucts = getProducts2($cat)) and $offset<1) {
