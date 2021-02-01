@@ -121,6 +121,7 @@ class Life365 extends Module
         return (
             $this->registerHook('backOfficeHome')
             && $this->registerHook('DisplayBackOfficeHeader')
+            && $this->registerHook('displayAdminOrderTabOrder')
             && $this->registerHook('displayAdminOrderRight')
             && $this->registerHook('displayAdminOrderSide')
         );
@@ -133,6 +134,17 @@ class Life365 extends Module
             && $this->registerHook('displayBackOfficeHeader')
         );
 */
+    }
+
+    public function hookdisplayAdminOrderTabOrder($params)
+    {
+        $this->smarty->assign(array('order' => $params['order'],
+        'dropship_link' => $this->_path.'ajax_importer.php',
+        'dropship_order' => $params['order']->id,
+        'dropship_token' => Tools::getAdminToken($this->name)
+        ));
+
+        return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
     }
 
     public function hookdisplayAdminOrderRight($params)
@@ -206,9 +218,8 @@ class Life365 extends Module
             Configuration::updateValue($this->name.'_sync_price', Tools::getValue($this->name.'_sync_price'));
             Configuration::updateValue($this->name.'_sync_category', Tools::getValue($this->name.'_sync_category'));
             Configuration::updateValue($this->name.'_debug_mode', Tools::getValue($this->name.'_debug_mode'));
-            Configuration::updateValue($this->name.'_import_method', Tools::getValue($this->name.'_import_method'));
             Configuration::updateValue($this->name.'_price_limit', Tools::getValue($this->name.'_price_limit'));
-            Configuration::updateValue($this->name.'_parent_categories', Tools::getValue($this->name.'_parent_categories'));
+            // Configuration::updateValue($this->name.'_parent_categories', Tools::getValue($this->name.'_parent_categories'));
         }
 
         if (Tools::isSubmit($this->name.'_submit')) {
@@ -437,9 +448,15 @@ class Life365 extends Module
             </form>
             <div class="clear"></div>
             <br />
+<!--
             <div>
-                <b>'.$this->l('Cron url').': </b>
+                <b>'.$this->l('Complete Cron url').': </b>
                 '.$cron_url.'<br>
+            </div>
+-->
+            <div>
+                <b>'.$this->l('Cron urls by cateogry').': </b>
+                '.$this->cronUrl2().'<br>
                 <font size="-2"><a href="https://www.easycron.com/?ref=70609" target="_blank">A free CRON scheduler</a></font>
             </div>
         </fieldset>
@@ -457,10 +474,12 @@ class Life365 extends Module
                     </ul>
                 </div>
                 <div class="clear"></div>
+<!--
                 <label>'.$this->l('Associate to parent categories').'</label>
                 <div class="margin-form">
                     <input type="checkbox" name="'.$this->name.'_parent_categories'.'" '.(Configuration::get($this->name.'_parent_categories') ? 'checked="checked"' : '').' /> '.$this->l('Connect products with all parent categories').'
                 </div>
+-->
                 <div class="clear"></div>
                 <label>'.$this->l('Price limit').'</label>
                 <div class="margin-form">
@@ -472,13 +491,6 @@ class Life365 extends Module
                     <input type="checkbox" name="'.$this->name.'_debug_mode'.'" '.(Configuration::get($this->name.'_debug_mode') ? 'checked="checked"' : '').' /> '.$this->l('Debug enabled').'
                 </div>
                 <div class="clear"></div>
-                <label>'.$this->l('Import method').'</label>
-                <div class="margin-form">
-                    <input type="radio" name="'.$this->name.'_import_method'.'" value="1" '.(Configuration::get($this->name.'_import_method') ? 'checked="checked" ' : '').'/>
-                    <label class="t" for="display_on">'.$this->l('Normal').'</label>
-                    <input type="radio" name="'.$this->name.'_import_method'.'" value="0" '.(!Configuration::get($this->name.'_import_method') ? 'checked="checked" ' : '').'/>
-                    <label class="t" for="display_off"> '.$this->l('Safe, but slow').'</label>
-                </div>
                 <input type="submit" name="'.$this->name.'_save_other_settings" value="'.$this->l('Save optional settings').'" class="button" />
             </form>
         </fieldset>
@@ -656,13 +668,27 @@ class Life365 extends Module
         return $result_html;
     }
 
+    private function cronUrl2()
+    {
+        $result_html = '';
+        $root_cats = $this->getRootCategories();
+
+        $cron_url2 = Tools::getHttpHost(true).__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php?action=cron2&token='.Tools::getAdminToken($this->name).'&mc=';
+
+        if (is_array($root_cats)) {
+            $result_html .= '<div class="col-sm-5">';
+            foreach ($root_cats as $cat) {
+                $result_html .= '<div><i>'.$cat["description1"].':</i><br>&nbsp&nbsp'.$cron_url2.$cat["Cat1"].'<br></div>';
+            }
+            $result_html .= '</div>';
+        }
+
+        return $result_html;
+    }
+
 
     private function startImportAjax()
     {
-        if (Tools::strlen(Configuration::get($this->name.'_import_method')) == 0) {
-            Configuration::updateValue($this->name.'_import_method', 1);
-        }
-        
         $result_html = '';
 
         $current_file_name = array_reverse(explode('/', $_SERVER['SCRIPT_NAME']));
@@ -707,7 +733,7 @@ class Life365 extends Module
                         $.ajax({
                                 type: "POST",
                                 url: loadUrl,
-                                dataType : "html",async: '.Configuration::get($this->name.'_import_method').',
+                                dataType : "html",
                                 data: {cat: todo_cat[g], offset: k, qty: 20}
                             }).done(function( msg ) {
                                 if (msg.length > 0 && k<10)
@@ -783,7 +809,7 @@ class Life365 extends Module
                 for (var i=0;i<selected_categories.length;i++)
                 {
                     $("#result_"+selected_categories[i]).append("Job started. Category name <b>"+todo_categories_desc[selected_categories[i]]+"</b>, subcategory to import: <b>"+todo_categories[selected_categories[i]].length+"</b><br /><br />");
-                    getProds'.Configuration::get($this->name.'_import_method').'(0, loadUrl, selected_categories[i], 0);
+                    getProds0(0, loadUrl, selected_categories[i], 0);
                 }
             });
 
