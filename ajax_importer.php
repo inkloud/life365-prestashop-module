@@ -605,9 +605,15 @@ function dropship()
     $destination_phone = $address->phone;
 //    $destination_phone_mobile = $address->phone_mobile;
 
-    $dropship_address['destination_phone'] = $address->phone_mobile;
+    $dropship_address['destination_phone'] = $destination_phone.' '.$address->phone_mobile;
 
-    $products = $cart->getProducts();
+    if(_PS_VERSION_ >= '1.7.7.0'){
+        $products = $cart->getProductsDetail();
+    }else{ //older versions
+        $products = $cart->getProducts();
+    }
+
+    
     
     foreach ($products as $product) {
         addProductToCart($product['supplier_reference'], $product['product_quantity']);

@@ -136,22 +136,34 @@ class Life365 extends Module
 */
     }
 
-    public function hookdisplayAdminOrderTabOrder($params)
+    public function hookDisplayAdminOrderTabOrder($params)
     {
+        if(_PS_VERSION_ >= '1.7.7.0'){
+            $order_id = $params['id_order'];
+        }else{ //older versions
+            $order_id =  $params['order']->id;
+        }
+
+
         $this->smarty->assign(array('order' => $params['order'],
         'dropship_link' => $this->_path.'ajax_importer.php',
-        'dropship_order' => $params['order']->id,
+        'dropship_order' => $order_id,
         'dropship_token' => Tools::getAdminToken($this->name)
         ));
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
     }
-
+    
     public function hookdisplayAdminOrderRight($params)
     {
+        if(_PS_VERSION_ >= '1.7.7.0'){
+            $order_id = $params['id_order'];
+        }else{ //older versions
+            $order_id =  $params['order']->id;
+        }
         $this->smarty->assign(array('order' => $params['order'],
         'dropship_link' => $this->_path.'ajax_importer.php',
-        'dropship_order' => $params['order']->id,
+        'dropship_order' => $order_id,
         'dropship_token' => Tools::getAdminToken($this->name)
         ));
 
@@ -160,15 +172,19 @@ class Life365 extends Module
 
     public function hookDisplayAdminOrderSide($params)
     {
+        if(_PS_VERSION_ >= '1.7.7.0'){
+            $order_id = $params['id_order'];
+        }else{ //older versions
+            $order_id =  $params['order']->id;
+        }
         $this->smarty->assign(array('order' => $params['order'],
         'dropship_link' => $this->_path.'ajax_importer.php',
-        'dropship_order' => $params['order']->id,
+        'dropship_order' => $order_id,
         'dropship_token' => Tools::getAdminToken($this->name)
         ));
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
     }
-
     public function hookbackOfficeHome($params)
     {
         return $this->display(__FILE__, 'views/templates/hook/life365.tpl');
