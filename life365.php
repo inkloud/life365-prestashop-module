@@ -1,6 +1,6 @@
 <?php
 /**
-* 2007-2020 PrestaShop
+* 2007-2021 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -40,7 +40,7 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '1.2.77';
+        $this->version = '1.2.78';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.8');
@@ -109,7 +109,11 @@ class Life365 extends Module
 
     public function uninstall()
     {
-        if (!parent::uninstall() || !$this->uninstallDB() || !Configuration::deleteByName('LIFE365_NAME') || !$this->unregisterHook('displayBackOfficeHeader')) {
+        if (!parent::uninstall()
+            || !$this->uninstallDB()
+            || !Configuration::deleteByName('LIFE365_NAME')
+            || !$this->unregisterHook('displayBackOfficeHeader')
+            ) {
             return false;
         }
 
@@ -136,22 +140,34 @@ class Life365 extends Module
 */
     }
 
-    public function hookdisplayAdminOrderTabOrder($params)
+    public function hookDisplayAdminOrderTabOrder($params)
     {
+        if (_PS_VERSION_ >= '1.7.7.0') {
+            $order_id = $params['id_order'];
+        } else { //older versions
+            $order_id =  $params['order']->id;
+        }
+
+
         $this->smarty->assign(array('order' => $params['order'],
         'dropship_link' => $this->_path.'ajax_importer.php',
-        'dropship_order' => $params['order']->id,
+        'dropship_order' => $order_id,
         'dropship_token' => Tools::getAdminToken($this->name)
         ));
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
     }
-
+    
     public function hookdisplayAdminOrderRight($params)
     {
+        if (_PS_VERSION_ >= '1.7.7.0') {
+            $order_id = $params['id_order'];
+        } else { //older versions
+            $order_id =  $params['order']->id;
+        }
         $this->smarty->assign(array('order' => $params['order'],
         'dropship_link' => $this->_path.'ajax_importer.php',
-        'dropship_order' => $params['order']->id,
+        'dropship_order' => $order_id,
         'dropship_token' => Tools::getAdminToken($this->name)
         ));
 
@@ -160,15 +176,19 @@ class Life365 extends Module
 
     public function hookDisplayAdminOrderSide($params)
     {
+        if (_PS_VERSION_ >= '1.7.7.0') {
+            $order_id = $params['id_order'];
+        } else { //older versions
+            $order_id =  $params['order']->id;
+        }
         $this->smarty->assign(array('order' => $params['order'],
         'dropship_link' => $this->_path.'ajax_importer.php',
-        'dropship_order' => $params['order']->id,
+        'dropship_order' => $order_id,
         'dropship_token' => Tools::getAdminToken($this->name)
         ));
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
     }
-
     public function hookbackOfficeHome($params)
     {
         return $this->display(__FILE__, 'views/templates/hook/life365.tpl');
@@ -643,7 +663,6 @@ class Life365 extends Module
                       <ul>';
             foreach ($root_cats as $cat) {
                 if ($cat["Cat1"] == $managed_cat) {
-                    $root_cats_current = $cat;
                     $result_html .= '<li><a href="#tabs-'.$cat["Cat1"].'">'.$cat["description1"].'</a></li>';
                 }
             }

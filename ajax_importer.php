@@ -1,6 +1,6 @@
 <?php
 /**
-* 2007-2020 PrestaShop
+* 2007-2021 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -90,7 +90,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.77';
+    $user_app = 'PrestaShop module ver: 1.2.78';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
     $stock_url = '/api/utils/csvdata/prodstock?l=USERID&p=PASSWORD&idcat=IDCAT';
 
@@ -155,6 +155,7 @@ function getModuleInfo($info)
             $password = Configuration::get($module_name.'_password');
             
             $detail = str_replace('USERID', $login, $detail);
+            $detail = str_replace('PASSWORD', $password, $detail);
             
             break;
         case 'user_app':
@@ -174,7 +175,7 @@ function getModuleInfo($info)
 function getAccessToken()
 {
     $context = Context::getContext();
-    $token_expire = rand(0,200);
+    $token_expire = rand(0, 200);
 
     if (isset($context->cookie->access_token) && !empty($context->cookie->access_token) && $token_expire > 1 && $token_expire < 1) {
         $token = $context->cookie->access_token;
@@ -539,7 +540,6 @@ function runCron2()
     $module_name = getModuleInfo('name');
     $country_l = Tools::strtolower(Configuration::get($module_name.'_country'));
     $macro_cat = (int)Tools::getValue('mc');
-    $root_cats = getRootCategories();
 
     $result_html = '';
 
@@ -605,9 +605,15 @@ function dropship()
     $destination_phone = $address->phone;
 //    $destination_phone_mobile = $address->phone_mobile;
 
-    $dropship_address['destination_phone'] = $address->phone_mobile;
+    $dropship_address['destination_phone'] = $destination_phone.' '.$address->phone_mobile;
 
-    $products = $cart->getProducts();
+    if (_PS_VERSION_ >= '1.7.7.0') {
+        $products = $cart->getProductsDetail();
+    } else { //older versions
+        $products = $cart->getProducts();
+    }
+
+    
     
     foreach ($products as $product) {
         addProductToCart($product['supplier_reference'], $product['product_quantity']);
@@ -684,11 +690,10 @@ function getActiveCart()
 }
 
 
-//crea nuovo carrello
+//build a new cart on extrernal ecommerce
 function getNewCart()
 {
     $jwt = getAccessJWT();
-    $module_name = getModuleInfo('name');
     $api_url_new = getModuleInfo('api_url_new');
     $url = $api_url_new."/api/order/cart?jwt=".$jwt;
 
