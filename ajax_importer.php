@@ -446,7 +446,8 @@ function getProds($opt_cat = 0)
             $objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
             $objectProduct->version = $objectProduct->last_update;
             $objectProduct->id_manufactuter = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
-            
+            $objectProduct->manufactuter = $objectProduct->brand;
+                        
             $accessroyImport = new AccessoryImporter();
             $accessroyImport->setProductSource($objectProduct);
             $accessroyImport->save();
@@ -534,6 +535,7 @@ function runCron()
                         $objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
                         $objectProduct->version = $objectProduct->last_update;
                         $objectProduct->id_manufactuter = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
+                        $objectProduct->manufactuter = $objectProduct->brand;
 
                         $accessroyImport = new AccessoryImporter();
                         $accessroyImport->setProductSource($objectProduct);
@@ -591,6 +593,7 @@ function runCron2()
                     $objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
                     $objectProduct->version = $objectProduct->last_update;
                     $objectProduct->id_manufactuter = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
+                    $objectProduct->manufactuter = $objectProduct->brand;
 
                     $accessroyImport = new AccessoryImporter();
                     $accessroyImport->setProductSource($objectProduct);
