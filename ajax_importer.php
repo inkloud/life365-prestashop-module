@@ -35,7 +35,7 @@ require_once(dirname(__FILE__).'/../../classes/Cookie.php');
 require_once(dirname(__FILE__).'/ProductImporter.php');
 require_once(dirname(__FILE__).'/AccessoryImporter.php');
 
-AdminController::initShopContext();
+
 
 $context = Context::getContext();
 
