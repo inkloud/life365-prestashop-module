@@ -195,7 +195,7 @@ class AccessoryImporter extends ProductImporter
         
 
         $res = Db::getInstance()->ExecuteS(
-            "SELECT      AS id FROM "._DB_PREFIX_."manufacturer WHERE name = '".$name."'"
+            "SELECT  id_manufacturer AS id FROM "._DB_PREFIX_."manufacturer WHERE name = '".$name."'"
         );
         if(empty($res)){
             Db::getInstance()->execute(
@@ -237,7 +237,7 @@ class AccessoryImporter extends ProductImporter
             //INSERT INTO `ps_manufacturer_lang` (`id_manufacturer`, `id_lang`, `description`, `short_description`, `meta_title`, `meta_keywords`, `meta_description`) VALUES ('9', '1', NULL, NULL, NULL, NULL, NULL);
 
             Db::getInstance()->execute(
-                "INSERT INTO "._DB_PREFIX_."manufacturer ( `name`,  `active`,`date_add`, `date_upd` VALUES (  '".(string)$this->getManufacturerName()."',  1 , CURRENT_TIMESTAMP(),  CURRENT_TIMESTAMP() )"
+                "INSERT INTO "._DB_PREFIX_."manufacturer ( `name`,  `active`,`date_add`, `date_upd`) VALUES (  '".(string)$this->getManufacturerName()."',  1 , CURRENT_TIMESTAMP(),  CURRENT_TIMESTAMP() )"
             );
             $res = Db::getInstance()->ExecuteS(
                 "SELECT id_manufacturer AS id FROM "._DB_PREFIX_."manufacturer WHERE name = '".(string)$this->getManufacturerName()."'"
