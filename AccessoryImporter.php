@@ -211,7 +211,7 @@ class AccessoryImporter extends ProductImporter
                 $language_id = (int)Context::getContext()->language->id;
                 Db::getInstance()->execute("INSERT INTO "._DB_PREFIX_."manufacturer_shop  VALUES ( ".$res[0]['id'].", ".$id_shop.")");
                 Db::getInstance()->execute(
-                    "INSERT INTO "._DB_PREFIX_."manufacturer_lang (`id_manufacturer`, `id_lang) VALUES ( ".$res[0]['id'].", ".$language_id.")"
+                    "INSERT INTO "._DB_PREFIX_."manufacturer_lang (`id_manufacturer`, `id_lang`) VALUES ( ".$res[0]['id'].", ".$language_id.")"
                 );
             }
             
@@ -249,7 +249,7 @@ class AccessoryImporter extends ProductImporter
                 $language_id = (int)Context::getContext()->language->id;
                 Db::getInstance()->execute("INSERT INTO "._DB_PREFIX_."manufacturer_shop  VALUES ( ".$res[0]['id'].", ".$id_shop.")");
                 Db::getInstance()->execute(
-                    "INSERT INTO "._DB_PREFIX_."manufacturer_lang (`id_manufacturer`, `id_lang) VALUES ( ".$res[0]['id'].", ".$language_id.")"
+                    "INSERT INTO "._DB_PREFIX_."manufacturer_lang (`id_manufacturer`, `id_lang`) VALUES ( ".$res[0]['id'].", ".$language_id.")"
                 );
             }
         }
