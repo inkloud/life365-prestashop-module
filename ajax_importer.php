@@ -35,6 +35,8 @@ require_once(dirname(__FILE__).'/../../classes/Cookie.php');
 require_once(dirname(__FILE__).'/ProductImporter.php');
 require_once(dirname(__FILE__).'/AccessoryImporter.php');
 
+AdminController::initShopContext();
+
 $context = Context::getContext();
 
 if (!function_exists('p')) {
@@ -417,12 +419,17 @@ function getProds($opt_cat = 0)
     $result_html = '';
     if (array_filter($products = getProducts2($cat))) {
         $result_html .= 'CATEGORY '.$cat.': IMPORT offset '.$offset.'<br />';
+        $serviceAccessoryImport = new AccessoryImporter();
         foreach ($products as $product) {
             if ($debug) {
                 p($product);
             }
-            $result_html .= 'Importing product '.$product['id'].'<br />';
             $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
+            if($serviceAccessoryImport->getVersion($objectProduct->id) >= $objectProduct->last_update){
+                $result_html .='Skip product '.$product['id'].' latest version already <br />';
+                continue;
+            }
+            $result_html .='Importing product '.$product['id'].'<br />';
 
             //convert to old format
             $objectProduct->reference = $objectProduct->code_simple;
@@ -438,7 +445,8 @@ function getProds($opt_cat = 0)
             $objectProduct->meta_title = $objectProduct->name;
             $objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
             $objectProduct->version = $objectProduct->last_update;
-
+            $objectProduct->id_manufactuter = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
+            
             $accessroyImport = new AccessoryImporter();
             $accessroyImport->setProductSource($objectProduct);
             $accessroyImport->save();
@@ -501,11 +509,16 @@ function runCron()
             p('Section: '.$root_cat['description1'].'<br />');
             if (Tools::strlen($cat)>0) {
                 $offset = 0;
+                $serviceAccessoryImport = new AccessoryImporter();
                 while (array_filter($proucts = getProducts2($cat)) and $offset<1) {
                     p('CATEGORY '.$cat.': IMPORT offset '.$offset.'<br />');
                     foreach ($proucts as $product) {
-                        p('Importing product '.$product['id']);
                         $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
+                        if($serviceAccessoryImport->getVersion($objectProduct->id) >= $objectProduct->last_update){
+                            p('Skip product '.$product['id'].' latest version already');
+                            continue;
+                        }
+                        p('Importing product '.$product['id']);
 
                         $objectProduct->reference = $objectProduct->code_simple;
                         $objectProduct->name = $objectProduct->title->{$country_l};
@@ -520,6 +533,7 @@ function runCron()
                         $objectProduct->meta_title = $objectProduct->name;
                         $objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
                         $objectProduct->version = $objectProduct->last_update;
+                        $objectProduct->id_manufactuter = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
 
                         $accessroyImport = new AccessoryImporter();
                         $accessroyImport->setProductSource($objectProduct);
@@ -537,9 +551,14 @@ function runCron()
  
 function runCron2()
 {
+    global  $opt_cat;
     $module_name = getModuleInfo('name');
     $country_l = Tools::strtolower(Configuration::get($module_name.'_country'));
-    $macro_cat = (int)Tools::getValue('mc');
+    if (PHP_SAPI === 'cli') {
+        $macro_cat = $opt_cat;
+    }else{
+        $macro_cat = (int)Tools::getValue('mc');
+    }
 
     $result_html = '';
 
@@ -548,12 +567,16 @@ function runCron2()
         p('Section: '.$macro_cat.'<br />');
         if (Tools::strlen($cat)>0) {
             $offset = 0;
+            $serviceAccessoryImport = new AccessoryImporter();
             while (array_filter($proucts = getProducts2($cat)) and $offset<1) {
                 p('CATEGORY '.$cat.': IMPORT offset '.$offset.'<br />');
                 foreach ($proucts as $product) {
-                    p('Importing product '.$product['id']);
                     $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
-
+                    if($serviceAccessoryImport->getVersion($objectProduct->id) >= $objectProduct->last_update){
+                        p('Skip product '.$product['id'].' latest version already');
+                        continue;
+                    }
+                    p('Importing product '.$product['id']);
                     $objectProduct->reference = $objectProduct->code_simple;
                     $objectProduct->name = $objectProduct->title->{$country_l};
                     $objectProduct->meta_keywords = $objectProduct->keywords;
@@ -567,6 +590,7 @@ function runCron2()
                     $objectProduct->meta_title = $objectProduct->name;
                     $objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
                     $objectProduct->version = $objectProduct->last_update;
+                    $objectProduct->id_manufactuter = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
 
                     $accessroyImport = new AccessoryImporter();
                     $accessroyImport->setProductSource($objectProduct);
