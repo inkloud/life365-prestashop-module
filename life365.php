@@ -40,8 +40,8 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '1.2.78';
-        $this->author = 'Giancarlo Spadini';
+        $this->version = '1.2.79';
+        $this->author = 'Giancarlo Spadini & Vandershop.it';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.8');
         $this->module_key = '17fe516516b4f12fb1d877a3600dbedc';
@@ -52,6 +52,10 @@ class Life365 extends Module
         $this->description = $this->l('Expand your shop. Start now selling over 10.000 products in dropshipping!');
 
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
+    }
+
+    public function getName(){
+        return $this->name;
     }
 
     public function install()

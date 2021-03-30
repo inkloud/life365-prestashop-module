@@ -323,7 +323,25 @@ class AccessoryImporter extends ProductImporter
 
         return $id_product;
     }
+    
+    protected function ifExistId($productId)
+    {
+        $id_product=0;
 
+        //first check in mapping table
+        $sql = 'SELECT id_product_ps FROM '._DB_PREFIX_.'life365_product WHERE id_product_external = '.(int)$productId;
+        $res = Db::getInstance()->getRow($sql);
+        if ($res) {
+            $id_product = $res['id_product_ps'];
+            if (!Product::existsInDatabase((int)($id_product), 'product')) {
+                $t_sql = 'DELETE FROM '._DB_PREFIX_.'life365_product WHERE id_product_ps = '.(int)$id_product;
+                Db::getInstance()->execute($t_sql);
+                $id_product=0;
+            }
+        }
+
+        return $id_product;
+    }
     /**
         this method will be called after item is added to database and it's id_product is generated
     **/

@@ -37,6 +37,7 @@ require_once(dirname(__FILE__).'/AccessoryImporter.php');
 
 
 
+
 $context = Context::getContext();
 
 if (!function_exists('p')) {
@@ -78,6 +79,9 @@ switch ($action) {
         break;
     case 'cron2':
         print runCron2();
+        break;
+    case 'cron3':
+        print runCron3();
         break;
     case 'version':
         print getModuleInfo('user_app');
@@ -292,6 +296,41 @@ function getProducts2($category_id)
 }
 
 
+function getSingleProduct($product_id)
+{
+    $module_name = getModuleInfo('name');
+    $jwt = getAccessJWT();
+
+    $debug = (bool)Configuration::get($module_name.'_debug_mode');
+    
+    $api_url_new = getModuleInfo('api_url_new');
+
+    $con = curl_init();
+    $url = $api_url_new."/api/products/".$product_id."?jwt=".$jwt;
+
+    curl_setopt($con, CURLOPT_URL, $url);
+    curl_setopt($con, CURLOPT_HEADER, false);
+    curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+
+    $res_curl = curl_exec($con);
+    if ($debug) {
+        p($res_curl);
+    }
+
+    $retcode = curl_getinfo($con, CURLINFO_HTTP_CODE);
+    if ($retcode!=200) {
+        $info = curl_getinfo($con);
+        p($info);
+        p($res_curl);
+    }
+
+    curl_close($con);
+
+    $res = Tools::jsonDecode($res_curl, true);
+
+    return $res;
+}
+
 function getProductsDisabled($category_id, $access_token, $qty = 100, $offset = 0)
 {
     $_api_url = getModuleInfo('api_url');
@@ -447,6 +486,8 @@ function getProds($opt_cat = 0)
             $objectProduct->version = $objectProduct->last_update;
             $objectProduct->id_manufactuter = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
             $objectProduct->manufactuter = $objectProduct->brand;
+            $objectProduct->ean13 = $objectProduct->barcode;
+
                         
             $accessroyImport = new AccessoryImporter();
             $accessroyImport->setProductSource($objectProduct);
@@ -475,6 +516,107 @@ function getProds($opt_cat = 0)
     return $result_html;
 }
 
+function getCatStock($category_id){
+    //https://www.life365.eu/api/utils/csvdata/prodstock?l=USER&p=PASSWORD&idcat=IDCAT
+    $name = getModuleInfo('name');
+    $login = Configuration::get($name.'_login');
+    $password = Configuration::get($name.'_password');
+
+    $file = "https://www.life365.eu/api/utils/csvdata/prodstock?l=".$login."&p=".$password."&idcat=".$category_id;
+    $fileData=fopen($file,'r');
+
+    //create header array id,code,stock,version_data
+    $line = fgetcsv($fileData,0,";"); //get the first line
+    $header = [];
+    foreach($line as $val){
+        $header[] = $val;
+    }
+
+    $i = 0;
+    $result = [];
+    while (($line = fgetcsv($fileData,0,";")) !== FALSE) {
+        if($i == 0){$i += 1; continue;} //skip the header line
+        $new_entry = [$header[0] => $line[0], $header[1] => $line[1] , $header[2] => $line[2] ,$header[3] => $line[3] ];
+        $result[] = $new_entry;
+    }
+  
+
+    return $result;
+
+
+}
+
+function runCron3(){
+    global  $opt_cat;
+    $module_name = getModuleInfo('name');
+    $country_l = Tools::strtolower(Configuration::get($module_name.'_country'));
+    if (PHP_SAPI === 'cli') {
+        $macro_cat = $opt_cat;
+    }else{
+        $macro_cat = (int)Tools::getValue('mc');
+    }
+
+    $result_html = '';
+
+    
+        p('Section: '.$macro_cat.' '.$opt_cat.'<br />');
+ 
+        if (Tools::strlen($macro_cat)>0) {
+            $offset = 0;
+
+
+            $products = getCatStock($macro_cat);
+
+            while (array_filter($products) && $offset<1) {
+                p('CATEGORY '.$macro_cat.': IMPORT offset '.$offset.'<br />');
+
+
+                foreach ($products as $product) {
+
+
+                    p('Set quantity product '.$product['id'].' '.$product['code'].' '.$product['version_data']);
+                    $accessroyImport = new AccessoryImporter();
+                    $accessroyImport->saveQuantity($product['id'],$product['stock']);
+
+                   
+
+                    if($accessroyImport->getVersion($product['id']) >= $product['version_data']){
+                        p('Skip product '.$product['id'].' latest version already');
+                        continue;
+                    }
+                    p('Importing product '.$product['id']);
+                   
+                    $all_product_data = getSingleProduct($product['id']);
+                    $objectProduct = Tools::jsonDecode(Tools::jsonEncode($all_product_data), false);
+                    $objectProduct->reference = $objectProduct->code_simple;
+                    $objectProduct->name = $objectProduct->title->{$country_l};
+                    $objectProduct->meta_keywords = $objectProduct->keywords;
+                    $objectProduct->price = $objectProduct->price->price;
+                    $objectProduct->street_price = $objectProduct->price_a;
+                    $objectProduct->description = $objectProduct->descr->{$country_l};
+                    $objectProduct->quantity = $objectProduct->stock;
+
+                    $objectProduct->url_image = implode(",",json_decode(json_encode($objectProduct->photos), true));
+                    $objectProduct->local_category = $objectProduct->level_3;
+                    $objectProduct->meta_description = '';
+                    $objectProduct->meta_title = $objectProduct->name;
+                    $objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
+                    $objectProduct->version = $objectProduct->last_update;
+                    $objectProduct->id_manufactuter = $accessroyImport->getManufacturerId($objectProduct->brand);
+                    $objectProduct->manufactuter = $objectProduct->brand;
+                    $objectProduct->ean13 = $objectProduct->barcode;
+
+                   
+                    $accessroyImport->setProductSource($objectProduct);
+                    $accessroyImport->save();
+                }
+                $offset += 1;
+            }
+        }
+    
+
+    return $result_html;
+}
 
 function getRootCategories()
 {
@@ -536,6 +678,8 @@ function runCron()
                         $objectProduct->version = $objectProduct->last_update;
                         $objectProduct->id_manufactuter = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
                         $objectProduct->manufactuter = $objectProduct->brand;
+                        $objectProduct->ean13 = $objectProduct->barcode;
+
 
                         $accessroyImport = new AccessoryImporter();
                         $accessroyImport->setProductSource($objectProduct);
@@ -594,6 +738,8 @@ function runCron2()
                     $objectProduct->version = $objectProduct->last_update;
                     $objectProduct->id_manufactuter = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
                     $objectProduct->manufactuter = $objectProduct->brand;
+                    $objectProduct->ean13 = $objectProduct->barcode;
+
 
                     $accessroyImport = new AccessoryImporter();
                     $accessroyImport->setProductSource($objectProduct);

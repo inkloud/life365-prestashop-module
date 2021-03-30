@@ -56,6 +56,24 @@ abstract class ProductImporter
         $this->object->update();
     }
     
+    public function saveQuantity($productId,$qta){
+        $this->id_product = $this->ifExistId($productId);
+
+
+        if (!$this->id_product) {
+            return 0; //quantity will be added after 
+        } elseif ((int)$this->id_product and Product::existsInDatabase((int)($this->id_product), 'product')) {
+            $this->object = new Product((int)($this->id_product));
+            
+        } else {
+            // if the subclass returned something other than false
+            // skip;
+            return 0;
+        }
+        StockAvailable::setQuantity($this->id_product, null,$qta, Context::getContext()->shop->id);
+        $this->object->update();
+        return 2;
+    }
     
     public function save()
     {
@@ -425,6 +443,9 @@ abstract class ProductImporter
     
     protected function getEan13()
     {
+        if(isset($this->object->ean13)){
+            return $this->object->ean13;
+        }
         $ean13 = $this->object->barcode[$this->object->id_lang];
         if ($ean13 == "0000000000000") {
             $ean13 = null;
