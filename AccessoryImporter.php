@@ -205,7 +205,7 @@ class AccessoryImporter extends ProductImporter
                 "SELECT id_manufacturer AS id FROM "._DB_PREFIX_."manufacturer WHERE name = '".$name."'"
             );
             if(empty($res)){
-                throw Exception("Accessory Import Exception : No Manufacturer");
+                throw new Exception("Accessory Import Exception : No Manufacturer");
             }else{
                 $id_shop = (int)Context::getContext()->shop->id;
                 $language_id = (int)Context::getContext()->language->id;
@@ -243,7 +243,7 @@ class AccessoryImporter extends ProductImporter
                 "SELECT id_manufacturer AS id FROM "._DB_PREFIX_."manufacturer WHERE name = '".(string)$this->getManufacturerName()."'"
             );
             if(empty($res)){
-                throw Exception("Accessory Import Exception : No Manufacturer");
+                throw new Exception("Accessory Import Exception : No Manufacturer");
             }else{
                 $id_shop = (int)Context::getContext()->shop->id;
                 $language_id = (int)Context::getContext()->language->id;

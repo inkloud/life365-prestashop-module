@@ -36,8 +36,6 @@ require_once(dirname(__FILE__).'/ProductImporter.php');
 require_once(dirname(__FILE__).'/AccessoryImporter.php');
 
 
-
-
 $context = Context::getContext();
 
 if (!function_exists('p')) {
@@ -540,80 +538,60 @@ function getCatStock($category_id){
         $result[] = $new_entry;
     }
   
-
     return $result;
-
-
 }
 
 function runCron3(){
-    global  $opt_cat;
     $module_name = getModuleInfo('name');
     $country_l = Tools::strtolower(Configuration::get($module_name.'_country'));
-    if (PHP_SAPI === 'cli') {
-        $macro_cat = $opt_cat;
-    }else{
-        $macro_cat = (int)Tools::getValue('mc');
-    }
+    $macro_cat = (int)Tools::getValue('mc');
 
     $result_html = '';
 
-    
-        p('Section: '.$macro_cat.' '.$opt_cat.'<br />');
- 
-        if (Tools::strlen($macro_cat)>0) {
-            $offset = 0;
+	p('Section: '.$macro_cat.'<br />');
 
+	if (Tools::strlen($macro_cat)>0) {
+		$offset = 0;
+		$products = getCatStock($macro_cat);
+		while (array_filter($products) && $offset<1) {
+			p('CATEGORY '.$macro_cat.': IMPORT offset '.$offset.'<br />');
 
-            $products = getCatStock($macro_cat);
+			foreach ($products as $product) {
+				p('Set quantity product '.$product['id'].' '.$product['code'].' '.$product['version_data']);
+				$accessroyImport = new AccessoryImporter();
+				$accessroyImport->saveQuantity($product['id'],$product['stock']);
 
-            while (array_filter($products) && $offset<1) {
-                p('CATEGORY '.$macro_cat.': IMPORT offset '.$offset.'<br />');
-
-
-                foreach ($products as $product) {
-
-
-                    p('Set quantity product '.$product['id'].' '.$product['code'].' '.$product['version_data']);
-                    $accessroyImport = new AccessoryImporter();
-                    $accessroyImport->saveQuantity($product['id'],$product['stock']);
-
-                   
-
-                    if($accessroyImport->getVersion($product['id']) >= $product['version_data']){
-                        p('Skip product '.$product['id'].' latest version already');
-                        continue;
-                    }
-                    p('Importing product '.$product['id']);
-                   
-                    $all_product_data = getSingleProduct($product['id']);
-                    $objectProduct = Tools::jsonDecode(Tools::jsonEncode($all_product_data), false);
-                    $objectProduct->reference = $objectProduct->code_simple;
-                    $objectProduct->name = $objectProduct->title->{$country_l};
-                    $objectProduct->meta_keywords = $objectProduct->keywords;
-                    $objectProduct->price = $objectProduct->price->price;
-                    $objectProduct->street_price = $objectProduct->price_a;
-                    $objectProduct->description = $objectProduct->descr->{$country_l};
-                    $objectProduct->quantity = $objectProduct->stock;
-
-                    $objectProduct->url_image = implode(",",json_decode(json_encode($objectProduct->photos), true));
-                    $objectProduct->local_category = $objectProduct->level_3;
-                    $objectProduct->meta_description = '';
-                    $objectProduct->meta_title = $objectProduct->name;
-                    $objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
-                    $objectProduct->version = $objectProduct->last_update;
-                    $objectProduct->id_manufactuter = $accessroyImport->getManufacturerId($objectProduct->brand);
-                    $objectProduct->manufactuter = $objectProduct->brand;
-                    $objectProduct->ean13 = $objectProduct->barcode;
-
-                   
-                    $accessroyImport->setProductSource($objectProduct);
-                    $accessroyImport->save();
-                }
-                $offset += 1;
-            }
-        }
-    
+				if($accessroyImport->getVersion($product['id']) >= $product['version_data']){
+					p('Skip product '.$product['id'].' latest version already');
+					continue;
+				}
+				p('Importing product '.$product['id']);
+			   
+				$all_product_data = getSingleProduct($product['id']);
+				$objectProduct = Tools::jsonDecode(Tools::jsonEncode($all_product_data), false);
+				$objectProduct->reference = $objectProduct->code_simple;
+				$objectProduct->name = $objectProduct->title->{$country_l};
+				$objectProduct->meta_keywords = $objectProduct->keywords;
+				$objectProduct->price = $objectProduct->price->price;
+				$objectProduct->street_price = $objectProduct->price_a;
+				$objectProduct->description = $objectProduct->descr->{$country_l};
+				$objectProduct->quantity = $objectProduct->stock;
+				$objectProduct->url_image = implode(",",json_decode(json_encode($objectProduct->photos), true));
+				$objectProduct->local_category = $objectProduct->level_3;
+				$objectProduct->meta_description = '';
+				$objectProduct->meta_title = $objectProduct->name;
+				$objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
+				$objectProduct->version = $objectProduct->last_update;
+				$objectProduct->id_manufactuter = $accessroyImport->getManufacturerId($objectProduct->brand);
+				$objectProduct->manufactuter = $objectProduct->brand;
+				$objectProduct->ean13 = $objectProduct->barcode;
+			   
+				$accessroyImport->setProductSource($objectProduct);
+				$accessroyImport->save();
+			}
+			$offset += 1;
+		}
+	}
 
     return $result_html;
 }
@@ -697,14 +675,9 @@ function runCron()
  
 function runCron2()
 {
-    global  $opt_cat;
     $module_name = getModuleInfo('name');
     $country_l = Tools::strtolower(Configuration::get($module_name.'_country'));
-    if (PHP_SAPI === 'cli') {
-        $macro_cat = $opt_cat;
-    }else{
-        $macro_cat = (int)Tools::getValue('mc');
-    }
+    $macro_cat = (int)Tools::getValue('mc');
 
     $result_html = '';
 
