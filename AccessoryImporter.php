@@ -46,6 +46,22 @@ class AccessoryImporter extends ProductImporter
         $this->image_basepath = $path;
     }
 
+    public function getVersion($id_product){
+        $version = Db::getInstance()->ExecuteS(
+            'SELECT `version` FROM `' .
+            _DB_PREFIX_ .
+            'life365_product` WHERE id_product_external = ' .
+            (int)$id_product
+        );
+
+        if(empty($version)){
+            return 0;
+        }
+
+        return $version[0]['version'];
+
+    }
+
     protected function getPrice()
     {
         $price_limit = (bool)Configuration::get('life365_price_limit');
@@ -171,20 +187,74 @@ class AccessoryImporter extends ProductImporter
         return (string)$this->product->manufactuter;
     }
 
-    protected function getManufacturer()
-    {
-        return 0;
 
-/*
+    public function getManufacturerId($name){
+        if(empty($name)){
+            return 0;
+        }
+        
+
         $res = Db::getInstance()->ExecuteS(
-            "SELECT id_manufacturer AS id FROM "._DB_PREFIX_."manufacturer WHERE link_rewrite = '".(string)Tools::link_rewrite($this->getManufacturerName())."'"
+            "SELECT  id_manufacturer AS id FROM "._DB_PREFIX_."manufacturer WHERE name = '".$name."'"
         );
-        if(count($res)==0){
-            if(empty($name))
-            throw Exception("Accessory Import Exception : No Manufacturer");
+        if(empty($res)){
+            Db::getInstance()->execute(
+                "INSERT INTO "._DB_PREFIX_."manufacturer ( `name`,  `active`,`date_add`, `date_upd`) VALUES ( '".$name."', 1 , CURRENT_TIMESTAMP(),  CURRENT_TIMESTAMP() )"
+            );
+            $res = Db::getInstance()->ExecuteS(
+                "SELECT id_manufacturer AS id FROM "._DB_PREFIX_."manufacturer WHERE name = '".$name."'"
+            );
+            if(empty($res)){
+                throw Exception("Accessory Import Exception : No Manufacturer");
+            }else{
+                $id_shop = (int)Context::getContext()->shop->id;
+                $language_id = (int)Context::getContext()->language->id;
+                Db::getInstance()->execute("INSERT INTO "._DB_PREFIX_."manufacturer_shop  VALUES ( ".$res[0]['id'].", ".$id_shop.")");
+                Db::getInstance()->execute(
+                    "INSERT INTO "._DB_PREFIX_."manufacturer_lang (`id_manufacturer`, `id_lang`) VALUES ( ".$res[0]['id'].", ".$language_id.")"
+                );
+            }
+            
         }
         return $res[0]['id'];
-*/
+    }
+
+    protected function getManufacturer()
+    {
+        //return 0;
+
+        $name = $this->getManufacturerName();
+
+        if(empty($name)){
+            return 0;
+        }
+
+
+        $res = Db::getInstance()->ExecuteS(
+            "SELECT id_manufacturer AS id FROM "._DB_PREFIX_."manufacturer WHERE name = '".(string)$this->getManufacturerName()."'"
+        );
+        if(empty($res)){
+            //INSERT INTO `ps_manufacturer_lang` (`id_manufacturer`, `id_lang`, `description`, `short_description`, `meta_title`, `meta_keywords`, `meta_description`) VALUES ('9', '1', NULL, NULL, NULL, NULL, NULL);
+
+            Db::getInstance()->execute(
+                "INSERT INTO "._DB_PREFIX_."manufacturer ( `name`,  `active`,`date_add`, `date_upd`) VALUES (  '".(string)$this->getManufacturerName()."',  1 , CURRENT_TIMESTAMP(),  CURRENT_TIMESTAMP() )"
+            );
+            $res = Db::getInstance()->ExecuteS(
+                "SELECT id_manufacturer AS id FROM "._DB_PREFIX_."manufacturer WHERE name = '".(string)$this->getManufacturerName()."'"
+            );
+            if(empty($res)){
+                throw Exception("Accessory Import Exception : No Manufacturer");
+            }else{
+                $id_shop = (int)Context::getContext()->shop->id;
+                $language_id = (int)Context::getContext()->language->id;
+                Db::getInstance()->execute("INSERT INTO "._DB_PREFIX_."manufacturer_shop  VALUES ( ".$res[0]['id'].", ".$id_shop.")");
+                Db::getInstance()->execute(
+                    "INSERT INTO "._DB_PREFIX_."manufacturer_lang (`id_manufacturer`, `id_lang`) VALUES ( ".$res[0]['id'].", ".$language_id.")"
+                );
+            }
+        }
+        return $res[0]['id'];
+
     }
     
     protected function getQuantity()
@@ -253,7 +323,25 @@ class AccessoryImporter extends ProductImporter
 
         return $id_product;
     }
+    
+    protected function ifExistId($productId)
+    {
+        $id_product=0;
 
+        //first check in mapping table
+        $sql = 'SELECT id_product_ps FROM '._DB_PREFIX_.'life365_product WHERE id_product_external = '.(int)$productId;
+        $res = Db::getInstance()->getRow($sql);
+        if ($res) {
+            $id_product = $res['id_product_ps'];
+            if (!Product::existsInDatabase((int)($id_product), 'product')) {
+                $t_sql = 'DELETE FROM '._DB_PREFIX_.'life365_product WHERE id_product_ps = '.(int)$id_product;
+                Db::getInstance()->execute($t_sql);
+                $id_product=0;
+            }
+        }
+
+        return $id_product;
+    }
     /**
         this method will be called after item is added to database and it's id_product is generated
     **/

@@ -56,6 +56,24 @@ abstract class ProductImporter
         $this->object->update();
     }
     
+    public function saveQuantity($productId,$qta){
+        $this->id_product = $this->ifExistId($productId);
+
+
+        if (!$this->id_product) {
+            return 0; //quantity will be added after 
+        } elseif ((int)$this->id_product and Product::existsInDatabase((int)($this->id_product), 'product')) {
+            $this->object = new Product((int)($this->id_product));
+            
+        } else {
+            // if the subclass returned something other than false
+            // skip;
+            return 0;
+        }
+        StockAvailable::setQuantity($this->id_product, null,$qta, Context::getContext()->shop->id);
+        $this->object->update();
+        return 2;
+    }
     
     public function save()
     {
@@ -82,7 +100,7 @@ abstract class ProductImporter
         $sync_category = (bool)Configuration::get($this->module_name . '_sync_category');
         $sync_price = (bool)Configuration::get($this->module_name . '_sync_price');
 
-//        $this->object->id_manufacturer = $this->getManufacturer();
+        $this->object->id_manufacturer = $this->getManufacturer();
         $this->object->reference = $this->getReference();
         $this->object->supplier_reference = $this->getSupplierReference();
         $this->object->id_tax_rules_group = $this->getTaxRulesGroup();
@@ -425,6 +443,9 @@ abstract class ProductImporter
     
     protected function getEan13()
     {
+        if(isset($this->object->ean13)){
+            return $this->object->ean13;
+        }
         $ean13 = $this->object->barcode[$this->object->id_lang];
         if ($ean13 == "0000000000000") {
             $ean13 = null;
