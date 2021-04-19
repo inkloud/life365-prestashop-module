@@ -54,7 +54,8 @@ class Life365 extends Module
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
     }
 
-    public function getName(){
+    public function getName()
+    {
         return $this->name;
     }
 
