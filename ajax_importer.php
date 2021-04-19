@@ -658,7 +658,6 @@ function runCron()
                         $objectProduct->manufactuter = $objectProduct->brand;
                         $objectProduct->ean13 = $objectProduct->barcode;
 
-
                         $accessroyImport = new AccessoryImporter();
                         $accessroyImport->setProductSource($objectProduct);
                         $accessroyImport->save();
@@ -759,8 +758,6 @@ function dropship()
         $products = $cart->getProducts();
     }
 
-    
-    
     foreach ($products as $product) {
         addProductToCart($product['supplier_reference'], $product['product_quantity']);
         $new_drop_product = array('code' => $product['supplier_reference'], 'qty' => $product['product_quantity']);
@@ -846,10 +843,11 @@ function getNewCart()
     $con = curl_init();
     
     curl_setopt($con, CURLOPT_URL, $url);
-    curl_setopt($con, CURLOPT_POST, true);
-    curl_setopt($con, CURLOPT_HEADER, false);
+    curl_setopt($con, CURLOPT_HTTPHEADER, array("Content-Type: application/x-www-from-urlencoded"));
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
-    
+    curl_setopt($con, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($con, CURLOPT_POSTFIELDS, 1);
+
     $res_curl = curl_exec($con);
     curl_close($con);
     
