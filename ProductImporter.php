@@ -56,21 +56,21 @@ abstract class ProductImporter
         $this->object->update();
     }
     
-    public function saveQuantity($productId,$qta){
+    public function saveQuantity($productId,$qta)
+    {
         $this->id_product = $this->ifExistId($productId);
 
 
         if (!$this->id_product) {
-            return 0; //quantity will be added after 
+            return 0; //quantity will be added after
         } elseif ((int)$this->id_product and Product::existsInDatabase((int)($this->id_product), 'product')) {
             $this->object = new Product((int)($this->id_product));
-            
         } else {
             // if the subclass returned something other than false
             // skip;
             return 0;
         }
-        StockAvailable::setQuantity($this->id_product, null,$qta, Context::getContext()->shop->id);
+        StockAvailable::setQuantity($this->id_product, null, $qta, Context::getContext()->shop->id);
         $this->object->update();
         return 2;
     }
@@ -443,7 +443,7 @@ abstract class ProductImporter
     
     protected function getEan13()
     {
-        if(isset($this->object->ean13)){
+        if(isset($this->object->ean13)) {
             return $this->object->ean13;
         }
         $ean13 = $this->object->barcode[$this->object->id_lang];
@@ -452,7 +452,7 @@ abstract class ProductImporter
         }
         return $ean13;
     }
-    
+
     protected function getName()
     {
         return $this->object->name[$this->object->id_lang];
@@ -487,7 +487,7 @@ abstract class ProductImporter
             return Configuration::get($this->module_name . '_default_tax_id');
         }
     }
-    
+
     protected function getReference()
     {
         return $this->object->reference;
@@ -592,7 +592,7 @@ abstract class ProductImporter
             return 1;
         }
     }
-    
+
     protected function getMinimalQuantity()
     {
         if ($this->object->id) {
@@ -637,7 +637,7 @@ abstract class ProductImporter
             return 1;
         }
     }
-    
+
     protected function getOnlineOnly()
     {
         if ($this->object->id) {
@@ -655,7 +655,7 @@ abstract class ProductImporter
             return 0;
         }
     }
-    
+
     protected function getActive()
     {
         if ($this->object->id) {
@@ -664,26 +664,26 @@ abstract class ProductImporter
             return 1;
         }
     }
-    
+
     protected function getFeatures()
     {
         return array();
     }
-    
+
     protected function getImages()
     {
         return array();
     }
-    
+
     protected function getTags()
     {
         return array();
     }
-    
+
     ///
     // Static Functions
     ///
-    
+
     private static function createAndInitializeNewObject()
     {
         $id_lang = (int)(Configuration::get('PS_LANG_DEFAULT'));
@@ -796,7 +796,7 @@ abstract class ProductImporter
         $b_btm = 0;
         $b_lft = 0;
         $b_rt = 0;
-        
+
         //top
         for (; $b_top < imagesy($img); ++$b_top) {
             for ($x = 0; $x < imagesx($img); ++$x) {
@@ -805,7 +805,7 @@ abstract class ProductImporter
                 }
             }
         }
-        
+
         //bottom
         for (; $b_btm < imagesy($img); ++$b_btm) {
             for ($x = 0; $x < imagesx($img); ++$x) {
@@ -814,7 +814,7 @@ abstract class ProductImporter
                 }
             }
         }
-        
+
         //left
         for (; $b_lft < imagesx($img); ++$b_lft) {
             for ($y = 0; $y < imagesy($img); ++$y) {
@@ -823,7 +823,7 @@ abstract class ProductImporter
                 }
             }
         }
-        
+
         //right
         for (; $b_rt < imagesx($img); ++$b_rt) {
             for ($y = 0; $y < imagesy($img); ++$y) {
@@ -832,7 +832,7 @@ abstract class ProductImporter
                 }
             }
         }
-        
+
         //copy the contents, excluding the border
         $newimg = imagecreatetruecolor(imagesx($img)-($b_lft+$b_rt), imagesy($img)-($b_top+$b_btm));
         
@@ -846,7 +846,7 @@ abstract class ProductImporter
         $field = ((float)(str_replace('%', '', $field)));
         return $field;
     }
-    
+
     public static function isEmpty($field)
     {
         if (empty($field) || !isset($field) || $field==0 || $field=='0') {
@@ -854,6 +854,7 @@ abstract class ProductImporter
         }
         return false;
     }
+
     public static function setValue(&$target, $value)
     {
         if (!self::isEmpty($value)) {

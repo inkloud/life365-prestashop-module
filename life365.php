@@ -233,7 +233,10 @@ class Life365 extends Module
                     'id_category_ps' => (int)$ps_cat
                 ));
             }
-            Configuration::updateValue($this->name.'_'.$cat1.'_categories', implode(',', Tools::getValue($this->name.'_categories')));
+            Configuration::updateValue(
+                $this->name.'_'.$cat1.'_categories',
+                implode(',', Tools::getValue($this->name.'_categories'))
+            );
         }
 
         if (Tools::isSubmit($this->name.'_save_other_settings')) {
