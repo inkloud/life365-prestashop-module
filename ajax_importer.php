@@ -81,6 +81,9 @@ switch ($action) {
     case 'cron3':
         print runCron3();
         break;
+    case 'stock':
+        print updateStock();
+        break;
     case 'version':
         print getModuleInfo('user_app');
         print '<br>';
@@ -94,7 +97,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.79';
+    $user_app = 'PrestaShop module ver: 1.2.80';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
     $stock_url = '/api/utils/csvdata/prodstock?l=USERID&p=PASSWORD&idcat=IDCAT';
 
@@ -157,7 +160,7 @@ function getModuleInfo($info)
             $detail = $e_commerce_url[$country_id] . $stock_url;
             $login = Configuration::get($module_name.'_login');
             $password = Configuration::get($module_name.'_password');
-            
+
             $detail = str_replace('USERID', $login, $detail);
             $detail = str_replace('PASSWORD', $password, $detail);
             
@@ -432,7 +435,6 @@ function checkLogon()
     return "<img src='".dirname($_SERVER['PHP_SELF']).'/../../'."img/admin/disabled.gif' /><font color='red'>".$res['response_text'].'</font>';
 }
 
-
 function getProds($opt_cat = 0)
 {
     $module_name = getModuleInfo('name');
@@ -447,11 +449,11 @@ function getProds($opt_cat = 0)
     } else {
         $cat = $opt_cat;
     }
-    
+
     if ($offset > 0) {
         return '';
     }
-    
+
     $access_token = getAccessToken();
     $result_html = '';
     if (array_filter($products = getProducts2($cat))) {
@@ -462,7 +464,7 @@ function getProds($opt_cat = 0)
                 p($product);
             }
             $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
-            if($serviceAccessoryImport->getVersion($objectProduct->id) >= $objectProduct->last_update){
+            if($serviceAccessoryImport->getVersion($objectProduct->id) >= $objectProduct->last_update) {
                 $result_html .='Skip product '.$product['id'].' latest version already <br />';
                 continue;
             }
@@ -486,7 +488,6 @@ function getProds($opt_cat = 0)
             $objectProduct->manufactuter = $objectProduct->brand;
             $objectProduct->ean13 = $objectProduct->barcode;
 
-                        
             $accessroyImport = new AccessoryImporter();
             $accessroyImport->setProductSource($objectProduct);
             $accessroyImport->save();
@@ -514,19 +515,23 @@ function getProds($opt_cat = 0)
     return $result_html;
 }
 
-function getCatStock($category_id){
+function getCatStock($category_id)
+{
     //https://www.life365.eu/api/utils/csvdata/prodstock?l=USER&p=PASSWORD&idcat=IDCAT
     $name = getModuleInfo('name');
     $login = Configuration::get($name.'_login');
     $password = Configuration::get($name.'_password');
 
     $file = "https://www.life365.eu/api/utils/csvdata/prodstock?l=".$login."&p=".$password."&idcat=".$category_id;
-    $fileData=fopen($file,'r');
+    $file = getModuleInfo('stock_cat_url');
+    $file = str_replace('IDCAT', $category_id, $file);
+p($file);
+    $fileData = fopen($file,'r');
 
     //create header array id,code,stock,version_data
     $line = fgetcsv($fileData,0,";"); //get the first line
     $header = [];
-    foreach($line as $val){
+    foreach($line as $val) {
         $header[] = $val;
     }
 
@@ -537,11 +542,12 @@ function getCatStock($category_id){
         $new_entry = [$header[0] => $line[0], $header[1] => $line[1] , $header[2] => $line[2] ,$header[3] => $line[3] ];
         $result[] = $new_entry;
     }
-  
+
     return $result;
 }
 
-function runCron3(){
+function runCron3()
+{
     $module_name = getModuleInfo('name');
     $country_l = Tools::strtolower(Configuration::get($module_name.'_country'));
     $macro_cat = (int)Tools::getValue('mc');
@@ -555,13 +561,11 @@ function runCron3(){
 		$products = getCatStock($macro_cat);
 		while (array_filter($products) && $offset<1) {
 			p('CATEGORY '.$macro_cat.': IMPORT offset '.$offset.'<br />');
-
 			foreach ($products as $product) {
 				p('Set quantity product '.$product['id'].' '.$product['code'].' '.$product['version_data']);
 				$accessroyImport = new AccessoryImporter();
 				$accessroyImport->saveQuantity($product['id'],$product['stock']);
-
-				if($accessroyImport->getVersion($product['id']) >= $product['version_data']){
+				if($accessroyImport->getVersion($product['id']) >= $product['version_data']) {
 					p('Skip product '.$product['id'].' latest version already');
 					continue;
 				}
@@ -595,6 +599,30 @@ function runCron3(){
 
     return $result_html;
 }
+
+
+function updateStock()
+{
+    $macro_cat = (int)Tools::getValue('mc');
+
+    $result_html = '';
+
+	p('Section: '.$macro_cat.'<br />');
+
+	if (Tools::strlen($macro_cat)>0) {
+		$products = getCatStock($macro_cat);
+		while (array_filter($products)) {
+			foreach ($products as $product) {
+				p('Set quantity product '.$product['id'].' '.$product['code'].' '.$product['version_data']);
+				$accessroyImport = new AccessoryImporter();
+				$accessroyImport->saveQuantity($product['id'],$product['stock']);
+			}
+		}
+	}
+
+    return $result_html;
+}
+
 
 function getRootCategories()
 {
@@ -778,7 +806,6 @@ function dropship()
     return true;
 }
 
-
 //restituisce il carrello attivo, quello meno recente se ce ne sono più di uno, ne crea uno nuovo se non ne esistono
 function getActiveCart()
 {
@@ -801,7 +828,7 @@ function getActiveCart()
     if ($debug) {
         p($res_curl);
     }
-    
+
     $retcode = curl_getinfo($con, CURLINFO_HTTP_CODE);
     if ($retcode!=200) {
         $info = curl_getinfo($con);
@@ -814,7 +841,7 @@ function getActiveCart()
     $res = Tools::jsonDecode($res_curl, true);
 
     $cartId = 0;
-    
+
     foreach ($res as $resCart) {
         if ($cartId == 0) {
             $cartId = $resCart['id'];
@@ -832,7 +859,6 @@ function getActiveCart()
     return $cartId;
 }
 
-
 //build a new cart on extrernal ecommerce
 function getNewCart()
 {
@@ -841,7 +867,7 @@ function getNewCart()
     $url = $api_url_new."/api/order/cart?jwt=".$jwt;
 
     $con = curl_init();
-    
+
     curl_setopt($con, CURLOPT_URL, $url);
     curl_setopt($con, CURLOPT_HTTPHEADER, array("Content-Type: application/x-www-from-urlencoded"));
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
@@ -850,9 +876,9 @@ function getNewCart()
 
     $res_curl = curl_exec($con);
     curl_close($con);
-    
+
     $res = Tools::jsonDecode($res_curl, true);
-              
+
     return $res['id'];
 }
 
@@ -861,29 +887,28 @@ function addProductToCart($code, $qty)
     $module_name = getModuleInfo('name');
     $jwt = getAccessJWT();
     $cartId = getActiveCart();
-    
+
     $debug = (bool)Configuration::get($module_name.'_debug_mode');
-    
+
     $api_url_new = getModuleInfo('api_url_new');
 
     $con = curl_init();
     $url = $api_url_new."/api/order/cart/".$cartId."?jwt=".$jwt;
-    
-    //per il formato selezionare PHP da postman
+
     $data = '{"type": "PUT_PRODUCT", "value": {"code": "' . $code . '", "qta": ' . $qty . '}}';
- 
+
     curl_setopt($con, CURLOPT_URL, $url);
     curl_setopt($con, CURLOPT_HTTPHEADER, array("Content-Type: application/json"));
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($con, CURLOPT_CUSTOMREQUEST, "PUT");
     curl_setopt($con, CURLOPT_POSTFIELDS, $data);
-    
+
     $res_curl = curl_exec($con);
-    
+
     if ($debug) {
         p($res_curl);
     }
-    
+
     $retcode = curl_getinfo($con, CURLINFO_HTTP_CODE);
     if ($debug) {
         if ($retcode!=200) {
@@ -892,7 +917,7 @@ function addProductToCart($code, $qty)
             p($res_curl);
         }
     }
-    
+
     curl_close($con);
 }
 
@@ -904,10 +929,10 @@ function setShippingAddress($dropship_address)
     $jwt = getAccessJWT();
     $cartId = getActiveCart();
     $api_url_new = getModuleInfo('api_url_new');
-   
+
     $con = curl_init();
     $url = $api_url_new."/api/order/cart/".$cartId."?jwt=".$jwt;
-    
+
     $debug = (bool)Configuration::get($module_name.'_debug_mode');
 
     $data =
@@ -930,12 +955,12 @@ function setShippingAddress($dropship_address)
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($con, CURLOPT_CUSTOMREQUEST, "PUT");
     curl_setopt($con, CURLOPT_POSTFIELDS, $data);
-    
+
     $res_curl = curl_exec($con);
     if ($debug) {
         p($res_curl);
     }
-    
+
     $retcode = curl_getinfo($con, CURLINFO_HTTP_CODE);
     if ($debug) {
         if ($retcode!=200) {
@@ -946,7 +971,7 @@ function setShippingAddress($dropship_address)
     }
 
     curl_close($con);
-    
+
     //fare una nuova put per mettere il FLAG DROPSHIP a true
 }
 
@@ -956,17 +981,17 @@ function countryStringToNumber($countryString)
     $module_name = getModuleInfo('name');
     $url = "http://api.life365.eu/v4/utils/?f=getCountryList" ;
     $my_values = array('country' => Configuration::get($module_name.'_country'));
-     
+
     $debug = (bool)Configuration::get($module_name.'_debug_mode');
 
     $con = curl_init();
-    
+
     curl_setopt($con, CURLOPT_URL, $url);
     curl_setopt($con, CURLOPT_POST, true);
     curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
     curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
-    
+
     $res_curl = curl_exec($con);
     if ($debug) {
         p($res_curl);
@@ -978,11 +1003,11 @@ function countryStringToNumber($countryString)
         p($info);
         p($res_curl);
     }
-   
+
     curl_close($con);
-       
+
     $res = Tools::jsonDecode($res_curl, true);
-    
+
     //ricerco fra i nomi delle nazioni e quando trovata restituisco il numero corrispondente
     foreach ($res as $countries) {
         if ($countries['name'] == $countryString) {
@@ -1003,26 +1028,26 @@ function regionStringToNumber($regionString, $countryString)
     $module_name = getModuleInfo('name');
     $url = "http://api.life365.eu/v4/utils/?f=getCityList";
     $country_id = Configuration::get($module_name.'_country');
-    
+
     $debug = (bool)Configuration::get($module_name.'_debug_mode');
 
     // prendo l'id della nazione da cui si sta richiedendo il servizio, passandolo come 'country' all'API
     $my_values = array('country' => $country_id, 'selectedCountry' => countryStringToNumber($countryString));
-    
+
     $con = curl_init();
-    
+
     curl_setopt($con, CURLOPT_URL, $url);
     curl_setopt($con, CURLOPT_POST, true);
     curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
     curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
-    
+
     $res_curl = curl_exec($con);
-    
+
     if ($debug) {
         p($res_curl);
     }
-    
+
     $retcode = curl_getinfo($con, CURLINFO_HTTP_CODE);
     if ($retcode!=200) {
         $info = curl_getinfo($con);
@@ -1033,7 +1058,7 @@ function regionStringToNumber($regionString, $countryString)
     curl_close($con);
     
     $res = Tools::jsonDecode($res_curl, true);
-                     
+
     //ricerco fra i nomi delle nazioni e quando trovata restituisco il numero corrispondente
     foreach ($res as $regions) {
         if ($regions['name'] == $regionString) {

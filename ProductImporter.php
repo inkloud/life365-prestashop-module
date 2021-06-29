@@ -55,11 +55,10 @@ abstract class ProductImporter
         $this->object->active = false;
         $this->object->update();
     }
-    
+
     public function saveQuantity($productId,$qta)
     {
         $this->id_product = $this->ifExistId($productId);
-
 
         if (!$this->id_product) {
             return 0; //quantity will be added after
@@ -74,7 +73,7 @@ abstract class ProductImporter
         $this->object->update();
         return 2;
     }
-    
+
     public function save()
     {
         $this->id_product = $this->ifExist();
@@ -161,6 +160,13 @@ abstract class ProductImporter
             $this->object->active = true;
 
             $this->object->update();
+
+// Set minimal_quantity - enable these lines only if relative plugin is installed            
+//            Db::getinstance()->update(
+//                                    'product',
+//                                    array('minimal_quantity' => (int) $this->object->$qty_delivery),
+//                                    ' id = ' . (int) $this->object->id
+//            );            
         } else {
             $name = $this->getName();
             $link_rewrite = self::generateSlug($name);
