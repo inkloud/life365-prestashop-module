@@ -602,7 +602,7 @@ abstract class ProductImporter
     protected function getMinimalQuantity()
     {
         if ($this->object->id) {
-            return $this->object->minimal_quantity;
+            return $this->object->qty_delivery;
         } else {
             return 1;
         }
