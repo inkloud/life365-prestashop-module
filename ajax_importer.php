@@ -464,6 +464,11 @@ function getProds($opt_cat = 0)
                 p($product);
             }
             $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
+
+			$result_html .='Set quantity product '.$product['id'].' '.$product['code'].' '.$product['version_data'].'<br />';
+			$accessroyImport = new AccessoryImporter();
+			$accessroyImport->saveQuantity($product['id'],$product['stock']);
+
             if($serviceAccessoryImport->getVersion($objectProduct->id) >= $objectProduct->last_update) {
                 $result_html .='Skip product '.$product['id'].' latest version already <br />';
                 continue;
@@ -488,7 +493,6 @@ function getProds($opt_cat = 0)
             $objectProduct->manufactuter = $objectProduct->brand;
             $objectProduct->ean13 = $objectProduct->barcode;
 
-            $accessroyImport = new AccessoryImporter();
             $accessroyImport->setProductSource($objectProduct);
             $accessroyImport->save();
         }
@@ -525,7 +529,7 @@ function getCatStock($category_id)
     $file = "https://www.life365.eu/api/utils/csvdata/prodstock?l=".$login."&p=".$password."&idcat=".$category_id;
     $file = getModuleInfo('stock_cat_url');
     $file = str_replace('IDCAT', $category_id, $file);
-p($file);
+
     $fileData = fopen($file,'r');
 
     //create header array id,code,stock,version_data
@@ -604,6 +608,7 @@ function runCron3()
 function updateStock()
 {
     $macro_cat = (int)Tools::getValue('mc');
+    $debug = (bool)Configuration::get($module_name.'_debug_mode');
 
     $result_html = '';
 
@@ -613,7 +618,9 @@ function updateStock()
 		$products = getCatStock($macro_cat);
 		while (array_filter($products)) {
 			foreach ($products as $product) {
-				p('Set quantity product '.$product['id'].' '.$product['code'].' '.$product['version_data']);
+                if ($debug) {
+                        p('Set quantity product '.$product['id'].' '.$product['code'].' '.$product['version_data']);
+                }
 				$accessroyImport = new AccessoryImporter();
 				$accessroyImport->saveQuantity($product['id'],$product['stock']);
 			}
