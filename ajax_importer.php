@@ -76,7 +76,7 @@ switch ($action) {
         print runCron();
         break;
     case 'cron2':
-        print runCron2();
+        print runCron3();
         break;
     case 'cron3':
         print runCron3();
@@ -97,7 +97,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.80';
+    $user_app = 'PrestaShop module ver: 1.2.81';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
     $stock_url = '/api/utils/csvdata/prodstock?l=USERID&p=PASSWORD&idcat=IDCAT';
 
