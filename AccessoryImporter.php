@@ -140,6 +140,11 @@ class AccessoryImporter extends ProductImporter
         return $ean13;
     }
 
+    protected function getMinimalQuantity()
+    {
+        return (int)$this->product->qty_delivery;
+    }
+
     protected function getReference()
     {
         return (string)$this->product->reference;
