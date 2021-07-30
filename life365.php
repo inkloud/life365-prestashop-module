@@ -40,7 +40,7 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '1.2.81';
+        $this->version = '1.2.82';
         $this->author = 'Giancarlo Spadini & Vandershop.it';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.8');
@@ -237,6 +237,9 @@ class Life365 extends Module
                 $this->name.'_'.$cat1.'_categories',
                 implode(',', Tools::getValue($this->name.'_categories'))
             );
+            // Force update of all products
+            $t_sql = 'UPDATE `'._DB_PREFIX_.'life365_product` SET `version` = 0;';
+            Db::getInstance()->execute($t_sql);
         }
 
         if (Tools::isSubmit($this->name.'_save_other_settings')) {
