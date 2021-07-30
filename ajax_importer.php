@@ -465,7 +465,7 @@ function getProds($opt_cat = 0)
             }
             $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
 
-			$result_html .='Set quantity product '.$product['id'].' '.$product['code'].' '.$product['version_data'].'<br />';
+			$result_html .='Set quantity product '.$product['id'].' '.$product['code_simple'].' '.$product['last_update'].'<br />';
 			$accessroyImport = new AccessoryImporter();
 			$accessroyImport->saveQuantity($product['id'],$product['stock']);
 
