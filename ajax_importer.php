@@ -156,15 +156,6 @@ function getModuleInfo($info)
         case 'default_region_id':
             $detail = $region_default[$country_id];
             break;
-        case 'stock_cat_url':
-            $detail = $e_commerce_url[$country_id] . $stock_url;
-            $login = Configuration::get($module_name.'_login');
-            $password = Configuration::get($module_name.'_password');
-
-            $detail = str_replace('USERID', $login, $detail);
-            $detail = str_replace('PASSWORD', $password, $detail);
-            
-            break;
         case 'user_app':
             $detail = $user_app;
             break;
@@ -521,14 +512,11 @@ function getProds($opt_cat = 0)
 
 function getCatStock($category_id)
 {
-    //https://www.life365.eu/api/utils/csvdata/prodstock?l=USER&p=PASSWORD&idcat=IDCAT
     $name = getModuleInfo('name');
     $login = Configuration::get($name.'_login');
     $password = Configuration::get($name.'_password');
 
-    $file = "https://www.life365.eu/api/utils/csvdata/prodstock?l=".$login."&p=".$password."&idcat=".$category_id;
-    $file = getModuleInfo('stock_cat_url');
-    $file = str_replace('IDCAT', $category_id, $file);
+    $file = "https://www.life365.eu/api/utils/csvdata/prodstock?v=2&l=".$login."&p=".$password."&idcat=".$category_id;
 
     $fileData = fopen($file,'r');
 
@@ -539,12 +527,14 @@ function getCatStock($category_id)
         $header[] = $val;
     }
 
+    $cats_array = explode(",", Configuration::get($name.'_'.$category_id.'_categories'));
     $i = 0;
     $result = [];
     while (($line = fgetcsv($fileData,0,";")) !== FALSE) {
         if($i == 0){$i += 1; continue;} //skip the header line
-        $new_entry = [$header[0] => $line[0], $header[1] => $line[1] , $header[2] => $line[2] ,$header[3] => $line[3] ];
-        $result[] = $new_entry;
+        $new_entry = [$header[0] => $line[0], $header[1] => $line[1] , $header[2] => $line[2], $header[3] => $line[3], $header[4] => $line[4], $header[5] => $line[5] ];
+        if(in_array($new_entry['level_3'], $cats_array))
+            $result[] = $new_entry;
     }
 
     return $result;
