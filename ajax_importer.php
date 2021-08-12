@@ -81,9 +81,6 @@ switch ($action) {
     case 'cron3':
         print runCron3();
         break;
-    case 'stock':
-        print updateStock();
-        break;
     case 'version':
         print getModuleInfo('user_app');
         print '<br>';
@@ -99,7 +96,6 @@ function getModuleInfo($info)
     $_api_url = 'https://api.life365.eu/v2.php';
     $user_app = 'PrestaShop module ver: 1.2.83';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
-    $stock_url = '/api/utils/csvdata/prodstock?l=USERID&p=PASSWORD&idcat=IDCAT';
 
     $e_commerce_url = array(
         'IT' => 'https://www.life365.eu',
@@ -456,7 +452,7 @@ function getProds($opt_cat = 0)
             }
             $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
 
-			$result_html .='Set quantity product '.$product['id'].' '.$product['code_simple'].' '.$product['last_update'].'<br />';
+			$result_html .= 'Set quantity product '.$product['id'].' '.$product['code_simple'].' '.$product['last_update'].'<br />';
 			$accessroyImport = new AccessoryImporter();
 			$accessroyImport->saveQuantity($product['id'],$product['stock']);
 
@@ -516,7 +512,7 @@ function getCatStock($category_id)
     $login = Configuration::get($name.'_login');
     $password = Configuration::get($name.'_password');
 
-    $file = "https://www.life365.eu/api/utils/csvdata/prodstock?v=2&l=".$login."&p=".$password."&idcat=".$category_id;
+    $file = getModuleInfo('e_ecommerce_url')."/api/utils/csvdata/prodstock?v=2&l=".$login."&p=".$password."&idcat=".$category_id;
 
     $fileData = fopen($file,'r');
 
@@ -531,7 +527,9 @@ function getCatStock($category_id)
     $i = 0;
     $result = [];
     while (($line = fgetcsv($fileData,0,";")) !== FALSE) {
-        if($i == 0){$i += 1; continue;} //skip the header line
+        if($i == 0){$i += 1;
+            continue; //skip the header line
+        }
         $new_entry = [$header[0] => $line[0], $header[1] => $line[1] , $header[2] => $line[2], $header[3] => $line[3], $header[4] => $line[4], $header[5] => $line[5] ];
         if(in_array($new_entry['level_3'], $cats_array))
             $result[] = $new_entry;
@@ -539,6 +537,7 @@ function getCatStock($category_id)
 
     return $result;
 }
+
 
 function runCron3()
 {
@@ -548,74 +547,48 @@ function runCron3()
 
     $result_html = '';
 
-	p('Section: '.$macro_cat.'<br />');
+    p('Section: '.$macro_cat.'<br />');
 
-	if (Tools::strlen($macro_cat)>0) {
-		$offset = 0;
-		$products = getCatStock($macro_cat);
-		while (array_filter($products) && $offset<1) {
-			p('CATEGORY '.$macro_cat.': IMPORT offset '.$offset.'<br />');
-			foreach ($products as $product) {
-				p('Set quantity product '.$product['id'].' '.$product['code'].' '.$product['version_data']);
-				$accessroyImport = new AccessoryImporter();
-				$accessroyImport->saveQuantity($product['id'],$product['stock']);
-				if($accessroyImport->getVersion($product['id']) >= $product['version_data']) {
-					p('Skip product '.$product['id'].' latest version already');
-					continue;
-				}
-				p('Importing product '.$product['id']);
-			   
-				$all_product_data = getSingleProduct($product['id']);
-				$objectProduct = Tools::jsonDecode(Tools::jsonEncode($all_product_data), false);
-				$objectProduct->reference = $objectProduct->code_simple;
-				$objectProduct->name = $objectProduct->title->{$country_l};
-				$objectProduct->meta_keywords = $objectProduct->keywords;
-				$objectProduct->price = $objectProduct->price->price;
-				$objectProduct->street_price = $objectProduct->price_a;
-				$objectProduct->description = $objectProduct->descr->{$country_l};
-				$objectProduct->quantity = $objectProduct->stock;
-				$objectProduct->url_image = implode(",",json_decode(json_encode($objectProduct->photos), true));
-				$objectProduct->local_category = $objectProduct->level_3;
-				$objectProduct->meta_description = '';
-				$objectProduct->meta_title = $objectProduct->name;
-				$objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
-				$objectProduct->version = $objectProduct->last_update;
-				$objectProduct->id_manufactuter = $accessroyImport->getManufacturerId($objectProduct->brand);
-				$objectProduct->manufactuter = $objectProduct->brand;
-				$objectProduct->ean13 = $objectProduct->barcode;
-			   
-				$accessroyImport->setProductSource($objectProduct);
-				$accessroyImport->save();
-			}
-			$offset += 1;
-		}
-	}
-
-    return $result_html;
-}
-
-
-function updateStock()
-{
-    $macro_cat = (int)Tools::getValue('mc');
-    $debug = (bool)Configuration::get($module_name.'_debug_mode');
-
-    $result_html = '';
-
-	p('Section: '.$macro_cat.'<br />');
-
-	if (Tools::strlen($macro_cat)>0) {
-		$products = getCatStock($macro_cat);
-		while (array_filter($products)) {
-			foreach ($products as $product) {
-                if ($debug) {
-                        p('Set quantity product '.$product['id'].' '.$product['code'].' '.$product['version_data']);
+    if (Tools::strlen($macro_cat)>0) {
+        $offset = 0;
+        $products = getCatStock($macro_cat);
+        while (array_filter($products) && $offset<1) {
+            p('CATEGORY '.$macro_cat.': IMPORT offset '.$offset.'<br />');
+            foreach ($products as $product) {
+                p('Set quantity product '.$product['id'].' '.$product['code'].' '.$product['version_data']);
+                $accessroyImport = new AccessoryImporter();
+                $accessroyImport->saveQuantity($product['id'],$product['stock']);
+                if($accessroyImport->getVersion($product['id']) >= $product['version_data']) {
+                    p('Skip product '.$product['id'].' latest version already');
+                    continue;
                 }
-				$accessroyImport = new AccessoryImporter();
-				$accessroyImport->saveQuantity($product['id'],$product['stock']);
-			}
-		}
-	}
+                p('Importing product '.$product['id']);
+
+                $all_product_data = getSingleProduct($product['id']);
+                $objectProduct = Tools::jsonDecode(Tools::jsonEncode($all_product_data), false);
+                $objectProduct->reference = $objectProduct->code_simple;
+                $objectProduct->name = $objectProduct->title->{$country_l};
+                $objectProduct->meta_keywords = $objectProduct->keywords;
+                $objectProduct->price = $objectProduct->price->price;
+                $objectProduct->street_price = $objectProduct->price_a;
+                $objectProduct->description = $objectProduct->descr->{$country_l};
+                $objectProduct->quantity = $objectProduct->stock;
+                $objectProduct->url_image = implode(",",json_decode(json_encode($objectProduct->photos), true));
+                $objectProduct->local_category = $objectProduct->level_3;
+                $objectProduct->meta_description = '';
+                $objectProduct->meta_title = $objectProduct->name;
+                $objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
+                $objectProduct->version = $objectProduct->last_update;
+                $objectProduct->id_manufactuter = $accessroyImport->getManufacturerId($objectProduct->brand);
+                $objectProduct->manufactuter = $objectProduct->brand;
+                $objectProduct->ean13 = $objectProduct->barcode;
+
+                $accessroyImport->setProductSource($objectProduct);
+                $accessroyImport->save();
+            }
+            $offset += 1;
+        }
+    }
 
     return $result_html;
 }
@@ -640,6 +613,7 @@ function getRootCategories()
 
     return $root_cats;
 }
+
 
 function runCron()
 {
@@ -696,7 +670,7 @@ function runCron()
     return $result_html;
 }
 
- 
+
 function runCron2()
 {
     $module_name = getModuleInfo('name');
@@ -974,7 +948,7 @@ function setShippingAddress($dropship_address)
 
 function countryStringToNumber($countryString)
 {
-    // prendo l'id della nazione da cui si sta richiedendo il servizio, passandolo come 'country' all'API
+    //prendo l'id della nazione da cui si sta richiedendo il servizio, passandolo come 'country' all'API
     $module_name = getModuleInfo('name');
     $url = "http://api.life365.eu/v4/utils/?f=getCountryList" ;
     $my_values = array('country' => Configuration::get($module_name.'_country'));
