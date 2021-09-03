@@ -94,7 +94,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.83';
+    $user_app = 'PrestaShop module ver: 1.2.84';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
 
     $e_commerce_url = array(
@@ -392,34 +392,14 @@ function availableCategories()
 
 function checkLogon()
 {
-    $_api_url = getModuleInfo('api_url');
-    $user_app = getModuleInfo('user_app');
+    $jwt = getAccessJWT();
 
-    $login = Tools::getValue('u');
-    $password = Tools::getValue('p');
-    $country_id = Tools::getValue('c');
-    $referer = $_SERVER['HTTP_HOST'];
-
-    $con = curl_init();
-    $url = $_api_url.'?f=getToken';
-    $my_values = array('country_id' => $country_id, 'login' => $login, 'password' => $password, 'referer' => $referer, 'user_app' => $user_app);
-
-    curl_setopt($con, CURLOPT_URL, $url);
-    curl_setopt($con, CURLOPT_POST, true);
-    curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
-    curl_setopt($con, CURLOPT_HEADER, false);
-    curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
-
-    $res_curl = curl_exec($con);
-    curl_close($con);
-
-    $res = Tools::jsonDecode($res_curl, true);
-
-    if ($res['response_code'] == '1') {
+    if (strlen($jwt) > 1) {
         return "<img src='".dirname($_SERVER['PHP_SELF']).'/../../'."img/admin/enabled.gif' /><font color='green'>Ok</font>";
     }
-   
-    return "<img src='".dirname($_SERVER['PHP_SELF']).'/../../'."img/admin/disabled.gif' /><font color='red'>".$res['response_text'].'</font>';
+    else {
+        return "<img src='".dirname($_SERVER['PHP_SELF']).'/../../'."img/admin/disabled.gif' /><font color='red'>".$res['response_text'].'</font>';
+    }
 }
 
 function getProds($opt_cat = 0)
