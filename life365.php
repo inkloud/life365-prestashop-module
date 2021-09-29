@@ -568,6 +568,7 @@ class Life365 extends Module
             curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
             curl_setopt($con, CURLOPT_HEADER, false);
             curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
             $res_curl = curl_exec($con);
             curl_close($con);
@@ -620,6 +621,7 @@ class Life365 extends Module
             curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
             curl_setopt($con, CURLOPT_HEADER, false);
             curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
             $res_curl = curl_exec($con);
             curl_close($con);

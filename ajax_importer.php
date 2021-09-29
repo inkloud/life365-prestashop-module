@@ -198,6 +198,7 @@ function getAccessToken()
         curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
         curl_setopt($con, CURLOPT_HEADER, false);
         curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
         $res_curl = curl_exec($con);
         curl_close($con);
@@ -233,6 +234,7 @@ function getAccessJWT()
     curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
     curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
     $res_curl = curl_exec($con);
     $res_code = curl_getinfo($con, CURLINFO_HTTP_CODE);
@@ -338,6 +340,7 @@ function getProductsDisabled($category_id, $access_token, $qty = 100, $offset = 
     curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
     curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
     $res_curl = curl_exec($con);
     if ($debug) {
@@ -374,6 +377,7 @@ function availableCategories()
         curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
         curl_setopt($con, CURLOPT_HEADER, false);
         curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
         $res_curl = curl_exec($con);
         curl_close($con);
@@ -824,6 +828,7 @@ function getNewCart()
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($con, CURLOPT_CUSTOMREQUEST, "POST");
     curl_setopt($con, CURLOPT_POSTFIELDS, 1);
+    curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
     $res_curl = curl_exec($con);
     curl_close($con);
@@ -853,6 +858,7 @@ function addProductToCart($code, $qty)
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($con, CURLOPT_CUSTOMREQUEST, "PUT");
     curl_setopt($con, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
     $res_curl = curl_exec($con);
 
@@ -906,6 +912,7 @@ function setShippingAddress($dropship_address)
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($con, CURLOPT_CUSTOMREQUEST, "PUT");
     curl_setopt($con, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
     $res_curl = curl_exec($con);
     if ($debug) {
@@ -942,6 +949,7 @@ function countryStringToNumber($countryString)
     curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
     curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
     $res_curl = curl_exec($con);
     if ($debug) {
@@ -992,6 +1000,7 @@ function regionStringToNumber($regionString, $countryString)
     curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
     curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
     $res_curl = curl_exec($con);
 
