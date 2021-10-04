@@ -265,6 +265,7 @@ function getProducts2($category_id)
     curl_setopt($con, CURLOPT_URL, $url);
     curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
     $res_curl = curl_exec($con);
     if ($debug) {
@@ -301,6 +302,7 @@ function getSingleProduct($product_id)
     curl_setopt($con, CURLOPT_URL, $url);
     curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
     $res_curl = curl_exec($con);
     if ($debug) {
@@ -777,7 +779,7 @@ function getActiveCart()
     curl_setopt($con, CURLOPT_URL, $url);
     curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
-    
+    curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);    
 
     $res_curl = curl_exec($con);
     if ($debug) {
