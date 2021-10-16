@@ -532,7 +532,7 @@ class Life365 extends Module
                 }
                 else {
                     $.ajaxSetup ({cache: false});					
-                    var loadUrl = "'.$myUrl.__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php?action=checkLogon&token='.Tools::getAdminToken($this->name).'";
+                    var loadUrl = "' . _MODULE_DIR_ . $this->name . '/ajax_importer.php?action=checkLogon&token=' . Tools::getAdminToken($this->name) . '";
                     $("#res_logon").html("<img src=\''.Tools::getHttpHost(true).__PS_BASE_URI__.'img/loader.gif\' />");
 
                     $.ajax({
@@ -834,7 +834,7 @@ class Life365 extends Module
                 }
 
             $(document).ready(function() {
-                var loadUrl = "'.$this->siteURL().__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php";
+                var loadUrl = "'. _MODULE_DIR_ . $this->name . '/ajax_importer.php";
 
                 var selected_categories = '.Tools::jsonEncode($categories).'
 
