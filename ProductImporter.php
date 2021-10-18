@@ -56,7 +56,7 @@ abstract class ProductImporter
         $this->object->update();
     }
 
-    public function saveQuantity($productId,$qta)
+    public function saveQuantity($productId, $qta)
     {
         $this->id_product = $this->ifExistId($productId);
 
@@ -161,12 +161,12 @@ abstract class ProductImporter
 
             $this->object->update();
 
-// Set minimal_quantity - enable these lines only if relative plugin is installed            
+// Set minimal_quantity - enable these lines only if relative plugin is installed
 //            Db::getinstance()->update(
 //                                    'product',
 //                                    array('minimal_quantity' => (int) $this->object->$qty_delivery),
 //                                    ' id = ' . (int) $this->object->id
-//            );            
+//            );
         } else {
             $name = $this->getName();
             $link_rewrite = self::generateSlug($name);
@@ -380,7 +380,7 @@ abstract class ProductImporter
             return 0;
         }
     }
-    
+
     protected function getHeight()
     {
         if ($this->object->id) {
@@ -389,7 +389,7 @@ abstract class ProductImporter
             return 0;
         }
     }
-    
+
     protected function getManufacturer()
     {
         if ($this->object->id) {
@@ -398,7 +398,7 @@ abstract class ProductImporter
             return 0;
         }
     }
-    
+
     protected function getCategory()
     {
         if ($this->object->id) {
@@ -407,7 +407,7 @@ abstract class ProductImporter
             return array(1);
         }
     }
-    
+
     protected function getCategoryDefault()
     {
         if ($this->object->id) {
@@ -449,7 +449,7 @@ abstract class ProductImporter
     
     protected function getEan13()
     {
-        if(isset($this->object->ean13)) {
+        if (isset($this->object->ean13)) {
             return $this->object->ean13;
         }
         $ean13 = $this->object->barcode[$this->object->id_lang];

@@ -400,7 +400,7 @@ function checkLogon()
 {
     $jwt = getAccessJWT();
 
-    if (strlen($jwt) > 1) {
+    if (Tools::strlen($jwt) > 1) {
         return "<img src='".dirname($_SERVER['PHP_SELF']).'/../../'."img/admin/enabled.gif' /><font color='green'>Ok</font>";
     }
     else {

@@ -112,7 +112,6 @@ class AccessoryImporter extends ProductImporter
         $str_tmp = str_replace("\r\n", "<br>", $str_tmp);
 
         return $this->product->short_description;
-//      return $str_tmp;
     }
     
     protected function getDesciption()
@@ -195,7 +194,7 @@ class AccessoryImporter extends ProductImporter
 
     public function getManufacturerId($name)
     {
-        if(empty($name)) {
+        if (empty($name)) {
             return 0;
         }
         
@@ -203,14 +202,14 @@ class AccessoryImporter extends ProductImporter
         $res = Db::getInstance()->ExecuteS(
             "SELECT  id_manufacturer AS id FROM "._DB_PREFIX_."manufacturer WHERE name = '".$name."'"
         );
-        if(empty($res)) {
+        if (empty($res)) {
             Db::getInstance()->execute(
                 "INSERT INTO "._DB_PREFIX_."manufacturer ( `name`,  `active`,`date_add`, `date_upd`) VALUES ( '".$name."', 1 , CURRENT_TIMESTAMP(),  CURRENT_TIMESTAMP() )"
             );
             $res = Db::getInstance()->ExecuteS(
                 "SELECT id_manufacturer AS id FROM "._DB_PREFIX_."manufacturer WHERE name = '".$name."'"
             );
-            if(empty($res)) {
+            if (empty($res)) {
                 throw new Exception("Accessory Import Exception : No Manufacturer");
             } else {
                 $id_shop = (int)Context::getContext()->shop->id;
@@ -235,7 +234,7 @@ class AccessoryImporter extends ProductImporter
         $res = Db::getInstance()->ExecuteS(
             "SELECT id_manufacturer AS id FROM "._DB_PREFIX_."manufacturer WHERE name = '".(string)$this->getManufacturerName()."'"
         );
-        if(empty($res)) {
+        if (empty($res)) {
             //INSERT INTO `ps_manufacturer_lang` (`id_manufacturer`, `id_lang`, `description`, `short_description`, `meta_title`, `meta_keywords`, `meta_description`) VALUES ('9', '1', NULL, NULL, NULL, NULL, NULL);
 
             Db::getInstance()->execute(
