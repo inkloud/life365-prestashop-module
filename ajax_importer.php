@@ -94,7 +94,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.84';
+    $user_app = 'PrestaShop module ver: 1.2.85';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
 
     $e_commerce_url = array(
@@ -559,7 +559,7 @@ function runCron3()
                 $objectProduct->street_price = $objectProduct->price_a;
                 $objectProduct->description = $objectProduct->descr->{$country_l};
                 $objectProduct->quantity = $objectProduct->stock;
-                $objectProduct->url_image = implode(",",json_decode(json_encode($objectProduct->photos), true));
+                $objectProduct->url_image = json_decode(json_encode($objectProduct->photos), true)[0];
                 $objectProduct->local_category = $objectProduct->level_3;
                 $objectProduct->meta_description = '';
                 $objectProduct->meta_title = $objectProduct->name;
