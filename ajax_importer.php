@@ -573,22 +573,25 @@ function runCron3()
             $offset += 1;
         }
 
-        // TODO: use new API for disabled prods
-        $access_token = getAccessToken();
-        $products = getProductsDisabled2($macro_cat);
-        if (!empty($products)) {
-            if (array_filter($products)) {
-                $result_html .= 'CATEGORY '.$macro_cat.': CLEANING PHASE<br />';
-                foreach ($products as $product) {
-                    if ($debug) {
-                        p($product);
-                    }
-                    $result_html .= 'Cleaning product '.$product['id'].'<br />';
-                    $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
+        $sel = rand(1,10);
+        if ($sel == 1)
+        {
+            $access_token = getAccessToken();
+            $products = getProductsDisabled2($macro_cat);
+            if (!empty($products)) {
+                if (array_filter($products)) {
+                    $result_html .= 'CATEGORY '.$macro_cat.': CLEANING PHASE<br />';
+                    foreach ($products as $product) {
+                        if ($debug) {
+                            p($product);
+                        }
+                        $result_html .= 'Cleaning product '.$product['id'].'<br />';
+                        $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
 
-                    $accessroyImport = new AccessoryImporter();
-                    $accessroyImport->setProductSource($objectProduct);
-                    $accessroyImport->disable();
+                        $accessroyImport = new AccessoryImporter();
+                        $accessroyImport->setProductSource($objectProduct);
+                        $accessroyImport->disable();
+                    }
                 }
             }
         }
