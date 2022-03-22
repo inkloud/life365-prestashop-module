@@ -323,23 +323,20 @@ function getSingleProduct($product_id)
     return $res;
 }
 
-function getProductsDisabled($category_id, $access_token, $qty = 100, $offset = 0)
+
+function getProductsDisabled2($category_id)
 {
-    $_api_url = getModuleInfo('api_url');
     $module_name = getModuleInfo('name');
+    $jwt = getAccessJWT();
 
     $debug = (bool)Configuration::get($module_name.'_debug_mode');
-    if ((int)$qty == 0) {
-        $qty = 100;
-    }
     
+    $api_url_new = getModuleInfo('api_url_new');
+
     $con = curl_init();
-    $url = $_api_url.'?f=getProductsDisabled&access_token='.$access_token;
-    $my_values = array('category_id' => $category_id, 'qty' => $qty, 'offset' => (int)$offset);
+    $url = $api_url_new."/api/warehouse/getDisabledProducts/".$category_id."?jwt=".$jwt;
 
     curl_setopt($con, CURLOPT_URL, $url);
-    curl_setopt($con, CURLOPT_POST, true);
-    curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
     curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
@@ -359,9 +356,10 @@ function getProductsDisabled($category_id, $access_token, $qty = 100, $offset = 
     curl_close($con);
 
     $res = Tools::jsonDecode($res_curl, true);
- 
-    return $res['response_detail'];
+
+    return $res;
 }
+
 
 function availableCategories()
 {
@@ -471,9 +469,9 @@ function getProds($opt_cat = 0)
         }
     }
 
-    $products = getProductsDisabled($cat, $access_token, $qty, $offset);
+    $products = getProductsDisabled2($cat);
     if (!empty($products)) {
-        if (array_filter($products = getProductsDisabled($cat, $access_token, $qty, $offset))) {
+        if (array_filter($products = getProductsDisabled2($cat))) {
             $result_html .= 'CATEGORY '.$cat.': CLEANING offset '.$offset.'<br />';
             foreach ($products as $product) {
                 if ($debug) {
@@ -574,6 +572,26 @@ function runCron3()
             }
             $offset += 1;
         }
+
+        // TODO: use new API for disabled prods
+        $access_token = getAccessToken();
+        $products = getProductsDisabled2($macro_cat);
+        if (!empty($products)) {
+            if (array_filter($products)) {
+                $result_html .= 'CATEGORY '.$macro_cat.': CLEANING PHASE<br />';
+                foreach ($products as $product) {
+                    if ($debug) {
+                        p($product);
+                    }
+                    $result_html .= 'Cleaning product '.$product['id'].'<br />';
+                    $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
+
+                    $accessroyImport = new AccessoryImporter();
+                    $accessroyImport->setProductSource($objectProduct);
+                    $accessroyImport->disable();
+                }
+            }
+        }
     }
 
     return $result_html;
@@ -656,60 +674,6 @@ function runCron()
     return $result_html;
 }
 
-
-function runCron2()
-{
-    $module_name = getModuleInfo('name');
-    $country_l = Tools::strtolower(Configuration::get($module_name.'_country'));
-    $macro_cat = (int)Tools::getValue('mc');
-
-    $result_html = '';
-
-    $cats_array = explode(",", Configuration::get($module_name.'_'.$macro_cat.'_categories'));
-    foreach ($cats_array as $cat) {
-        p('Section: '.$macro_cat.'<br />');
-        if (Tools::strlen($cat)>0) {
-            $offset = 0;
-            $serviceAccessoryImport = new AccessoryImporter();
-            while (array_filter($proucts = getProducts2($cat)) and $offset<1) {
-                p('CATEGORY '.$cat.': IMPORT offset '.$offset.'<br />');
-                foreach ($proucts as $product) {
-                    $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
-                    if($serviceAccessoryImport->getVersion($objectProduct->id) >= $objectProduct->last_update){
-                        p('Skip product '.$product['id'].' latest version already');
-                        continue;
-                    }
-                    p('Importing product '.$product['id']);
-                    $objectProduct->reference = $objectProduct->code_simple;
-                    $objectProduct->name = $objectProduct->title->{$country_l};
-                    $objectProduct->meta_keywords = $objectProduct->keywords;
-                    $objectProduct->price = $objectProduct->price->price;
-                    $objectProduct->street_price = $objectProduct->price_a;
-                    $objectProduct->description = $objectProduct->descr->{$country_l};
-                    $objectProduct->quantity = $objectProduct->stock;
-                    $objectProduct->url_image = json_decode(json_encode($objectProduct->photos), true)[0];
-                    $objectProduct->local_category = $objectProduct->level_3;
-                    $objectProduct->meta_description = '';
-                    $objectProduct->meta_title = $objectProduct->name;
-                    $objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
-                    $objectProduct->version = $objectProduct->last_update;
-                    $objectProduct->id_manufactuter = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
-                    $objectProduct->manufactuter = $objectProduct->brand;
-                    $objectProduct->ean13 = $objectProduct->barcode;
-
-
-                    $accessroyImport = new AccessoryImporter();
-                    $accessroyImport->setProductSource($objectProduct);
-                    $accessroyImport->save();
-                }
-                $offset += 1;
-            }
-        }
-    }
-
-    return $result_html;
-}
- 
 
 function dropship()
 {
@@ -840,6 +804,7 @@ function getNewCart()
     return $res['id'];
 }
 
+
 function addProductToCart($code, $qty)
 {
     $module_name = getModuleInfo('name');
@@ -879,6 +844,7 @@ function addProductToCart($code, $qty)
 
     curl_close($con);
 }
+
 
 function setShippingAddress($dropship_address)
 {
@@ -935,6 +901,7 @@ function setShippingAddress($dropship_address)
     //fare una nuova put per mettere il FLAG DROPSHIP a true
 }
 
+
 function countryStringToNumber($countryString)
 {
     //prendo l'id della nazione da cui si sta richiedendo il servizio, passandolo come 'country' all'API
@@ -983,6 +950,7 @@ function countryStringToNumber($countryString)
 
     return getModuleInfo('default_country_id');
 }
+
 
 function regionStringToNumber($regionString, $countryString)
 {
