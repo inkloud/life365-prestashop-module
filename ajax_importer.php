@@ -94,7 +94,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.85';
+    $user_app = 'PrestaShop module ver: 1.2.86';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
 
     $e_commerce_url = array(
@@ -436,6 +436,11 @@ function getProds($opt_cat = 0)
             }
             $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
 
+            if($objectProduct->level_3 != $cat){
+                $result_html .= 'Skip product '.$product['id'].' not native category ('. $objectProduct->level_3 . ')';
+                continue;
+            }
+
 			$result_html .= 'Set quantity product '.$product['id'].' '.$product['code_simple'].' '.$product['last_update'].'<br />';
 			$accessroyImport = new AccessoryImporter();
 			$accessroyImport->saveQuantity($product['id'],$product['stock']);
@@ -539,6 +544,11 @@ function runCron3()
         while (array_filter($products) && $offset<1) {
             p('CATEGORY '.$macro_cat.': IMPORT offset '.$offset.'<br />');
             foreach ($products as $product) {
+                if($objectProduct->level_3 != $macro_cat){
+                    p('Skip product '.$product['id'].' not native category: ('. $objectProduct->level_3 . ')');
+                    continue;
+                }
+                
                 p('Set quantity product '.$product['id'].' '.$product['code'].' '.$product['version_data']);
                 $accessroyImport = new AccessoryImporter();
                 $accessroyImport->saveQuantity($product['id'],$product['stock']);
@@ -641,6 +651,10 @@ function runCron()
                     p('CATEGORY '.$cat.': IMPORT offset '.$offset.'<br />');
                     foreach ($proucts as $product) {
                         $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
+                        if($objectProduct->level_3 != $cat){
+                            p('Skip product '.$product['id'].' not native category: ('. $objectProduct->level_3 . ')');
+                            continue;
+                        }
                         if($serviceAccessoryImport->getVersion($objectProduct->id) >= $objectProduct->last_update){
                             p('Skip product '.$product['id'].' latest version already');
                             continue;
