@@ -420,6 +420,7 @@ function getProds($opt_cat = 0)
     $offset = Tools::getValue('offset');
     $qty = Tools::getValue('qty');
     $country_l = Tools::strtolower(Configuration::get($module_name.'_country'));
+    $macro_cat = 0;
 
     if ($opt_cat == 0) {
         $cat = Tools::getValue('cat');
@@ -440,6 +441,7 @@ function getProds($opt_cat = 0)
                 p($product);
             }
             $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
+            $macro_cat = $objectProduct->level_1;
 
             if($objectProduct->level_3 != $cat){
                 $result_html .= 'Skip product '.$product['id'].' not native category ('. $objectProduct->level_3 . ')<br />';
@@ -483,20 +485,22 @@ function getProds($opt_cat = 0)
         }
     }
 
-    $products = getProductsDisabled2($cat);
-    if (!empty($products)) {
-        if (array_filter($products)) {
-            $result_html .= 'CATEGORY '.$cat.': CLEANING offset '.$offset.'<br />';
-            foreach ($products as $product) {
-                if ($debug) {
-                    p($product);
-                }
-                $result_html .= 'Cleaning product '.$product['id'].'<br />';
-                $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
+    if ($macro_cat > 0) {
+        $products = getProductsDisabled2($macro_cat);
+        if (!empty($products)) {
+            if (array_filter($products)) {
+                $result_html .= 'CATEGORY '.$macro_cat.': CLEANING offset '.$offset.'<br />';
+                foreach ($products as $product) {
+                    if ($debug) {
+                        p($product);
+                    }
+                    $result_html .= 'Disabling product '.$product['id'].'<br />';
+                    $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
 
-                $accessroyImport = new AccessoryImporter();
-                $accessroyImport->setProductSource($objectProduct);
-                $accessroyImport->disable();
+                    $accessroyImport = new AccessoryImporter();
+                    $accessroyImport->setProductSource($objectProduct);
+                    $accessroyImport->disable();
+                }
             }
         }
     }
@@ -600,7 +604,7 @@ function runCron3()
                     if ($debug) {
                         p($product);
                     }
-                    $result_html .= 'Cleaning product '.$product['id'].'<br />';
+                    $result_html .= 'Disabling product '.$product['id'].'<br />';
                     $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
 
                     $accessroyImport = new AccessoryImporter();
