@@ -485,7 +485,7 @@ function getProds($opt_cat = 0)
 
     $products = getProductsDisabled2($cat);
     if (!empty($products)) {
-        if (array_filter($products = getProductsDisabled2($cat))) {
+        if (array_filter($products)) {
             $result_html .= 'CATEGORY '.$cat.': CLEANING offset '.$offset.'<br />';
             foreach ($products as $product) {
                 if ($debug) {
@@ -591,25 +591,21 @@ function runCron3()
             $offset += 1;
         }
 
-        $sel = rand(1,10);
-        if ($sel == 1)
-        {
-            $access_token = getAccessToken();
-            $products = getProductsDisabled2($macro_cat);
-            if (!empty($products)) {
-                if (array_filter($products)) {
-                    $result_html .= 'CATEGORY '.$macro_cat.': CLEANING PHASE<br />';
-                    foreach ($products as $product) {
-                        if ($debug) {
-                            p($product);
-                        }
-                        $result_html .= 'Cleaning product '.$product['id'].'<br />';
-                        $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
-
-                        $accessroyImport = new AccessoryImporter();
-                        $accessroyImport->setProductSource($objectProduct);
-                        $accessroyImport->disable();
+        p("Starting periodic cleaning of obsolete products.");
+        $products = getProductsDisabled2($macro_cat);
+        if (!empty($products)) {
+            if (array_filter($products)) {
+                $result_html .= 'CATEGORY '.$macro_cat.': CLEANING PHASE<br />';
+                foreach ($products as $product) {
+                    if ($debug) {
+                        p($product);
                     }
+                    $result_html .= 'Cleaning product '.$product['id'].'<br />';
+                    $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
+
+                    $accessroyImport = new AccessoryImporter();
+                    $accessroyImport->setProductSource($objectProduct);
+                    $accessroyImport->disable();
                 }
             }
         }
