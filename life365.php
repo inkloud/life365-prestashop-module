@@ -40,7 +40,7 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '1.2.88';
+        $this->version = '1.2.89';
         $this->author = 'Giancarlo Spadini & Vandershop.it';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.8');
@@ -828,9 +828,32 @@ class Life365 extends Module
                     {
                         console.log("waiter_"+selected_category);
                         $("#waiter_"+selected_category).html("<b>Process completed!</b><br /><br />");
-//      $("#waiter_"+selected_categories[i]).html("<b>Process completed!</b><br /><br />");
-//      $("#result_"+selected_categories[i]).append("<br /><br /><a href=\"'.$cron_url_search.'\" target=\"_blank\"><img src=\"'.$cron_url_search_img.'\">Click here to create a search index for new products<img src=\"'.$cron_url_search_img.'\"></a><br />");
+//                      $("#waiter_"+selected_categories[i]).html("<b>Process completed!</b><br /><br />");
+//                      $("#result_"+selected_categories[i]).append("<br /><br /><a href=\"'.$cron_url_search.'\" target=\"_blank\"><img src=\"'.$cron_url_search_img.'\">Click here to create a search index for new products<img src=\"'.$cron_url_search_img.'\"></a><br />");
                     }
+                }
+                
+                function getProdsDisabled0(k, loadUrl, selected_category, g, n_try)
+                {
+                    $.ajax({
+                            type: "GET",
+                            url: loadUrl,
+                            dataType : "html",
+                            async: true,
+                            data: {cat: selected_category, action: "disableProds", token: "'.Tools::getAdminToken($this->name).'"}
+                        }).done(function( msg ) {
+                            console.log("Disabled products in: " + selected_category);
+                            $("#result_"+selected_category).append(msg + "<br />");
+                        })
+                        .fail(function (msg, textStatus, errorThrown) {
+                            $("#result_"+selected_category).append("ERROR: " + textStatus + " - " + errorThrown + "<br />");
+                            console.log(errorThrown);
+                            if (n_try<5)
+                            {
+                                $("#result_"+selected_category).append("Retrying "+todo_cat[g]+" ("+n_try+") ...<br />");
+                                getProdsDisabled0(k, loadUrl, selected_category, g, n_try+1);
+                            }
+                        })
                 }
 
             $(document).ready(function() {
@@ -841,7 +864,8 @@ class Life365 extends Module
                 for (var i=0;i<selected_categories.length;i++)
                 {
                     $("#result_"+selected_categories[i]).append("Job started. Category name <b>"+todo_categories_desc[selected_categories[i]]+"</b>, subcategory to import: <b>"+todo_categories[selected_categories[i]].length+"</b><br /><br />");
-                    getProds0(0, loadUrl, selected_categories[i], 0);
+                    getProds0(0, loadUrl, selected_categories[i], 2);
+                    getProdsDisabled0(0, loadUrl, selected_categories[i], 0);
                 }
             });
 

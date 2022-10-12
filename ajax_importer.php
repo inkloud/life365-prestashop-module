@@ -87,6 +87,9 @@ switch ($action) {
     case 'cron3':
         print runCron3();
         break;
+    case 'disableProds':
+        print setProductsDisabled2($opt_cat);
+        break;
     case 'version':
         print getModuleInfo('user_app');
         print '<br>';
@@ -100,7 +103,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.88';
+    $user_app = 'PrestaShop module ver: 1.2.89';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
 
     $e_commerce_url = array(
@@ -367,6 +370,36 @@ function getProductsDisabled2($category_id)
 }
 
 
+function setProductsDisabled2($category_id)
+{
+    $result_html = '';
+    
+    if ($category_id > 0) {
+        $products = getProductsDisabled2($category_id);
+        if (!empty($products)) {
+            if (array_filter($products)) {
+                $result_html .= 'MACROCATEGORY ' . $category_id . ' - CLEANING PHASE<br />Disabling products:';
+                foreach ($products as $product) {
+                    if ($debug) {
+                        p($product);
+                    }
+                    $result_html .= ' '.$product['id'];
+                    $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
+
+                    $accessroyImport = new AccessoryImporter();
+                    $accessroyImport->setProductSource($objectProduct);
+                    $accessroyImport->disable();
+                }
+            }
+        }
+    }
+    $result_html .= '<br />';
+
+    return $result_html;
+    
+}
+
+
 function availableCategories()
 {
     $_api_url = getModuleInfo('api_url');
@@ -485,26 +518,6 @@ function getProds($opt_cat = 0)
         }
     }
 
-    if ($macro_cat > 0) {
-        $products = getProductsDisabled2($macro_cat);
-        if (!empty($products)) {
-            if (array_filter($products)) {
-                $result_html .= 'CATEGORY '.$macro_cat.': CLEANING offset '.$offset.'<br />';
-                foreach ($products as $product) {
-                    if ($debug) {
-                        p($product);
-                    }
-                    $result_html .= 'Disabling product '.$product['id'].'<br />';
-                    $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
-
-                    $accessroyImport = new AccessoryImporter();
-                    $accessroyImport->setProductSource($objectProduct);
-                    $accessroyImport->disable();
-                }
-            }
-        }
-    }
-
     return $result_html;
 }
 
@@ -596,23 +609,7 @@ function runCron3()
         }
 
         p("Starting periodic cleaning of obsolete products.");
-        $products = getProductsDisabled2($macro_cat);
-        if (!empty($products)) {
-            if (array_filter($products)) {
-                $result_html .= 'CATEGORY '.$macro_cat.': CLEANING PHASE<br />';
-                foreach ($products as $product) {
-                    if ($debug) {
-                        p($product);
-                    }
-                    $result_html .= 'Disabling product '.$product['id'].'<br />';
-                    $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
-
-                    $accessroyImport = new AccessoryImporter();
-                    $accessroyImport->setProductSource($objectProduct);
-                    $accessroyImport->disable();
-                }
-            }
-        }
+        $result_html .= setProductsDisabled2($macro_cat);
     }
 
     return $result_html;
