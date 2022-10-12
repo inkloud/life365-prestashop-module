@@ -50,7 +50,7 @@ abstract class ProductImporter
             return 0;
         }
         
-        StockAvailable::setQuantity($this->getProductID(), null, 0, null);
+        StockAvailable::setQuantity($this->getProductID(), null, 0);
         
         $this->object->active = false;
         $this->object->update();
@@ -69,7 +69,7 @@ abstract class ProductImporter
             // skip;
             return 0;
         }
-        StockAvailable::setQuantity($this->id_product, null, $qta, Context::getContext()->shop->id);
+        StockAvailable::setQuantity($this->id_product, null, $qta);
         $this->object->update();
         return 2;
     }
@@ -87,6 +87,7 @@ abstract class ProductImporter
             // skip;
             return 0;
         }
+
         $this->addUpdated();
     }
     
@@ -124,7 +125,7 @@ abstract class ProductImporter
         if ($this->object->id) {
             if ($sync_name) {
                 $name = $this->getName();
-                $this->object->name[$id_lang] = $name;
+                $this->object->name = self::createMultiLangField($name);
                 $link_rewrite = self::generateSlug($name);
                 $this->object->link_rewrite[$id_lang] = $link_rewrite;
                 $this->object->meta_title[$id_lang] = $this->getMetaTitle();
@@ -170,7 +171,7 @@ abstract class ProductImporter
         } else {
             $name = $this->getName();
             $link_rewrite = self::generateSlug($name);
-            $this->object->name[$id_lang] = $name;
+            $this->object->name = self::createMultiLangField($name);
             $this->object->id_category_default = $this->getCategoryDefault();
             $this->object->id_category[] = $this->object->id_category_default;
             $this->object->description[$id_lang] = $this->getDesciption();
@@ -206,13 +207,10 @@ abstract class ProductImporter
             $this->addFeature($features);
         }
 
-        //set quantity
-        StockAvailable::setQuantity($this->getProductID(), null, $this->getQuantity(), null);
-
         if (isset($this->object->id_category)) {
             $this->object->updateCategories(array_map('intval', $this->object->id_category));
         }
-
+        
         $this->afterAdd();
     }
     
@@ -322,6 +320,8 @@ abstract class ProductImporter
     
     protected function afterAdd()
     {
+        //set quantity
+        $res = $this->saveQuantity($this->getProductID(), $this->getQuantity());
     }
     
     /**
@@ -435,7 +435,7 @@ abstract class ProductImporter
 
         return $categoryTree;
     }
-    
+
     protected function getShortDesciption()
     {
         return $this->object->short_description[$this->object->id_lang];
