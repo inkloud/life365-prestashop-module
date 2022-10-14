@@ -69,7 +69,9 @@ abstract class ProductImporter
             // skip;
             return 0;
         }
+
         StockAvailable::setQuantity($this->id_product, null, $qta);
+
         $this->object->update();
         return 2;
     }
@@ -127,20 +129,20 @@ abstract class ProductImporter
                 $name = $this->getName();
                 $this->object->name = self::createMultiLangField($name);
                 $link_rewrite = self::generateSlug($name);
-                $this->object->link_rewrite[$id_lang] = $link_rewrite;
-                $this->object->meta_title[$id_lang] = $this->getMetaTitle();
+                $this->object->link_rewrite = $link_rewrite;
+                $this->object->meta_title = $this->getMetaTitle();
             }
             if ($sync_desc) {
-                $this->object->description[$id_lang] = $this->getDesciption();
-                $this->object->meta_description[$id_lang] = $this->getMetaDescription();
+                $this->object->description = $this->getDesciption();
+                $this->object->meta_description = $this->getMetaDescription();
             }
             if ($sync_short_desc) {
                 $description_short_limit = (int)Configuration::get('PS_PRODUCT_SHORT_DESC_LIMIT');
                 if ($description_short_limit <= 0) {
                     $description_short_limit = 800;
                 }
-                $this->object->description_short[$id_lang] = self::cropString($this->getShortDesciption(), $description_short_limit);
-                $this->object->meta_keywords[$id_lang] = $this->getMetaKeyword();
+                $this->object->description_short = self::cropString($this->getShortDesciption(), $description_short_limit);
+                $this->object->meta_keywords = $this->getMetaKeyword();
                 $tags = $this->getTags();
                 $this->addTags($tags);
             }
@@ -693,7 +695,7 @@ abstract class ProductImporter
     private static function createAndInitializeNewObject()
     {
         $id_lang = (int)(Configuration::get('PS_LANG_DEFAULT'));
-        $product = new Product(null, false, $id_lang, null, null);
+        $product = new Product();
         $product->description = array($id_lang => '');
         $product->description_short = array($id_lang => '');
         $product->link_rewrite = array($id_lang => '');
@@ -707,13 +709,14 @@ abstract class ProductImporter
     {
         return Tools::link_rewrite($string);
     }
+
     public static function createMultiLangField($field)
     {
-        $languages = Language::getLanguages(false);
         $res = array();
-        foreach ($languages as $lang) {
-            $res[$lang['id_lang']] = $field;
+        foreach (Language::getIDs(false) as $id_lang) {
+            $res[$id_lang] = $field;
         }
+
         return $res;
     }
 
@@ -744,7 +747,7 @@ abstract class ProductImporter
                 $path = _PS_CAT_IMG_DIR_.(int)($id_entity);
                 break;
         }
-        
+
         $url = str_replace(" ", "%20", $url);
         if (Tools::copy($url, $tmpfile)) {
             $url_info = pathinfo($url);
