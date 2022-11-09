@@ -374,6 +374,9 @@ function getProductsDisabled2($category_id)
 
 function setProductsDisabled2($category_id)
 {
+    $module_name = getModuleInfo('name');
+    $debug = (bool)Configuration::get($module_name.'_debug_mode');
+
     $result_html = '';
     
     if ($category_id > 0) {
