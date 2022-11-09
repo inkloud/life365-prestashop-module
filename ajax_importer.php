@@ -82,10 +82,12 @@ switch ($action) {
         print runCron();
         break;
     case 'cron2':
-        print runCron3();
+        $mc = (int)Tools::getValue('mc');
+        print runCron3($mc);
         break;
     case 'cron3':
-        print runCron3();
+        $mc = (int)Tools::getValue('mc');
+        print runCron3($mc);
         break;
     case 'disableProds':
         print setProductsDisabled2($opt_cat);
@@ -103,7 +105,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.89';
+    $user_app = 'PrestaShop module ver: 1.2.90';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
 
     $e_commerce_url = array(
@@ -554,11 +556,10 @@ function getCatStock($category_id)
 }
 
 
-function runCron3()
+function runCron3($macro_cat)
 {
     $module_name = getModuleInfo('name');
     $country_l = Tools::strtolower(Configuration::get($module_name.'_country'));
-    $macro_cat = (int)Tools::getValue('mc');
 
     $result_html = '';
 
@@ -586,11 +587,7 @@ function runCron3()
                 $objectProduct->meta_keywords = $objectProduct->keywords;
                 $objectProduct->price = $objectProduct->price->price;
                 $objectProduct->street_price = $objectProduct->price_a;
-
-                $not_allowed_tag = array( 'iframe', 'script');
-                $descriptionCleaned = preg_replace( '#<(' . implode( '|', $not_allowed_tag) . ').*>.*?</\1>#s', '', $objectProduct->descr->{$country_l});
-                $objectProduct->description = $descriptionCleaned;
-
+                $objectProduct->description = strip_unsafe($objectProduct->descr->{$country_l}, $img=false);
                 $objectProduct->quantity = $objectProduct->stock;
                 $objectProduct->url_image = json_decode(json_encode($objectProduct->photos), true)[0];
                 $objectProduct->local_category = $objectProduct->level_3;
@@ -645,57 +642,8 @@ function runCron()
     $result_html = '';
 
     $root_cats = getRootCategories();
-    foreach ($root_cats as $root_cat) {
-        $cats_array = explode(",", Configuration::get($module_name.'_'.$root_cat["Cat1"].'_categories'));
-        foreach ($cats_array as $cat) {
-            p('Section: '.$root_cat['description1'].'<br />');
-            if (Tools::strlen($cat)>0) {
-                $offset = 0;
-                $serviceAccessoryImport = new AccessoryImporter();
-                while (array_filter($proucts = getProducts2($cat)) and $offset<1) {
-                    p('CATEGORY '.$cat.': IMPORT offset '.$offset.'<br />');
-                    foreach ($proucts as $product) {
-                        $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
-                        if($objectProduct->level_3 != $cat){
-                            p('Skip product '.$product['id'].' not native category: ('. $objectProduct->level_3 . ')');
-                            continue;
-                        }
-                        if($serviceAccessoryImport->getVersion($objectProduct->id) >= $objectProduct->last_update){
-                            p('Skip product '.$product['id'].' latest version already');
-                            continue;
-                        }
-                        p('Importing product '.$product['id']);
-
-                        $objectProduct->reference = $objectProduct->code_simple;
-                        $objectProduct->name = $objectProduct->title->{$country_l};
-                        $objectProduct->meta_keywords = $objectProduct->keywords;
-                        $objectProduct->price = $objectProduct->price->price;
-                        $objectProduct->street_price = $objectProduct->price_a;
-
-                        $not_allowed_tag = array( 'iframe', 'script');
-                        $descriptionCleaned = preg_replace( '#<(' . implode( '|', $not_allowed_tag) . ').*>.*?</\1>#s', '', $objectProduct->descr->{$country_l});
-                        $objectProduct->description = $descriptionCleaned;
-
-                        $objectProduct->quantity = $objectProduct->stock;
-                        $objectProduct->url_image = json_decode(json_encode($objectProduct->photos), true)[0];
-                        $objectProduct->local_category = $objectProduct->level_3;
-                        $objectProduct->meta_description = '';
-                        $objectProduct->meta_title = $objectProduct->name;
-                        $objectProduct->short_description = 'Sizes: '.$objectProduct->dimensions.'<br>Box: '.$objectProduct->qty_box.'<br>Color: '.$objectProduct->color.'<br>Certificate: '.$objectProduct->certificate.'<br>Comp. brand: '.$objectProduct->brand;
-                        $objectProduct->version = $objectProduct->last_update;
-                        $objectProduct->id_manufactuter = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
-                        $objectProduct->manufactuter = $objectProduct->brand;
-                        $objectProduct->ean13 = $objectProduct->barcode;
-
-                        $accessroyImport = new AccessoryImporter();
-                        $accessroyImport->setProductSource($objectProduct);
-                        $accessroyImport->save();
-                    }
-                    $offset += 1;
-                }
-            }
-        }
-    }
+    foreach ($root_cats as $root_cat)
+        $result_html = runCron3($root_cat);
 
     return $result_html;
 }
@@ -1023,4 +971,43 @@ function regionStringToNumber($regionString, $countryString)
     }
 
     return getModuleInfo('default_region_id');
+}
+
+
+function strip_unsafe($string, $img=false)
+{
+    // Unsafe HTML tags that members may abuse
+    $unsafe=array(
+    '/<iframe(.*?)<\/iframe>/is',
+    '/<title(.*?)<\/title>/is',
+    '/<pre(.*?)<\/pre>/is',
+    '/<frame(.*?)<\/frame>/is',
+    '/<frameset(.*?)<\/frameset>/is',
+    '/<object(.*?)<\/object>/is',
+    '/<script(.*?)<\/script>/is',
+    '/<embed(.*?)<\/embed>/is',
+    '/<applet(.*?)<\/applet>/is',
+    '/<meta(.*?)>/is',
+    '/<!doctype(.*?)>/is',
+    '/<link(.*?)>/is',
+    '/<body(.*?)>/is',
+    '/<\/body>/is',
+    '/<head(.*?)>/is',
+    '/<\/head>/is',
+    '/onclick="(.*?)"/is',
+    '/onload="(.*?)"/is',
+    '/onunload="(.*?)"/is',
+    '/<html(.*?)>/is',
+    '/<\/html>/is');
+
+    // Remove graphic too if the user wants
+    if ($img==true)
+    {
+        $unsafe[]='/<img(.*?)>/is';
+    }
+
+    // Remove these tags and all parameters within them
+    $string=preg_replace($unsafe, "", $string);
+
+    return $string;
 }

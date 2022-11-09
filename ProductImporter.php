@@ -70,7 +70,12 @@ abstract class ProductImporter
             return 0;
         }
 
-        StockAvailable::setQuantity($this->id_product, null, $qta);
+        try {
+            StockAvailable::setQuantity($this->id_product, null, $qta);
+        }
+        catch (Exception $e) {
+            p("Something went wrong when saving quantity: " .$e->getMessage());
+        }
 
         $this->object->update();
         return 2;
@@ -245,8 +250,13 @@ abstract class ProductImporter
                 $image->cover = (!$key and !$productHasImages) ? true : false;
                 $image->legend = self::createMultiLangField($this->object->name[$id_lang]);
                 if (($fieldError = $image->validateFields($this->unfriendly_error, true)) === true and ($langFieldError = $image->validateFieldsLang($this->unfriendly_error, true)) === true and $image->add()) {
-                    if (!self::copyImg($this->object->id, $url, $image->id)) {
-                        $_warnings[] = Tools::displayError('Error copying image: ').$url;
+                    try {
+                        if (!self::copyImg($this->object->id, $url, $image->id)) {
+                            $_warnings[] = Tools::displayError('Error copying image: ').$url;
+                        }
+                    }
+                    catch (Exception $e) {
+                        p("Something went wrong downloading image: " .$e->getMessage());
                     }
                 } else {
                     $_warnings[] = $image->legend[$id_lang].(isset($image->id_product) ? ' ('.$image->id_product.')' : '').' '.Tools::displayError('cannot be saved');
