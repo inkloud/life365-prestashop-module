@@ -40,8 +40,8 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '1.2.90';
-        $this->author = 'Giancarlo Spadini & Vandershop.it';
+        $this->version = '1.2.91';
+        $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.8');
         $this->module_key = '17fe516516b4f12fb1d877a3600dbedc';
@@ -864,7 +864,7 @@ class Life365 extends Module
                 for (var i=0;i<selected_categories.length;i++)
                 {
                     $("#result_"+selected_categories[i]).append("Job started. Category name <b>"+todo_categories_desc[selected_categories[i]]+"</b>, subcategory to import: <b>"+todo_categories[selected_categories[i]].length+"</b><br /><br />");
-                    getProds0(0, loadUrl, selected_categories[i], 2);
+                    getProds0(0, loadUrl, selected_categories[i], 0);
                     getProdsDisabled0(0, loadUrl, selected_categories[i], 0);
                 }
             });
