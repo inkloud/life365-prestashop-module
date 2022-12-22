@@ -105,7 +105,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.91';
+    $user_app = 'PrestaShop module ver: 1.2.92';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
 
     $e_commerce_url = array(
@@ -453,6 +453,7 @@ function checkLogon()
 function getProds($opt_cat = 0)
 {
     $module_name = getModuleInfo('name');
+    $context = Context::getContext();
 
     $debug = (bool)Configuration::get($module_name.'_debug_mode');
     $offset = Tools::getValue('offset');
@@ -512,7 +513,7 @@ function getProds($opt_cat = 0)
             $objectProduct->local_category = $objectProduct->level_3;
             $objectProduct->meta_description = '';
             $objectProduct->meta_title = $objectProduct->name;
-            $objectProduct->short_description = l('Sizes').': '.$objectProduct->dimensions.'<br>'.l('Box').': '.$objectProduct->qty_box.'<br>'.l('Color').': '.$objectProduct->color.'<br>'.l('Certificate').': '.$objectProduct->certificate.'<br>'.l('Comp. brand').': '.$objectProduct->brand;
+            $objectProduct->short_description = $context->getTranslator()->trans('Sizes').': '.$objectProduct->dimensions.'<br>'.$context->getTranslator()->trans('Box').': '.$objectProduct->qty_box.'<br>'.$context->getTranslator()->trans('Color').': '.$objectProduct->color.'<br>'.$context->getTranslator()->trans('Certificate').': '.$objectProduct->certificate.'<br>'.$context->getTranslator()->trans('Comp. brand').': '.$objectProduct->brand;
             $objectProduct->version = $objectProduct->last_update;
             $objectProduct->id_manufactuter = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
             $objectProduct->manufactuter = $objectProduct->brand;
