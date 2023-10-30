@@ -74,11 +74,15 @@ abstract class ProductImporter
             StockAvailable::setQuantity($this->id_product, null, $qta);
         }
         catch (Exception $e) {
-            p("Something went wrong when saving quantity: " .$e->getMessage());
+            $module_name = getModuleInfo('name');
+            $debug = (bool)Configuration::get($module_name.'_debug_mode');
+            if ($debug) {
+                p("Something went wrong when saving quantity: " .$e->getMessage());
+            }
         }
 
         $this->object->update();
-        return 2;
+        return 1;
     }
 
     public function save()

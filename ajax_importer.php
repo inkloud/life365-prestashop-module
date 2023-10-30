@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author    Giancarlo Spadini <giancarlo@spadini.it>
-*  @copyright 2007-2020 PrestaShop SA
+*  @copyright 2007-2023 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -35,8 +35,7 @@ require_once(dirname(__FILE__).'/../../classes/Cookie.php');
 require_once(dirname(__FILE__).'/ProductImporter.php');
 require_once(dirname(__FILE__).'/AccessoryImporter.php');
 
-global $kernel;
-if(!$kernel){ 
+if (!isset($kernel)) {
     require_once _PS_ROOT_DIR_.'/app/AppKernel.php';
     $kernel = new \AppKernel('prod', false);
     $kernel->boot(); 
@@ -105,7 +104,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.92';
+    $user_app = 'PrestaShop module ver: 1.2.94';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
 
     $e_commerce_url = array(
@@ -828,7 +827,7 @@ function setShippingAddress($dropship_address)
 {
     $module_name = getModuleInfo('name');
     $countryNumber = countryStringToNumber($dropship_address['destination_country']);
-    $regionNumber = regionStringToNumber($dropship_address['destination_region'], $dropship_address['destination_country']);
+    $regionNumber = regionStringToNumber($dropship_address['destination_region'], $countryNumber);
     $jwt = getAccessJWT();
     $cartId = getActiveCart();
     $api_url_new = getModuleInfo('api_url_new');
@@ -884,17 +883,15 @@ function countryStringToNumber($countryString)
 {
     //prendo l'id della nazione da cui si sta richiedendo il servizio, passandolo come 'country' all'API
     $module_name = getModuleInfo('name');
-    $url = "http://api.life365.eu/v4/utils/?f=getCountryList" ;
-    $my_values = array('country' => Configuration::get($module_name.'_country'));
+
+    $api_url_new = getModuleInfo('api_url_new');
+    $url = $api_url_new."/api/utils/getCountryList";
 
     $debug = (bool)Configuration::get($module_name.'_debug_mode');
 
     $con = curl_init();
 
     curl_setopt($con, CURLOPT_URL, $url);
-    curl_setopt($con, CURLOPT_POST, true);
-    curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
-    curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
@@ -930,28 +927,22 @@ function countryStringToNumber($countryString)
 }
 
 
-function regionStringToNumber($regionString, $countryString)
+function regionStringToNumber($regionString, $countryNumber)
 {
     $module_name = getModuleInfo('name');
-    $url = "http://api.life365.eu/v4/utils/?f=getCityList";
-    $country_id = Configuration::get($module_name.'_country');
+
+    $api_url_new = getModuleInfo('api_url_new');
+    $url = $api_url_new."/api/utils/getCityList/" . $countryNumber;
 
     $debug = (bool)Configuration::get($module_name.'_debug_mode');
-
-    // prendo l'id della nazione da cui si sta richiedendo il servizio, passandolo come 'country' all'API
-    $my_values = array('country' => $country_id, 'selectedCountry' => countryStringToNumber($countryString));
 
     $con = curl_init();
 
     curl_setopt($con, CURLOPT_URL, $url);
-    curl_setopt($con, CURLOPT_POST, true);
-    curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
-    curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
     $res_curl = curl_exec($con);
-
     if ($debug) {
         p($res_curl);
     }
@@ -964,10 +955,10 @@ function regionStringToNumber($regionString, $countryString)
     }
 
     curl_close($con);
-    
+
     $res = Tools::jsonDecode($res_curl, true);
 
-    //ricerco fra i nomi delle nazioni e quando trovata restituisco il numero corrispondente
+    //ricerco fra i nomi delle regions e quando trovata restituisco il numero corrispondente
     foreach ($res as $regions) {
         if ($regions['name'] == $regionString) {
             return $regions['id'];

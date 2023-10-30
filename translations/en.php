@@ -1,7 +1,6 @@
 <?php
-
 global $_MODULE;
-$_MODULE = array();
+$_MODULE = [];
 $_MODULE['<{life365}prestashop>life365_a897a96eb747b13a884530204abced0f'] = 'Life365.eu dropshipping';
 $_MODULE['<{life365}prestashop>life365_f92be4f01302f26ec51186faeb390a98'] = 'Espandi il tuo negozio. Inizia da subito a vendere oltre 10.000 prodotti in dropshipping!';
 $_MODULE['<{life365}prestashop>life365_876f23178c29dc2552c0b48bf23cd9bd'] = 'Sei sicuro di volerlo disinstallare?';

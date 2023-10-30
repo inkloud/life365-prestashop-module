@@ -23,8 +23,8 @@
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
-
-if (!defined('_PS_VERSION_')) {
+if (!defined('_PS_VERSION_'))
+{
     exit;
 }
 
@@ -34,13 +34,14 @@ require_once('AccessoryImporter.php');
 class Life365 extends Module
 {
     private $c_html = '';
+
     private $c_api_url = 'https://api.life365.eu/v2.php';
 
     public function __construct()
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '1.2.92';
+        $this->version = '1.2.94';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.8');
