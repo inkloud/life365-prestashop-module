@@ -104,7 +104,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.94';
+    $user_app = 'PrestaShop module ver: 1.2.95';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
 
     $e_commerce_url = array(
@@ -381,19 +381,17 @@ function setProductsDisabled2($category_id)
     if ($category_id > 0) {
         $products = getProductsDisabled2($category_id);
         if (!empty($products)) {
-            if (array_filter($products)) {
-                $result_html .= 'MACROCATEGORY ' . $category_id . ' - CLEANING PHASE<br />Disabling products:';
-                foreach ($products as $product) {
-                    if ($debug) {
-                        p($product);
-                    }
-                    $result_html .= ' '.$product['id'];
-                    $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
-
-                    $accessroyImport = new AccessoryImporter();
-                    $accessroyImport->setProductSource($objectProduct);
-                    $accessroyImport->disable();
+            $result_html .= 'MACROCATEGORY ' . $category_id . ' - CLEANING PHASE<br />Disabling products:';
+            foreach ($products as $product) {
+                if ($debug) {
+                    p($product);
                 }
+                $result_html .= ' '.$product['id'];
+                $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
+
+                $accessroyImport = new AccessoryImporter();
+                $accessroyImport->setProductSource($objectProduct);
+                $accessroyImport->disable();
             }
         }
     }
@@ -571,7 +569,7 @@ function runCron3($macro_cat)
     if (Tools::strlen($macro_cat)>0) {
         $offset = 0;
         $products = getCatStock($macro_cat);
-        while (array_filter($products) && $offset<1) {
+        while (!empty($products) && $offset<1) {
             p('CATEGORY '.$macro_cat.': IMPORT offset '.$offset.'<br />');
             foreach ($products as $product) {
                 p('Set quantity product '.$product['id'].' '.$product['code'].' '.$product['version_data']);
