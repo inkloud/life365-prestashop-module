@@ -366,9 +366,7 @@ class Life365 extends Module
 
                     $cats_html .= '<tr>';
                     $cats_html .= '<td>&nbsp;&nbsp;<input type="checkbox" name="'.$this->name.'_categories[]" value="'.$cat['Cat3'].'"'.$cat_checked.' />'.$cat['description3'].'</td>';
-                    //$cats_html .= '<td><select name="cat_ps_'.$cat['Cat3'].'">';
                     $cats_html .= '<td><select name="cat_ps_'.$cat['Cat3'].'" class="children_cats_select" data-selected-id="'.$id_cat_ps.'">';
-                    //$cats_html .= $this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), $id_cat_ps, Configuration::get('PS_LANG_DEFAULT'));
                     $cats_html .= '</select></td>';
                     $cats_html .= '<td>';
                     $cats_html .= '<input type="number" step="0.01" value="'.$profit.'" name="profit_'.$cat['Cat3'].'" placeholder="'.$this->l('profit').'" />%';
@@ -458,7 +456,7 @@ class Life365 extends Module
             <select id="'.$this->name.'_default_category" name="'.$this->name.'_default_category">
                 <option value="1">'.$this->l('-- Choose a category --').'</option>
                 '.$this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), Configuration::get($this->name.'_default_category'), Configuration::get('PS_LANG_DEFAULT')).'
-          <select>
+            </select>
           </div>
           <label>'.$this->l('Default tax').'</label>
           <div class="margin-form">
