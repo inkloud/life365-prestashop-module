@@ -572,7 +572,7 @@ class Life365 extends Module
             $res_curl = curl_exec($con);
             curl_close($con);
 
-            $res = Tools::jsonDecode($res_curl, true);
+            $res = json_decode($res_curl, true);
 
             if ($res["response_code"] == "1") {
                 $token = $res["response_detail"];
@@ -625,7 +625,7 @@ class Life365 extends Module
             $res_curl = curl_exec($con);
             curl_close($con);
 
-            $res = Tools::jsonDecode($res_curl, true);
+            $res = json_decode($res_curl, true);
 
             if ($res["response_code"] == "1") {
                 return $res["response_detail"];
@@ -858,7 +858,7 @@ class Life365 extends Module
             $(document).ready(function() {
                 var loadUrl = "'. _MODULE_DIR_ . $this->name . '/ajax_importer.php";
 
-                var selected_categories = '.Tools::jsonEncode($categories).'
+                var selected_categories = '.json_encode($categories).'
 
                 for (var i=0;i<selected_categories.length;i++)
                 {
