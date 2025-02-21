@@ -213,7 +213,7 @@ function getAccessToken()
         $res_curl = curl_exec($con);
         curl_close($con);
 
-        $res = Tools::jsonDecode($res_curl, true);
+        $res = json_decode($res_curl, true);
 
         if ($res['response_code'] == '1') {
             $token = $res['response_detail'];
@@ -251,7 +251,7 @@ function getAccessJWT()
     curl_close($con);
 
     if ($res_code == 200) {
-        $res = Tools::jsonDecode($res_curl, true);
+        $res = json_decode($res_curl, true);
         $jwt = $res['jwt'];
         return $jwt;
     } else {
@@ -291,7 +291,7 @@ function getProducts2($category_id)
 
     curl_close($con);
 
-    $res = Tools::jsonDecode($res_curl, true);
+    $res = json_decode($res_curl, true);
 
     return $res;
 }
@@ -328,7 +328,7 @@ function getSingleProduct($product_id)
 
     curl_close($con);
 
-    $res = Tools::jsonDecode($res_curl, true);
+    $res = json_decode($res_curl, true);
 
     return $res;
 }
@@ -365,7 +365,7 @@ function getProductsDisabled2($category_id)
 
     curl_close($con);
 
-    $res = Tools::jsonDecode($res_curl, true);
+    $res = json_decode($res_curl, true);
 
     return $res;
 }
@@ -387,7 +387,7 @@ function setProductsDisabled2($category_id)
                     p($product);
                 }
                 $result_html .= ' '.$product['id'];
-                $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
+                $objectProduct = json_decode(json_encode($product), false);
 
                 $accessroyImport = new AccessoryImporter();
                 $accessroyImport->setProductSource($objectProduct);
@@ -423,7 +423,7 @@ function availableCategories()
         $res_curl = curl_exec($con);
         curl_close($con);
 
-        $res = Tools::jsonDecode($res_curl, true);
+        $res = json_decode($res_curl, true);
 
         if ($res['response_code'] == '1') {
             return $res['response_detail'];
@@ -476,7 +476,7 @@ function getProds($opt_cat = 0)
             if ($debug) {
                 p($product);
             }
-            $objectProduct = Tools::jsonDecode(Tools::jsonEncode($product), false);
+            $objectProduct = json_decode(json_encode($product), false);
             $macro_cat = $objectProduct->level_1;
 
             if($objectProduct->level_3 != $cat){
@@ -582,7 +582,7 @@ function runCron3($macro_cat)
                 p('Importing product '.$product['id']);
 
                 $all_product_data = getSingleProduct($product['id']);
-                $objectProduct = Tools::jsonDecode(Tools::jsonEncode($all_product_data), false);
+                $objectProduct = json_decode(json_encode($all_product_data), false);
                 $objectProduct->reference = $objectProduct->code_simple;
                 $objectProduct->name = $objectProduct->title->{$country_l};
                 $objectProduct->meta_keywords = $objectProduct->keywords;
@@ -734,7 +734,7 @@ function getActiveCart()
 
     curl_close($con);
 
-    $res = Tools::jsonDecode($res_curl, true);
+    $res = json_decode($res_curl, true);
 
     $cartId = 0;
 
@@ -774,7 +774,7 @@ function getNewCart()
     $res_curl = curl_exec($con);
     curl_close($con);
 
-    $res = Tools::jsonDecode($res_curl, true);
+    $res = json_decode($res_curl, true);
 
     return $res['id'];
 }
@@ -907,7 +907,7 @@ function countryStringToNumber($countryString)
 
     curl_close($con);
 
-    $res = Tools::jsonDecode($res_curl, true);
+    $res = json_decode($res_curl, true);
 
     //ricerco fra i nomi delle nazioni e quando trovata restituisco il numero corrispondente
     foreach ($res as $countries) {
@@ -954,7 +954,7 @@ function regionStringToNumber($regionString, $countryNumber)
 
     curl_close($con);
 
-    $res = Tools::jsonDecode($res_curl, true);
+    $res = json_decode($res_curl, true);
 
     //ricerco fra i nomi delle regions e quando trovata restituisco il numero corrispondente
     foreach ($res as $regions) {
