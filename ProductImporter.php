@@ -1,6 +1,6 @@
 <?php
 /**
-* 2007-2014 PrestaShop
+* 2007-2025 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,13 +19,16 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author    Giancarlo Spadini <info@anewbattery.com>
-*  @copyright 2007-2014 PrestaShop SA
+*  @copyright 2007-2025 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
+if (!defined('_PS_VERSION_')) { exit; }
+
 abstract class ProductImporter
 {
+    protected $product; //row source
     private $id_product; //product id in prestashop
     private $object; //object of type Product
     private $module_name='life365';
@@ -54,6 +57,26 @@ abstract class ProductImporter
         
         $this->object->active = false;
         $this->object->update();
+    }
+
+
+    protected function ifExistId($productId)
+    {
+        $id_product=0;
+
+        //first check in mapping table
+        $sql = 'SELECT id_product_ps FROM '._DB_PREFIX_.'life365_product WHERE id_product_external = '.(int)$productId;
+        $res = Db::getInstance()->getRow($sql);
+        if ($res) {
+            $id_product = $res['id_product_ps'];
+            if (!Product::existsInDatabase((int)($id_product), 'product')) {
+                $t_sql = 'DELETE FROM '._DB_PREFIX_.'life365_product WHERE id_product_ps = '.(int)$id_product;
+                Db::getInstance()->execute($t_sql);
+                $id_product=0;
+            }
+        }
+
+        return $id_product;
     }
 
     public function saveQuantity($productId, $qta)
@@ -253,7 +276,7 @@ abstract class ProductImporter
                 $image->position = Image::getHighestPosition($this->object->id) + 1;
                 $image->cover = (!$key and !$productHasImages) ? true : false;
                 $image->legend = self::createMultiLangField($this->object->name[$id_lang]);
-                if (($fieldError = $image->validateFields($this->unfriendly_error, true)) === true and ($langFieldError = $image->validateFieldsLang($this->unfriendly_error, true)) === true and $image->add()) {
+                if (($fieldError = $image->validateFields($this->unfriendly_error, true)) === true and $image->add()) {
                     try {
                         if (!self::copyImg($this->object->id, $url, $image->id)) {
                             $_warnings[] = Tools::displayError('Error copying image: ').$url;
@@ -264,7 +287,7 @@ abstract class ProductImporter
                     }
                 } else {
                     $_warnings[] = $image->legend[$id_lang].(isset($image->id_product) ? ' ('.$image->id_product.')' : '').' '.Tools::displayError('cannot be saved');
-                    $_errors[] = ($fieldError !== true ? $fieldError : '').($langFieldError !== true ? $langFieldError : '').Db::getInstance()->getLink()->errorInfo();
+                    $_errors[] = ($fieldError !== true ? $fieldError : '').Db::getInstance()->getLink()->errorInfo();
                 }
             }
         }
@@ -274,6 +297,8 @@ abstract class ProductImporter
         if (!empty($_errors)) {
             var_dump($_errors);
         }
+
+        return true;
     }
 
     /**
@@ -299,6 +324,8 @@ abstract class ProductImporter
             $id_feature_value = FeatureValue::addFeatureValueImport($id_feature, $value);
             Product::addFeatureProductImport($this->object->id, $id_feature, $id_feature_value);
         }
+
+        return true;
     }
 
     /**
@@ -872,7 +899,7 @@ abstract class ProductImporter
 
     public static function isEmpty($field)
     {
-        if (empty($field) || !isset($field) || $field==0 || $field=='0') {
+        if (empty($field) || $field == 0 || $field == '0') {
             return true;
         }
         return false;

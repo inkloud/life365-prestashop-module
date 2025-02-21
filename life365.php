@@ -1,6 +1,6 @@
 <?php
 /**
-* 2007-2021 PrestaShop
+* 2007-2025 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author    Giancarlo Spadini <giancarlo@spadini.it>
-*  @copyright 2007-2018 PrestaShop SA
+*  @copyright 2007-2025 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -44,7 +44,7 @@ class Life365 extends Module
         $this->version = '8.0.96';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
-        $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '8.2.0');
+        $this->ps_versions_compliancy = array('min' => '1.6.0.4', 'max' => '8.2.0');
         $this->module_key = '17fe516516b4f12fb1d877a3600dbedc';
 
         parent::__construct();
@@ -682,7 +682,8 @@ class Life365 extends Module
 
             $cats_html = $this->displayExternalCatetories($managed_cat);
 
-            $result_html .= '<div id="tabs-'.$cat["Cat1"].'">
+            foreach ($root_cats as $cat) {
+                $result_html .= '<div id="tabs-'.$cat["Cat1"].'">
                     <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_cats-'.$cat["Cat1"].'">
                         <div class="margin-form">
                             '.$cats_html.'
@@ -691,6 +692,7 @@ class Life365 extends Module
                         <input type="submit" name="'.$this->name.'_action_cats_b" value="'.$this->l('Update settings').'" class="button" />
                     </form>
                 </div>';
+            }
         }
         $result_html .= '
             </div>

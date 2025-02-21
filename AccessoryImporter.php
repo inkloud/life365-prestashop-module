@@ -1,6 +1,6 @@
 <?php
 /**
-* 2007-2023 PrestaShop
+* 2007-2025 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,14 +19,15 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author    Giancarlo Spadini <info@anewbattery.com>
-*  @copyright 2007-2023 PrestaShop SA
+*  @copyright 2007-2025 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
+if (!defined('_PS_VERSION_')) { exit; }
+
 class AccessoryImporter extends ProductImporter
 {
-    protected $product; //row source
     protected $image_basepath;
 
     public function setProductSource(&$p)
@@ -324,24 +325,6 @@ class AccessoryImporter extends ProductImporter
         return $id_product;
     }
     
-    protected function ifExistId($productId)
-    {
-        $id_product=0;
-
-        //first check in mapping table
-        $sql = 'SELECT id_product_ps FROM '._DB_PREFIX_.'life365_product WHERE id_product_external = '.(int)$productId;
-        $res = Db::getInstance()->getRow($sql);
-        if ($res) {
-            $id_product = $res['id_product_ps'];
-            if (!Product::existsInDatabase((int)($id_product), 'product')) {
-                $t_sql = 'DELETE FROM '._DB_PREFIX_.'life365_product WHERE id_product_ps = '.(int)$id_product;
-                Db::getInstance()->execute($t_sql);
-                $id_product=0;
-            }
-        }
-
-        return $id_product;
-    }
     /**
         this method will be called after item is added to database and it's id_product is generated
     **/

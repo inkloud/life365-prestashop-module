@@ -19,10 +19,12 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author    Giancarlo Spadini <giancarlo@spadini.it>
-*  @copyright 2007-2023 PrestaShop SA
+*  @copyright 2007-2025 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
+
+if (!defined('_PS_VERSION_')) { exit; }
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST');
@@ -104,7 +106,7 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 1.2.95';
+    $user_app = 'PrestaShop module ver: 8.0.96';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
 
     $e_commerce_url = array(
@@ -438,12 +440,13 @@ function availableCategories()
 function checkLogon()
 {
     $jwt = getAccessJWT();
+    $response_text = 'Error';
 
     if (Tools::strlen($jwt) > 1) {
         return "<img src='".dirname($_SERVER['PHP_SELF']).'/../../'."img/admin/enabled.gif' /><font color='green'>Ok</font>";
     }
     else {
-        return "<img src='".dirname($_SERVER['PHP_SELF']).'/../../'."img/admin/disabled.gif' /><font color='red'>".$res['response_text'].'</font>';
+        return "<img src='".dirname($_SERVER['PHP_SELF']).'/../../'."img/admin/disabled.gif' /><font color='red'>".$response_text.'</font>';
     }
 }
 
