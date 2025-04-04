@@ -793,30 +793,18 @@ abstract class ProductImporter
         if (Tools::copy($url, $tmpfile)) {
             $url_info = pathinfo($url);
             // convert image to jpg if different type
-            switch ($url_info['extension']) {
-                case 'gif':
-                    try {
-                        $image = imagecreatefromgif($tmpfile);
-                        imagejpeg($image, $tmpfile, 100);
-                        imagedestroy($image);
-                    } catch (Exception $e) {
-                        $debug = (bool)Configuration::get($module_name.'_debug_mode');
-                        if ($debug) {
-                            p("Something went wrong downloading GIF image: " .$e->getMessage());
-                        }
-                    }
+            $ex_extension = 'jpg';
+            $file_type = mime_content_type($tmpfile);
+            switch ($file_type) {
+                case 'image/gif':
+                    $image = imagecreatefromgif($tmpfile);
+                    imagejpeg($image, $tmpfile, 100);
+                    imagedestroy($image);
                     break;
-                case 'png':
-                    try {
-                        $image = imagecreatefrompng($tmpfile);
-                        imagejpeg($image, $tmpfile, 100);
-                        imagedestroy($image);
-                    } catch (Exception $e) {
-                        $debug = (bool)Configuration::get($module_name.'_debug_mode');
-                        if ($debug) {
-                            p("Something went wrong downloading PNG image: " .$e->getMessage());
-                        }
-                    }
+                case 'image/png':
+                    $image = imagecreatefrompng($tmpfile);
+                    imagejpeg($image, $tmpfile, 100);
+                    imagedestroy($image);
                     break;
             }
             //imageResize($tmpfile, $path.'.jpg');
