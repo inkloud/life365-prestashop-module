@@ -205,6 +205,16 @@ class Life365 extends Module
         $this->context->controller->addCSS($this->_path.'views/css/life365.css', 'all');
     }
 
+    private function postProcess()
+    {
+        Configuration::updateValue($this->name.'_country', Tools::getValue($this->name.'_country'));
+        Configuration::updateValue($this->name.'_login', Tools::getValue($this->name.'_login'));
+        Configuration::updateValue($this->name.'_password', Tools::getValue($this->name.'_password'));
+        Configuration::updateValue($this->name.'_overhead', Tools::getValue($this->name.'_overhead'));
+        Configuration::updateValue($this->name.'_default_category', Tools::getValue($this->name.'_default_category'));
+        Configuration::updateValue($this->name.'_default_tax_id', Tools::getValue($this->name.'_default_tax_id'));
+    }
+
     public function getContent()
     {
         if (Tools::isSubmit($this->name.'_importer')) {
@@ -254,16 +264,14 @@ class Life365 extends Module
             // Configuration::updateValue($this->name.'_parent_categories', Tools::getValue($this->name.'_parent_categories'));
         }
 
+        $output = '';
         if (Tools::isSubmit($this->name.'_submit')) {
-            Configuration::updateValue($this->name.'_login', Tools::getValue($this->name.'_login'));
-            Configuration::updateValue($this->name.'_password', Tools::getValue($this->name.'_password'));
-            Configuration::updateValue($this->name.'_country', Tools::getValue($this->name.'_country'));
-            Configuration::updateValue($this->name.'_default_category', Tools::getValue($this->name.'_default_category'));
-            Configuration::updateValue($this->name.'_overhead', Tools::getValue($this->name.'_overhead'));
-            Configuration::updateValue($this->name.'_default_tax_id', Tools::getValue($this->name.'_default_tax_id'));
+            $this->postProcess();
+            $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
-        $this->displayForm();
-        return $this->c_html;
+        $output .= $this->displayForm();
+
+        return $output;
     }
 
     private function getCatetoryDepth($id_category)
@@ -323,230 +331,60 @@ class Life365 extends Module
         return $result_html;
     }
 
-    private function displayExternalCatetories($root_category = 0)
+    private function displayExternalCategories($root_category = 0)
     {
-        // $root_category : point of the tree to start to display children categories
-        // if $root_category = 0 then display all categories
-        $selected_categories_array = explode(',', Configuration::get($this->name.'_'.$root_category.'_categories'));
+        $selected_categories_array = explode(',', Configuration::get($this->name . '_' . $root_category . '_categories'));
         $available_cats = $this->availableCategories();
-        $list_cat3 = '';
-        $cats_html = '<table>';
-        $cats_html .= '<tr>';
-        $cats_html .= '<th>'.Tools::strtoupper($this->name).' '.$this->l('category').'</th>';
-        $cats_html .= '<th>'.$this->l('Local category').'</th>';
-        $cats_html .= '<th>'.$this->l('Profit').'</th>';
-        $cats_html .= '</tr>';
+        $categories = [];
+
         if (is_array($available_cats)) {
-            $cat2 = 0;
             foreach ($available_cats as $cat) {
                 if ($root_category == 0 || $cat['Cat1'] == $root_category) {
-                    if ($cat2 != $cat['Cat2']) {
-                        $cats_html .= '<tr><td colspan="3">';
-                        $cats_html .= '<b>'.$cat['description1'].'::'.$cat['description2'].'</b>';
-                        $cats_html .= '</td></tr>';
-                        $cat2 = $cat['Cat2'];
-                    }
-                    $list_cat3 .= $cat['Cat3'].',';
-                    if (in_array($cat['Cat3'], $selected_categories_array)) {
-                        $cat_checked = ' checked';
-                    } else {
-                        $cat_checked = '';
-                    }
-      
-                    $sql = 'SELECT `profit`, `id_category_ps`
-                        FROM `'._DB_PREFIX_.$this->name.'_category`
-                        WHERE id_category_external = '.(int)$cat['Cat3'];
-                    if ($row = Db::getInstance()->getRow($sql)) {
-                        $id_cat_ps = $row['id_category_ps'];
-                        $profit = $row['profit'];
-                    } else {
-                        $id_cat_ps = Configuration::get($this->name.'_default_category');
-                        $profit = Configuration::get($this->name.'_overhead');
-                    }
-
-                    $cats_html .= '<tr>';
-                    $cats_html .= '<td>&nbsp;&nbsp;<input type="checkbox" name="'.$this->name.'_categories[]" value="'.$cat['Cat3'].'"'.$cat_checked.' />'.$cat['description3'].'</td>';
-                    $cats_html .= '<td><select name="cat_ps_'.$cat['Cat3'].'" class="children_cats_select" data-selected-id="'.$id_cat_ps.'">';
-                    $cats_html .= '</select></td>';
-                    $cats_html .= '<td>';
-                    $cats_html .= '<input type="number" step="0.01" value="'.$profit.'" name="profit_'.$cat['Cat3'].'" placeholder="'.$this->l('profit').'" />%';
-                    $cats_html .= '</td>';
-                    $cats_html .= '</tr>';
+                    $categories[] = [
+                        'cat3' => $cat['Cat3'],
+                        'description3' => $cat['description3'],
+                        'checked' => in_array($cat['Cat3'], $selected_categories_array),
+                        'profit' => $this->getCategoryProfit($cat['Cat3']),
+                        'id_cat_ps' => $this->getCategoryPS($cat['Cat3']),
+                    ];
                 }
             }
         }
-        $cats_html .= '</table>';
-        $cats_html .= '<input type="hidden" name="'.$this->name.'_cat1" value="'.$root_category.'" />';
-        $cats_html .= '<input type="hidden" name="'.$this->name.'_list_cat3" value="'.$list_cat3.'" />';
 
-        $cats_html .= '<select style="display:none;" id="all_categories">';
-        $cats_html .= $this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), Configuration::get('PS_HOME_CATEGORY'), Configuration::get('PS_LANG_DEFAULT'));
-        $cats_html .= '</select>';
-        
-        $cats_html .= '<script language="javascript">$(function() {		
-                var all_cats = $(\'#all_categories\').html();
+        $this->context->smarty->assign([
+            'categories' => $categories,
+            'root_category' => $root_category,
+            'list_cat3' => implode(',', array_column($categories, 'cat3')),
+        ]);
 
-                $( ".children_cats_select" ).each(function() {
-                    var original_name = $( this ).attr(\'name\');
-                    var sel = $( this ).attr(\'data-selected-id\');
-
-                    $( this ).html(all_cats);
-
-                    $( this ).attr(\'name\', original_name);
-                    $( this ).val(sel);
-                });
-            });</script>';
-
-        return $cats_html;
+        return $this->context->smarty->fetch($this->local_path . 'views/templates/admin/external_categories.tpl');
     }
 
     private function displayForm()
     {
-        // Get domain portion
-        $myUrl = $this->siteURL();
-        $e_commerce_url = array(
-            'IT' => 'https://www.life365.eu',
-            'PT' => 'https://www.life365.pt',
-            'ES' => 'https://www.inkloud.es',
-            'NL' => 'https://www.inkloud.eu',
-            'CN' => 'https://www.inkloud.cn'
-        );
-        $country_id = Configuration::get($this->name.'_country');
-
-        $cron_url = Tools::getHttpHost(true).__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php?action=cron&token='.Tools::getAdminToken($this->name);
-        $this->c_html .= '
-        <fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Main settings').'</legend>
-          <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_form_settings">
-          <label>'.$this->l('Select country').'</label>
-          <div class="margin-form">
-          <select id="'.$this->name.'_country" name="'.$this->name.'_country">
-                <option value="0">'.$this->l('-- Choose a country --').'</option>
-                <option value="IT" '.(Configuration::get($this->name.'_country') == 'IT' ? 'selected="selected"' : '').'>Italy</option>
-                <option value="CN" '.(Configuration::get($this->name.'_country') == 'CN' ? 'selected="selected"' : '').'>China</option>
-                <option value="NL" '.(Configuration::get($this->name.'_country') == 'NL' ? 'selected="selected"' : '').'>Netherlands</option>
-                <option value="PT" '.(Configuration::get($this->name.'_country') == 'PT' ? 'selected="selected"' : '').'>Portugal</option>
-                <option value="ES" '.(Configuration::get($this->name.'_country') == 'ES' ? 'selected="selected"' : '').'>Spain</option>
-            </select>
-            <a href="#" onclick="javascript:window.open(\''.$e_commerce_url[$country_id].'/user\', \'_blank\');">'.$this->l('Register new account').'</a>
-            </div>
-            <label>'.$this->l('Life365 Login').'</label>
-          <div class="margin-form">
-            <input type="text" name="'.$this->name.'_login" id="'.$this->name.'_login" value="'.Configuration::get($this->name.'_login').'" />
-          </div>
-          <label>'.$this->l('Life365 Password').'</label>
-          <div class="margin-form">
-            <table>
-                <tr>
-                    <td>
-                        <input type="password" name="'.$this->name.'_password" id="'.$this->name.'_password" value="'.Configuration::get($this->name.'_password').'" />
-                    </td>
-                    <td><div id="res_logon"></div></td>
-                    <td>
-                        <a href="#" onclick="javascript:check_user_pwd($(\'#'.$this->name.'_login\').attr(\'value\'), $(\'#'.$this->name.'_password\').attr(\'value\'), $(\'#'.$this->name.'_country\').val());">'.$this->l('Test').'</a>
-                    </td>
-                </tr>
-            </table>
-          </div>
-          <label>'.$this->l('Default mark-up rate %').'</label>
-          <div class="margin-form">
-            <input type="number" step="0.01" name="'.$this->name.'_overhead" value="'.Configuration::get($this->name.'_overhead').'" />
-          </div>
-          <label>'.$this->l('Default destination category').'</label>
-          <div class="margin-form">
-            <select id="'.$this->name.'_default_category" name="'.$this->name.'_default_category">
-                <option value="1">'.$this->l('-- Choose a category --').'</option>
-                '.$this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), Configuration::get($this->name.'_default_category'), Configuration::get('PS_LANG_DEFAULT')).'
-            </select>
-          </div>
-          <label>'.$this->l('Default tax').'</label>
-          <div class="margin-form">
-            <select name="'.$this->name.'_default_tax_id">
-            '.$this->displayTaxRules(Configuration::get($this->name.'_default_tax_id')).'
-            </select>
-          </div>
-          <input type="submit" id="'.$this->name.'_submit" name="'.$this->name.'_submit" value="'.$this->l('Update settings').'" class="button" />
-          </form>
-          <br />
-            <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_manage_cats">
-                <input type="submit" name="'.$this->name.'_manage_cats" value="'.$this->l('Manage categories ...').'" class="button" />
-            </form>
-        </fieldset>
-        <br />
-        <fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Action').'</legend>
-            <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_import">
-                <input type="submit" name="'.$this->name.'_importer" value="'.$this->l('Start import ...').'" class="button" />
-            </form>
-            <div class="clear"></div>
-            <br />
-<!--
-            <div>
-                <b>'.$this->l('Complete Cron url').': </b>
-                '.$cron_url.'<br>
-            </div>
--->
-            <div>
-                <b>'.$this->l('Cron urls by cateogry').': </b>
-                '.$this->cronUrl2().'<br>
-                <font size="-2"><a href="https://www.easycron.com/?ref=70609" target="_blank">A free CRON scheduler</a></font>
-            </div>
-        </fieldset>
-        <br />
-        <fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Optional settings').'</legend>
-            <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_other_settings'.'">
-                <label>'.$this->l('Synchronize always').'</label>
-                <div class="margin-form">
-                    <ul style="list-style-type:none;margin:0;padding:0;">
-                        <li><input type="checkbox" name="'.$this->name.'_sync_name'.'" '.(Configuration::get($this->name.'_sync_name') ? 'checked="checked"' : '').' /> '.$this->l('Product name').'</li>
-                        <li><input type="checkbox" name="'.$this->name.'_sync_short_desc'.'" '.(Configuration::get($this->name.'_sync_short_desc') ? 'checked="checked"' : '').' /> '.$this->l('Product short description').'</li>
-                        <li><input type="checkbox" name="'.$this->name.'_sync_desc'.'" '.(Configuration::get($this->name.'_sync_desc') ? 'checked="checked"' : '').' /> '.$this->l('Product description').'</li>
-                        <li><input type="checkbox" name="'.$this->name.'_sync_category'.'" '.(Configuration::get($this->name.'_sync_category') ? 'checked="checked"' : '').' /> '.$this->l('Reset association with local categories').'</li>
-                        <li><input type="checkbox" name="'.$this->name.'_sync_price'.'" '.(Configuration::get($this->name.'_sync_price') ? 'checked="checked"' : '').' /> '.$this->l('Product price').'</li>
-                    </ul>
-                </div>
-                <div class="clear"></div>
-<!--
-                <label>'.$this->l('Associate to parent categories').'</label>
-                <div class="margin-form">
-                    <input type="checkbox" name="'.$this->name.'_parent_categories'.'" '.(Configuration::get($this->name.'_parent_categories') ? 'checked="checked"' : '').' /> '.$this->l('Connect products with all parent categories').'
-                </div>
--->
-                <div class="clear"></div>
-                <label>'.$this->l('Price limit').'</label>
-                <div class="margin-form">
-                    <input type="checkbox" name="'.$this->name.'_price_limit'.'" '.(Configuration::get($this->name.'_price_limit') ? 'checked="checked"' : '').' /> '.$this->l('Limits the price not to exceed the street-price').'
-                </div>
-                <div class="clear"></div>
-                <label>'.$this->l('Debug').'</label>
-                <div class="margin-form">
-                    <input type="checkbox" name="'.$this->name.'_debug_mode'.'" '.(Configuration::get($this->name.'_debug_mode') ? 'checked="checked"' : '').' /> '.$this->l('Debug enabled').'
-                </div>
-                <div class="clear"></div>
-                <input type="submit" name="'.$this->name.'_save_other_settings" value="'.$this->l('Save optional settings').'" class="button" />
-            </form>
-        </fieldset>
-        <script>
-            function check_user_pwd(user1, password1, country1) {
-                if(country1=="0") {
-                    $("#res_logon").html("Select a country, please.");
-                }
-                else {
-                    $.ajaxSetup ({cache: false});					
-                    var loadUrl = "' . _MODULE_DIR_ . $this->name . '/ajax_importer.php?action=checkLogon&token=' . Tools::getAdminToken($this->name) . '";
-                    $("#res_logon").html("<img src=\''.Tools::getHttpHost(true).__PS_BASE_URI__.'img/loader.gif\' />");
-
-                    $.ajax({
-                        type: "POST",
-                        url: loadUrl,
-                        dataType: "html",
-                        async: true,
-                        data: {u: user1, p: password1, c: country1}
-                    }).done(function( msg ) {
-                        $("#res_logon").html(msg);
-                    });
-                }
-            };
-        </script>
-        ';
+        $countries = [
+            ['code' => 'IT', 'name' => 'Italy', 'selected' => Configuration::get($this->name.'_country') == 'IT', 'new_user' => 'https://www.life365.eu/user'],
+            ['code' => 'NL', 'name' => 'Netherlands', 'selected' => Configuration::get($this->name.'_country') == 'NL', 'new_user' => 'https://www.inkloud.eu/user'],
+            ['code' => 'PT', 'name' => 'Portugal', 'selected' => Configuration::get($this->name.'_country') == 'PT', 'new_user' => 'https://www.life365.pt/user'],
+            ['code' => 'ES', 'name' => 'Spain', 'selected' => Configuration::get($this->name.'_country') == 'ES', 'new_user' => 'https://www.inkloud.es/user'],
+        ];
+    
+        $this->context->smarty->assign([
+            'module_name' => $this->name,
+            'module_path' => $this->_path,
+            'request_uri' => $_SERVER['REQUEST_URI'],
+            'login' => Configuration::get($this->name.'_login'),
+            'password' => Configuration::get($this->name.'_password'),
+            'overhead' => Configuration::get($this->name.'_overhead'),
+            'categories_html' => $this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), Configuration::get($this->name.'_default_category'), Configuration::get('PS_LANG_DEFAULT')),
+            'tax_rules_html' => $this->displayTaxRules(Configuration::get($this->name.'_default_tax_id')),
+            'countries' => $countries,
+            'l' => function ($string) {
+                return $this->l($string);
+            },
+        ]);
+    
+        return $this->context->smarty->fetch($this->local_path . 'views/templates/admin/settings.tpl');
     }
 
     private function getAccessToken()
@@ -637,31 +475,17 @@ class Life365 extends Module
         }
     }
 
-
     private function manageCats()
     {
-        $result_html = '';
         $root_cats = $this->getRootCategories();
 
-        $result_html .= '<fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Manage categories to import').'</legend>';
-        if (is_array($root_cats)) {
-            $result_html .= '<div class="col-sm-5">';
-            foreach ($root_cats as $cat) {
-                $result_html .= '<div>
-                    <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_cats-'.$cat["Cat1"].'">
-                        <input type="hidden" name="'.$this->name.'_cat_click" value="'.$cat["Cat1"].'" />
-                        <input type="submit" name="'.$this->name.'_action_cat_click" value="'.$this->l('Manage category '). $cat["description1"] . '" class="button" />
-                    </form></div>';
-            }
-            $result_html .= '</div>';
-        }
-        $result_html .= '
-            </div>			
-        </fieldset>';
+        $this->context->smarty->assign([
+            'root_cats' => $root_cats,
+            'request_uri' => $_SERVER['REQUEST_URI'],
+        ]);
 
-        return $result_html;
+        return $this->context->smarty->fetch($this->local_path . 'views/templates/admin/manage_cats.tpl');
     }
-
 
     private function manageCats2($managed_cat)
     {
@@ -874,5 +698,51 @@ class Life365 extends Module
         ';
 
         return $result_html;
+    }
+
+    private function getCategoryProfit($categoryId)
+    {
+        // Fetch the profit for the given category from the database
+        return Db::getInstance()->getValue(
+            'SELECT profit FROM `'._DB_PREFIX_.$this->name.'_category` WHERE id_category_external = '.(int)$categoryId
+        );
+    }
+
+    private function getCategoryPS($categoryId)
+    {
+        // Fetch the PrestaShop category ID for the given external category
+        return Db::getInstance()->getValue(
+            'SELECT id_category_ps FROM `'._DB_PREFIX_.$this->name.'_category` WHERE id_category_external = '.(int)$categoryId
+        );
+    }
+
+    private function displayExternalCatetories($managed_cat)
+    {
+        // Generate HTML for displaying external categories
+        $selected_categories_array = explode(',', Configuration::get($this->name . '_' . $managed_cat . '_categories'));
+        $available_cats = $this->availableCategories();
+        $categories = [];
+
+        if (is_array($available_cats)) {
+            foreach ($available_cats as $cat) {
+                if ($cat['Cat1'] == $managed_cat) {
+                    $categories[] = [
+                        'cat3' => $cat['Cat3'],
+                        'description3' => $cat['description3'],
+                        'checked' => in_array($cat['Cat3'], $selected_categories_array),
+                        'profit' => $this->getCategoryProfit($cat['Cat3']),
+                        'id_cat_ps' => $this->getCategoryPS($cat['Cat3']),
+                    ];
+                }
+            }
+        }
+
+        $this->context->smarty->assign([
+            'categories' => $categories,
+            'root_category' => $managed_cat,
+            'list_cat3' => implode(',', array_column($categories, 'cat3')),
+        ]);
+
+        return $this->context->smarty->fetch($this->local_path . 'views/templates/admin/external_categories.tpl');
     }
 }
