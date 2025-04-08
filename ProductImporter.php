@@ -45,12 +45,14 @@ abstract class ProductImporter
         $this->id_product = $this->ifExist();
 
         if (!$this->id_product) {
+
             return 0;
         }
 
         if ((int) $this->id_product && Product::existsInDatabase((int) $this->id_product, 'product')) {
             $this->object = new Product((int) $this->id_product);
         } else {
+
             return 0;
         }
 
@@ -90,12 +92,14 @@ abstract class ProductImporter
         $this->id_product = $this->ifExistId($productId);
 
         if (!$this->id_product) {
+
             return 0;
         }
 
         if ((int) $this->id_product && Product::existsInDatabase((int) $this->id_product, 'product')) {
             $this->object = new Product((int) $this->id_product);
         } else {
+
             return 0;
         }
 
@@ -110,6 +114,7 @@ abstract class ProductImporter
         }
 
         $this->object->update();
+
         return 1;
     }
 
@@ -124,6 +129,7 @@ abstract class ProductImporter
         if ((int) $this->id_product && Product::existsInDatabase((int) $this->id_product, 'product')) {
             $this->object = new Product((int) $this->id_product);
         } else {
+
             return 0;
         }
 
@@ -744,6 +750,7 @@ abstract class ProductImporter
                     if ($i == (sizeof($folders) - 1)) {
                         if (!is_dir($base_uri)) {
                             if (!mkdir($base_uri, 0777, true)) {
+
                                 die('Failed to create directory ' . $base_uri);
                             }
                         }
@@ -762,6 +769,7 @@ abstract class ProductImporter
             $url_info = pathinfo($url);
             $ex_extension = 'jpg';
             $file_type = mime_content_type($tmpfile);
+
             switch ($file_type) {
                 case 'image/gif':
                     $image = imagecreatefromgif($tmpfile);
@@ -774,6 +782,7 @@ abstract class ProductImporter
                     imagedestroy($image);
                     break;
             }
+
             self::removeWhiteSpace($tmpfile, $path . '.jpg');
             $newimage = $path . '.jpg';
             $imagesTypes = ImageType::getImagesTypes($entity);
@@ -791,8 +800,10 @@ abstract class ProductImporter
                     error_log("Tentativo di path traversal: " . $tmpfile);
                 }
             }
+
             return false;
         }
+
         if (is_string($tmpfile)) {
             $uploadDir = realpath(_PS_UPLOAD_DIR_);
             $tmpfile = basename($tmpfile);
@@ -803,6 +814,7 @@ abstract class ProductImporter
                 error_log("Tentativo di path traversal: " . $tmpfile);
             }
         }
+
         return true;
     }
 
