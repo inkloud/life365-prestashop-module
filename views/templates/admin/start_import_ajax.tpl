@@ -25,13 +25,14 @@
 <script>
     var todo_categories = {};
     var todo_categories_desc = {};
+    var slow_mode = {$slow_mode};
 </script>
 
 {foreach from=$root_cats item=cat}
 <fieldset>
     <legend>
         <img src="{$module_path}logo.gif" alt="" title="" />
-        {l s='Action'}
+        {l s='Action' mod='life365' d='Modules.Life365.Admin'}
     </legend>
     <div id="waiter_{$cat.Cat1}">
         <img src="{$base_url}img/loader.gif" alt="loading..." />
@@ -45,6 +46,38 @@
 {/foreach}
 
 <script>
+    // Add jQuery Ajax Queue functionality
+    jQuery.ajaxQueue = (function($) {
+        var xhrQueue = [];
+        var running = false;
+
+        function processQueue() {
+            if (running || !xhrQueue.length) {
+                return;
+            }
+            running = true;
+            var request = xhrQueue.shift();
+            var xhr = $.ajax(request.settings);
+            xhr.done(request.done)
+               .fail(request.fail)
+               .always(function() {
+                   running = false;
+                   processQueue();
+               });
+        }
+
+        return function(settings) {
+            var deferred = $.Deferred();
+            xhrQueue.push({
+                settings: settings,
+                done: deferred.resolve,
+                fail: deferred.reject
+            });
+            processQueue();
+            return deferred.promise();
+        };
+    })(jQuery);
+
     function getProds1(k, loadUrl, selected_category, not_used, n_try) {
         var todo_cat = todo_categories[selected_category];
         for (g = 0; g < todo_cat.length; g++) {
@@ -72,13 +105,17 @@
     function getProds0(k, loadUrl, selected_category, g, n_try) {
         var todo_cat = todo_categories[selected_category];
         if (g < todo_cat.length) {
-            $.ajax({
+            var ajaxSettings = {
                 type: "GET",
                 url: loadUrl,
                 dataType: "html",
                 async: true,
                 data: { cat: todo_cat[g], offset: k, qty: 20, action: "getProds", token: "{$admin_token}" }
-            }).done(function (msg) {
+            };
+            
+            var ajaxFunction = slow_mode ? $.ajaxQueue : $.ajax;
+            
+            ajaxFunction(ajaxSettings).done(function (msg) {
                 if (msg.length > 0 && k < 10) {
                     console.log("cat:" + todo_cat[g] + "offset" + k + "selected_category:" + selected_category);
                     $("#result_" + selected_category).append(msg + "<br />");
@@ -105,13 +142,17 @@
     }
 
     function getProdsDisabled0(k, loadUrl, selected_category, g, n_try) {
-        $.ajax({
+        var ajaxSettings = {
             type: "GET",
             url: loadUrl,
             dataType: "html",
             async: true,
             data: { cat: selected_category, action: "disableProds", token: "{$admin_token}" }
-        }).done(function (msg) {
+        };
+        
+        var ajaxFunction = slow_mode ? $.ajaxQueue : $.ajax;
+        
+        ajaxFunction(ajaxSettings).done(function (msg) {
             console.log("Disabled products in: " + selected_category);
             $("#result_" + selected_category).append(msg + "<br />");
         }).fail(function (msg, textStatus, errorThrown) {

@@ -673,27 +673,26 @@ class Life365 extends Module
 
         $result_html .= '<fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Manage categories to import').'</legend>';
         if (is_array($root_cats)) {
+            $cats_html = $this->displayExternalCatetories($managed_cat);
+
             $result_html .= '
             <div id="tabs">
                       <ul>';
             foreach ($root_cats as $cat) {
                 if ($cat["Cat1"] == $managed_cat) {
                     $result_html .= '<li><a href="#tabs-'.$cat["Cat1"].'">'.$cat["description1"].'</a></li>';
+                    $result_html .= '<div id="tabs-'.$cat["Cat1"].'">
+                        <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_cats-'.$cat["Cat1"].'">
+                            <div class="margin-form">
+                                '.$cats_html.'
+                            </div>
+                            <input class="button" type="button" onclick="history.back()" value="'.$this->l('Cancel').'"></input>
+                            <input type="submit" name="'.$this->name.'_action_cats_b" value="'.$this->l('Update settings').'" class="button" />
+                        </form>
+                    </div>';
                 }
             }
             $result_html .= '</ul>';
-
-            $cats_html = $this->displayExternalCatetories($managed_cat);
-
-            $result_html .= '<div id="tabs-'.$cat["Cat1"].'">
-                    <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_cats-'.$cat["Cat1"].'">
-                        <div class="margin-form">
-                            '.$cats_html.'
-                        </div>
-                        <input class="button" type="button" onclick="history.back()" value="'.$this->l('Cancel').'"></input>
-                        <input type="submit" name="'.$this->name.'_action_cats_b" value="'.$this->l('Update settings').'" class="button" />
-                    </form>
-                </div>';
         }
         $result_html .= '
             </div>
@@ -746,6 +745,7 @@ class Life365 extends Module
                     'selected_categories_array' => Configuration::get($this->name.'_'.$cat['Cat1'].'_categories'),
                 ];
             }, $root_cats),
+            'slow_mode' => (Configuration::get($this->name.'_sync_slow') == "on") ? 1 : 0,
             'l' => function ($string) {
                 return $this->l($string);
             },
