@@ -529,33 +529,46 @@ function getProds($opt_cat = 0)
 
 function getCatStock($category_id)
 {
+    if (!is_numeric($category_id) || $category_id <= 0) {
+        throw new Exception('Invalid category ID');
+    }
+
     $name = getModuleInfo('name');
     $login = Configuration::get($name.'_login');
     $password = Configuration::get($name.'_password');
 
-    $file = getModuleInfo('e_ecommerce_url')."/api/utils/csvdata/prodstock?v=2&l=".$login."&p=".$password."&idcat=".$category_id;
+    $file = getModuleInfo('e_ecommerce_url')."/api/utils/csvdata/prodstock?v=2&l=".urlencode($login)."&p=".urlencode($password)."&idcat=".urlencode((int)$category_id);
 
-    $fileData = fopen($file,'r');
+    if (!filter_var($file, FILTER_VALIDATE_URL)) {
+        throw new Exception('Invalid URL format');
+    }
 
-    //create header array id,code,stock,version_data
-    $line = fgetcsv($fileData,0,";"); //get the first line
+    $fileData = fopen($file, 'r');
+    if ($fileData === false) {
+        throw new Exception('Unable to open remote file');
+    }
+
+    $line = fgetcsv($fileData, 0, ";");
     $header = [];
     foreach($line as $val) {
-        $header[] = $val;
+        $header[] = trim($val);
     }
 
     $cats_array = explode(",", Configuration::get($name.'_'.$category_id.'_categories'));
     $i = 0;
     $result = [];
-    while (($line = fgetcsv($fileData,0,";")) !== FALSE) {
-        if($i == 0){$i += 1;
-            continue; //skip the header line
+    while (($line = fgetcsv($fileData, 0, ";")) !== FALSE) {
+        if($i == 0) {
+            $i += 1;
+            continue;
         }
-        $new_entry = [$header[0] => $line[0], $header[1] => $line[1] , $header[2] => $line[2], $header[3] => $line[3], $header[4] => $line[4], $header[5] => $line[5] ];
-        if(in_array($new_entry['level_3'], $cats_array))
+        $new_entry = array_combine($header, array_map('trim', $line));
+        if(in_array($new_entry['level_3'], $cats_array)) {
             $result[] = $new_entry;
+        }
     }
 
+    fclose($fileData);
     return $result;
 }
 

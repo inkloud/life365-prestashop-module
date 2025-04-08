@@ -803,10 +803,28 @@ abstract class ProductImporter
                 ImageManager::resize($newimage, $path . '-' . Tools::stripslashes($imageType['name']) . '.jpg', $imageType['width'], $imageType['height']);
             }
         } else {
-            unlink($tmpfile);
+            if (isset($tmpfile) && is_string($tmpfile)) {
+                $uploadDir = realpath(_PS_UPLOAD_DIR_);
+                $tmpfile = basename($tmpfile);
+                $fullPath = realpath($uploadDir . DIRECTORY_SEPARATOR . $tmpfile);
+                if ($fullPath !== false && strpos($fullPath, $uploadDir) === 0 && file_exists($fullPath)) {
+                    unlink($fullPath);
+                } else {
+                    error_log("Tentativo di path traversal: " . $tmpfile);
+                }
+            }
             return false;
         }
-        unlink($tmpfile);
+        if (isset($tmpfile) && is_string($tmpfile)) {
+            $uploadDir = realpath(_PS_UPLOAD_DIR_);
+            $tmpfile = basename($tmpfile);
+            $fullPath = realpath($uploadDir . DIRECTORY_SEPARATOR . $tmpfile);
+            if ($fullPath !== false && strpos($fullPath, $uploadDir) === 0 && file_exists($fullPath)) {
+                unlink($fullPath);
+            } else {
+                error_log("Tentativo di path traversal: " . $tmpfile);
+            }
+        }
         return true;
     }
 
