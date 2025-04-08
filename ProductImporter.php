@@ -803,7 +803,7 @@ abstract class ProductImporter
                 ImageManager::resize($newimage, $path . '-' . Tools::stripslashes($imageType['name']) . '.jpg', $imageType['width'], $imageType['height']);
             }
         } else {
-            if (isset($tmpfile) && is_string($tmpfile)) {
+            if (is_string($tmpfile)) {
                 $uploadDir = realpath(_PS_UPLOAD_DIR_);
                 $tmpfile = basename($tmpfile);
                 $fullPath = realpath($uploadDir . DIRECTORY_SEPARATOR . $tmpfile);
@@ -815,7 +815,7 @@ abstract class ProductImporter
             }
             return false;
         }
-        if (isset($tmpfile) && is_string($tmpfile)) {
+        if (is_string($tmpfile)) {
             $uploadDir = realpath(_PS_UPLOAD_DIR_);
             $tmpfile = basename($tmpfile);
             $fullPath = realpath($uploadDir . DIRECTORY_SEPARATOR . $tmpfile);
