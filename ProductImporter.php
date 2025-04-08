@@ -141,7 +141,7 @@ abstract class ProductImporter
 
         $this->object->id_manufacturer = $this->getManufacturer();
         $this->object->reference = $this->getReference();
-        $this->object->supplier_reference = $this->getSupplierReference(); 
+        $this->object->supplier_reference = $this->getSupplierReference();
         $this->object->id_tax_rules_group = $this->getTaxRulesGroup();
         $this->object->unity = $this->getUnity();
         $this->object->additional_shipping_cost = self::cleanAmount($this->getAdditionalShippingCost());
@@ -203,7 +203,7 @@ abstract class ProductImporter
             $this->object->id_category_default = $this->getCategoryDefault();
             $this->object->id_category[] = $this->object->id_category_default;
             $this->object->description[$id_lang] = $this->getDesciption();
-            
+
             $description_short_limit = (int) Configuration::get('PS_PRODUCT_SHORT_DESC_LIMIT');
             if ($description_short_limit <= 0) {
                 $description_short_limit = 800;
@@ -259,15 +259,15 @@ abstract class ProductImporter
         $_warnings = [];
         $_errors = [];
         $productHasImages = (bool) Image::getImages(1, (int) $this->object->id);
-        
+
         foreach ($images as $key => $url) {
             if (!empty($url)) {
                 $image = new Image();
                 $image->id_product = (int) $this->object->id;
                 $image->position = Image::getHighestPosition($this->object->id) + 1;
-                $image->cover = !$key && !$productHasImages ? true : false; 
+                $image->cover = !$key && !$productHasImages ? true : false;
                 $image->legend = self::createMultiLangField($this->object->name[$id_lang]);
-                
+
                 if (($fieldError = $image->validateFields($this->unfriendly_error, true)) === true && $image->add()) {
                     try {
                         if (!self::copyImg($this->object->id, $url, $image->id)) {
@@ -282,11 +282,11 @@ abstract class ProductImporter
                 }
             }
         }
-        
+
         if (!empty($_warnings)) {
             var_dump($_warnings);
         }
-        
+
         if (!empty($_errors)) {
             var_dump($_errors);
         }
@@ -306,7 +306,7 @@ abstract class ProductImporter
             if ($value == '0') {
                 $value = 'No';
             }
-            
+
             $value = preg_replace('/[<>;=#{}]/ui', ' ', $value);
             $id_feature = Feature::addFeatureImport($feature);
             $id_feature_value = FeatureValue::addFeatureValueImport($id_feature, $value);
