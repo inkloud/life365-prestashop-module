@@ -720,160 +720,37 @@ class Life365 extends Module
         return $result_html;
     }
 
-
     private function startImportAjax()
     {
-        $result_html = '';
-
         $current_file_name = array_reverse(explode('/', $_SERVER['SCRIPT_NAME']));
         $cron_url_search = Tools::getHttpHost(true, true).__PS_BASE_URI__.
             Tools::substr($_SERVER['SCRIPT_NAME'], Tools::strlen(__PS_BASE_URI__), -Tools::strlen($current_file_name['0'])).
             'searchcron.php?full=1&token='.Tools::getAdminToken($this->name);
         $cron_url_search_img = Tools::getHttpHost(true).__PS_BASE_URI__.'img/questionmark.png';
-
-//      $resume_category = Configuration::get($this->name.'_import_current_category');
+    
         $root_cats = $this->getRootCategories();
-        $result_html .= '
-            <script>
-            var todo_categories = {};
-            var todo_categories_desc = {};
-            </script>
-        ';
-
-        $categories = array();
-        foreach ($root_cats as $cat) {
-            $categories[] = $cat["Cat1"];
-            $selected_categories_array = Configuration::get($this->name.'_'.$cat["Cat1"].'_categories');
-            $result_html .= '
-            <fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Action').'</legend>
-                <div id="waiter_'.$cat["Cat1"].'"><img src="'.Tools::getHttpHost(true).__PS_BASE_URI__.'img/loader.gif" alt="loading..." /></div>
-                <div id="result_'.$cat["Cat1"].'"></div>
-            </fieldset>
-            <script>
-               todo_categories["'.$cat["Cat1"].'"] = ['.$selected_categories_array.'];
-			   todo_categories_desc["'.$cat["Cat1"].'"] = "'.$cat["description1"].'";
-            </script>
-            ';
-        }
-
-        $result_html .= '
-            <script>
-                function getProds1(k, loadUrl, selected_category, not_used, n_try)
-                {
-                    var todo_cat = todo_categories[selected_category];
-                    for(g=0;g<todo_cat.length;g++)
-                    {
-                        $.ajaxSetup ({cache: false});
-                        $.ajax({
-                                type: "POST",
-                                url: loadUrl,
-                                dataType : "html",
-                                data: {cat: todo_cat[g], offset: k, qty: 20}
-                            }).done(function( msg ) {
-                                if (msg.length > 0 && k<10)
-                                {
-                                    $("#result_"+selected_category).append(msg + "<br />");
-                                    getProds1(k+1, loadUrl, selected_category, 0, 0);
-                                }
-                                else
-                                {
-                                    console.log("END_Cat:"+todo_cat[g]+"Offset"+k+"Selected_category:"+selected_category);
-                                    $("#result_"+selected_category).append(msg + "<br />");
-                                }
-                            })
-                            .fail(function (msg, textStatus, errorThrown) {
-                                $("#result_"+selected_category).append("ERROR: " + textStatus + " - " + errorThrown + "<br />");
-                                console.log(errorThrown);
-                            })
-                    }
-                }
-
-                function getProds0(k, loadUrl, selected_category, g, n_try)
-                {
-                    var todo_cat = todo_categories[selected_category];
-                    if (g<todo_cat.length)
-                    {
-                        $.ajax({
-                                type: "GET",
-                                url: loadUrl,
-                                dataType : "html",
-                                async: true,
-                                data: {cat: todo_cat[g], offset: k, qty: 20, action: "getProds", token: "'.Tools::getAdminToken($this->name).'"}
-                            }).done(function( msg ) {
-                                if (msg.length > 0 && k<10)
-                                {
-                                    console.log("cat:"+todo_cat[g]+"offset"+k+"selected_category:"+selected_category);
-                                    $("#result_"+selected_category).append(msg + "<br />");
-                                    getProds0(k+1, loadUrl, selected_category, g, 0);
-                                }
-                                else
-                                {
-                                    console.log("END_Cat:"+todo_cat[g]+"Offset"+k+"Selected_category:"+selected_category);
-                                    $("#result_"+selected_category).append(msg + "<br />");
-                                    getProds0(0, loadUrl, selected_category, g+1, 0);
-                                }
-                            })
-                            .fail(function (msg, textStatus, errorThrown) {
-                                $("#result_"+selected_category).append("ERROR: " + textStatus + " - " + errorThrown + "<br />");
-                                console.log(errorThrown);
-                                if (n_try<5)
-                                {
-                                    $("#result_"+selected_category).append("Retrying "+todo_cat[g]+" ("+n_try+") ...<br />");
-                                    getProds0(k, loadUrl, selected_category, g, n_try+1);
-                                }
-                                else {
-                                    getProds0(0, loadUrl, selected_category, g+1, 0);
-                                }
-                            })
-                    }
-                    else
-                    {
-                        console.log("waiter_"+selected_category);
-                        $("#waiter_"+selected_category).html("<b>Process completed!</b><br /><br />");
-//                      $("#waiter_"+selected_categories[i]).html("<b>Process completed!</b><br /><br />");
-//                      $("#result_"+selected_categories[i]).append("<br /><br /><a href=\"'.$cron_url_search.'\" target=\"_blank\"><img src=\"'.$cron_url_search_img.'\">Click here to create a search index for new products<img src=\"'.$cron_url_search_img.'\"></a><br />");
-                    }
-                }
-                
-                function getProdsDisabled0(k, loadUrl, selected_category, g, n_try)
-                {
-                    $.ajax({
-                            type: "GET",
-                            url: loadUrl,
-                            dataType : "html",
-                            async: true,
-                            data: {cat: selected_category, action: "disableProds", token: "'.Tools::getAdminToken($this->name).'"}
-                        }).done(function( msg ) {
-                            console.log("Disabled products in: " + selected_category);
-                            $("#result_"+selected_category).append(msg + "<br />");
-                        })
-                        .fail(function (msg, textStatus, errorThrown) {
-                            $("#result_"+selected_category).append("ERROR: " + textStatus + " - " + errorThrown + "<br />");
-                            console.log(errorThrown);
-                            if (n_try<5)
-                            {
-                                $("#result_"+selected_category).append("Retrying "+todo_cat[g]+" ("+n_try+") ...<br />");
-                                getProdsDisabled0(k, loadUrl, selected_category, g, n_try+1);
-                            }
-                        })
-                }
-
-            $(document).ready(function() {
-                var loadUrl = "'. _MODULE_DIR_ . $this->name . '/ajax_importer.php";
-
-                var selected_categories = '.json_encode($categories).'
-
-                for (var i=0;i<selected_categories.length;i++)
-                {
-                    $("#result_"+selected_categories[i]).append("Job started. Category name <b>"+todo_categories_desc[selected_categories[i]]+"</b>, subcategory to import: <b>"+todo_categories[selected_categories[i]].length+"</b><br /><br />");
-                    getProds0(0, loadUrl, selected_categories[i], 0);
-                    getProdsDisabled0(0, loadUrl, selected_categories[i], 0);
-                }
-            });
-
-            </script>
-        ';
-
-        return $result_html;
+        $categories = array_map(function ($cat) {
+            return $cat['Cat1'];
+        }, $root_cats);
+    
+        $this->context->smarty->assign([
+            'module_path' => $this->_path,
+            'base_url' => Tools::getHttpHost(true).__PS_BASE_URI__,
+            'admin_token' => Tools::getAdminToken($this->name),
+            'module_dir' => _MODULE_DIR_.$this->name.'/',
+            'categories' => $categories,
+            'root_cats' => array_map(function ($cat) {
+                return [
+                    'Cat1' => $cat['Cat1'],
+                    'description1' => $cat['description1'],
+                    'selected_categories_array' => Configuration::get($this->name.'_'.$cat['Cat1'].'_categories'),
+                ];
+            }, $root_cats),
+            'l' => function ($string) {
+                return $this->l($string);
+            },
+        ]);
+    
+        return $this->context->smarty->fetch($this->local_path.'views/templates/admin/start_import_ajax.tpl');
     }
 }
