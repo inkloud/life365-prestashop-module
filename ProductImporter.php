@@ -18,30 +18,22 @@
 * versions in the future. If you wish to customize PrestaShop for your
 * needs please refer to http://www.prestashop.com for more information.
 *
-*  @author    Giancarlo Spadini <giancarlo@spadini.it>
-*  @copyright 2007-2025 PrestaShop SA
-*  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-*  International Registered Trademark & Property of PrestaShop SA
+* @author    Giancarlo Spadini <giancarlo@spadini.it>
+* @copyright 2007-2025 PrestaShop SA
+* @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+* International Registered Trademark & Property of PrestaShop SA
 */
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 abstract class ProductImporter
 {
-    /** @var array Row source */
     protected $product;
-    
-    /** @var int Product ID in PrestaShop */
     private $id_product;
-    
-    /** @var Product Object of type Product */
     private $object;
-    
-    /** @var string */
     private $module_name = 'life365';
-    
-    /** @var bool */
     private $unfriendly_error = true;
 
     public function __construct()
@@ -55,7 +47,7 @@ abstract class ProductImporter
         if (!$this->id_product) {
             return 0;
         }
-        
+
         if ((int) $this->id_product && Product::existsInDatabase((int) $this->id_product, 'product')) {
             $this->object = new Product((int) $this->id_product);
         } else {
@@ -78,10 +70,9 @@ abstract class ProductImporter
     {
         $id_product = 0;
 
-        // First check in mapping table
         $sql = 'SELECT id_product_ps FROM ' . _DB_PREFIX_ . 'life365_product WHERE id_product_external = ' . (int) $productId;
         $res = Db::getInstance()->getRow($sql);
-        
+
         if ($res) {
             $id_product = $res['id_product_ps'];
             if (!Product::existsInDatabase((int) $id_product, 'product')) {
@@ -99,9 +90,9 @@ abstract class ProductImporter
         $this->id_product = $this->ifExistId($productId);
 
         if (!$this->id_product) {
-            return 0; // Quantity will be added after
-        } 
-        
+            return 0;
+        }
+
         if ((int) $this->id_product && Product::existsInDatabase((int) $this->id_product, 'product')) {
             $this->object = new Product((int) $this->id_product);
         } else {
@@ -128,8 +119,8 @@ abstract class ProductImporter
 
         if (!$this->id_product) {
             $this->object = self::createAndInitializeNewObject();
-        } 
-        
+        }
+
         if ((int) $this->id_product && Product::existsInDatabase((int) $this->id_product, 'product')) {
             $this->object = new Product((int) $this->id_product);
         } else {
@@ -141,7 +132,7 @@ abstract class ProductImporter
 
     protected function addUpdated()
     {
-        $id_lang = (int) (Configuration::get('PS_LANG_DEFAULT'));
+        $id_lang = (int) Configuration::get('PS_LANG_DEFAULT');
         $sync_name = (bool) Configuration::get($this->module_name . '_sync_name');
         $sync_short_desc = (bool) Configuration::get($this->module_name . '_sync_short_desc');
         $sync_desc = (bool) Configuration::get($this->module_name . '_sync_desc');
@@ -150,7 +141,7 @@ abstract class ProductImporter
 
         $this->object->id_manufacturer = $this->getManufacturer();
         $this->object->reference = $this->getReference();
-        $this->object->supplier_reference = $this->getSupplierReference();
+        $this->object->supplier_reference = $this->getSupplierReference(); 
         $this->object->id_tax_rules_group = $this->getTaxRulesGroup();
         $this->object->unity = $this->getUnity();
         $this->object->additional_shipping_cost = self::cleanAmount($this->getAdditionalShippingCost());
@@ -175,10 +166,12 @@ abstract class ProductImporter
                 $this->object->link_rewrite = $link_rewrite;
                 $this->object->meta_title = $this->getMetaTitle();
             }
+
             if ($sync_desc) {
                 $this->object->description = $this->getDesciption();
                 $this->object->meta_description = $this->getMetaDescription();
             }
+
             if ($sync_short_desc) {
                 $description_short_limit = (int) Configuration::get('PS_PRODUCT_SHORT_DESC_LIMIT');
                 if ($description_short_limit <= 0) {
@@ -189,10 +182,12 @@ abstract class ProductImporter
                 $tags = $this->getTags();
                 $this->addTags($tags);
             }
+
             if ($sync_category) {
                 $this->object->id_category_default = $this->getCategoryDefault();
                 $this->object->id_category[] = $this->object->id_category_default;
             }
+
             if ($sync_price) {
                 $this->object->price = self::cleanAmount($this->getPrice());
                 $this->object->unit_price = self::cleanAmount($this->getUnitPrice());
@@ -200,7 +195,6 @@ abstract class ProductImporter
             }
 
             $this->object->active = true;
-
             $this->object->update();
         } else {
             $name = $this->getName();
@@ -209,6 +203,7 @@ abstract class ProductImporter
             $this->object->id_category_default = $this->getCategoryDefault();
             $this->object->id_category[] = $this->object->id_category_default;
             $this->object->description[$id_lang] = $this->getDesciption();
+            
             $description_short_limit = (int) Configuration::get('PS_PRODUCT_SHORT_DESC_LIMIT');
             if ($description_short_limit <= 0) {
                 $description_short_limit = 800;
@@ -253,13 +248,9 @@ abstract class ProductImporter
         return $this->object->id;
     }
 
-    /**
-     * @param array $images
-     * @return void
-     */
     private function addImages($images)
     {
-        $id_lang = (int) (Configuration::get('PS_LANG_DEFAULT'));
+        $id_lang = (int) Configuration::get('PS_LANG_DEFAULT');
 
         if (!is_array($images) || count($images) == 0) {
             return;
@@ -267,14 +258,16 @@ abstract class ProductImporter
 
         $_warnings = [];
         $_errors = [];
-        $productHasImages = (bool) Image::getImages(1, (int) ($this->object->id));
+        $productHasImages = (bool) Image::getImages(1, (int) $this->object->id);
+        
         foreach ($images as $key => $url) {
             if (!empty($url)) {
                 $image = new Image();
-                $image->id_product = (int) ($this->object->id);
+                $image->id_product = (int) $this->object->id;
                 $image->position = Image::getHighestPosition($this->object->id) + 1;
-                $image->cover = (!$key && !$productHasImages) ? true : false;
+                $image->cover = (!$key && !$productHasImages) ? true : false; 
                 $image->legend = self::createMultiLangField($this->object->name[$id_lang]);
+                
                 if (($fieldError = $image->validateFields($this->unfriendly_error, true)) === true && $image->add()) {
                     try {
                         if (!self::copyImg($this->object->id, $url, $image->id)) {
@@ -289,9 +282,11 @@ abstract class ProductImporter
                 }
             }
         }
+        
         if (!empty($_warnings)) {
             var_dump($_warnings);
         }
+        
         if (!empty($_errors)) {
             var_dump($_errors);
         }
@@ -299,10 +294,6 @@ abstract class ProductImporter
         return true;
     }
 
-    /**
-     * @param array $features
-     * @return void
-     */
     private function addFeature($features)
     {
         foreach ($features as $feature => $value) {
@@ -315,6 +306,7 @@ abstract class ProductImporter
             if ($value == '0') {
                 $value = 'No';
             }
+            
             $value = preg_replace('/[<>;=#{}]/ui', ' ', $value);
             $id_feature = Feature::addFeatureImport($feature);
             $id_feature_value = FeatureValue::addFeatureValueImport($id_feature, $value);
@@ -324,10 +316,6 @@ abstract class ProductImporter
         return true;
     }
 
-    /**
-     * @param string $alltags
-     * @return void
-     */
     private function addTags($alltags)
     {
         if (empty($alltags)) {
@@ -335,7 +323,6 @@ abstract class ProductImporter
         }
 
         try {
-            // Delete tags for this id product, for no duplicating error
             Tag::deleteTagsForProduct($this->object->id);
 
             $tag = new Tag();
@@ -355,14 +342,9 @@ abstract class ProductImporter
 
     protected function afterAdd()
     {
-        // Set quantity
         $res = $this->saveQuantity($this->getProductID(), $this->getQuantity());
     }
 
-    /**
-     * @param $product
-     * @return mixed, return false if product not exist else return id_product
-     */
     abstract protected function ifExist();
     abstract public function setProductSource(&$p);
 
@@ -719,13 +701,9 @@ abstract class ProductImporter
         return [];
     }
 
-    ///
-    // Static Functions
-    ///
-
     private static function createAndInitializeNewObject()
     {
-        $id_lang = (int) (Configuration::get('PS_LANG_DEFAULT'));
+        $id_lang = (int) Configuration::get('PS_LANG_DEFAULT');
         $product = new Product();
         $product->description = [$id_lang => ''];
         $product->description_short = [$id_lang => ''];
@@ -772,10 +750,10 @@ abstract class ProductImporter
                     }
                     $i++;
                 }
-                $path = $base_uri . (int) ($id_image);
+                $path = $base_uri . (int) $id_image;
                 break;
             case 'categories':
-                $path = _PS_CAT_IMG_DIR_ . (int) ($id_entity);
+                $path = _PS_CAT_IMG_DIR_ . (int) $id_entity;
                 break;
         }
 
@@ -890,8 +868,8 @@ abstract class ProductImporter
 
     public static function cleanAmount($field)
     {
-        $field = ((float) (str_replace(',', '.', $field)));
-        $field = ((float) (str_replace('%', '', $field)));
+        $field = (float) (str_replace(',', '.', $field));
+        $field = (float) (str_replace('%', '', $field));
         return $field;
     }
 
@@ -910,7 +888,7 @@ abstract class ProductImporter
         }
     }
 
-    public static function cropString($str, $length)
+    protected static function cropString($str, $length)
     {
         if (Tools::strlen($str) > $length) {
             return Tools::substr($str, 0, $length);

@@ -18,24 +18,23 @@
 * versions in the future. If you wish to customize PrestaShop for your
 * needs please refer to http://www.prestashop.com for more information.
 *
-*  @author    Giancarlo Spadini <giancarlo@spadini.it>
-*  @copyright 2007-2025 PrestaShop SA
-*  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-*  International Registered Trademark & Property of PrestaShop SA
+* @author    Giancarlo Spadini <giancarlo@spadini.it>
+* @copyright 2007-2025 PrestaShop SA
+* @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+* International Registered Trademark & Property of PrestaShop SA
 */
-if (!defined('_PS_VERSION_'))
-{
+
+if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once('ProductImporter.php');
-require_once('AccessoryImporter.php');
+require_once dirname(__FILE__) . '/ProductImporter.php';
+require_once dirname(__FILE__) . '/AccessoryImporter.php';
 
 class Life365 extends Module
 {
-    private $c_html = '';
-
     private $c_api_url = 'https://api.life365.eu/v2.php';
+    private $c_html = '';
 
     public function __construct()
     {
@@ -44,14 +43,16 @@ class Life365 extends Module
         $this->version = '8.0.97';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
-        $this->ps_versions_compliancy = array('min' => '1.6.0.4', 'max' => '8.2.0');
+        $this->ps_versions_compliancy = [
+            'min' => '1.6.0.4',
+            'max' => '8.2.0',
+        ];
         $this->module_key = '17fe516516b4f12fb1d877a3600dbedc';
 
         parent::__construct();
 
         $this->displayName = $this->l('Life365/Inkloud dropshipping');
         $this->description = $this->l('Expand your shop. Start now selling over 10.000 products in dropshipping!');
-
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
     }
 
@@ -65,8 +66,8 @@ class Life365 extends Module
         if (parent::install() == false || !$this->installDB() || !$this->registerHooks()) {
             return false;
         }
-        
-        Configuration::updateValue($this->name.'_import_current_category', 0);
+
+        Configuration::updateValue($this->name . '_import_current_category', 0);
         Configuration::updateValue('PS_ALLOW_HTML_IFRAME', 1);
 
         return true;
@@ -74,7 +75,7 @@ class Life365 extends Module
 
     public function enable($forceAll = false)
     {
-        if (!parent::enable($forceAll = false)) {
+        if (!parent::enable($forceAll)) {
             return false;
         }
 
@@ -85,7 +86,7 @@ class Life365 extends Module
 
     public function installDB()
     {
-        $t_sql = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.$this->name.'_product` (
+        $t_sql = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . $this->name . '_product` (
                   `id_product_external` int(10) unsigned NOT NULL,
                   `date_import` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                   `id_product_ps` int(10) unsigned NOT NULL,
@@ -94,7 +95,8 @@ class Life365 extends Module
                   UNIQUE KEY `id_product_ps_unique` (`id_product_ps`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;';
         Db::getInstance()->execute($t_sql);
-        $t_sql = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.$this->name.'_category` (
+
+        $t_sql = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . $this->name . '_category` (
                   `id_category_external` int(10) unsigned NOT NULL,
                   `profit` decimal(5,2) NOT NULL DEFAULT \'50.00\',
                   `id_category_ps` int(10) unsigned NOT NULL,
@@ -107,8 +109,8 @@ class Life365 extends Module
 
     public function uninstallDB()
     {
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.$this->name.'_product`');
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.$this->name.'_category`');
+        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . $this->name . '_product`');
+        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . $this->name . '_category`');
 
         return true;
     }
@@ -119,7 +121,7 @@ class Life365 extends Module
             || !$this->uninstallDB()
             || !Configuration::deleteByName('LIFE365_NAME')
             || !$this->unregisterHook('displayBackOfficeHeader')
-            ) {
+        ) {
             return false;
         }
 
@@ -136,30 +138,26 @@ class Life365 extends Module
             && $this->registerHook('displayAdminOrderSide')
         );
     }
+
     private function unregisterHooks()
     {
         return true;
-/*  return (
-            $this->registerHook('backOfficeHome')
-            && $this->registerHook('displayBackOfficeHeader')
-        );
-*/
     }
 
     public function hookDisplayAdminOrderTabOrder($params)
     {
         if (_PS_VERSION_ >= '1.7.7.0') {
             $order_id = $params['id_order'];
-        } else { //older versions
+        } else { // older versions
             $order_id =  $params['order']->id;
         }
 
-
-        $this->smarty->assign(array('order' => $params['order'],
-        'dropship_link' => $this->_path.'ajax_importer.php',
-        'dropship_order' => $order_id,
-        'dropship_token' => Tools::getAdminToken($this->name)
-        ));
+        $this->smarty->assign([
+            'order' => $params['order'],
+            'dropship_link' => $this->_path.'ajax_importer.php',
+            'dropship_order' => $order_id,
+            'dropship_token' => Tools::getAdminToken($this->name)
+        ]);
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
     }
@@ -168,14 +166,15 @@ class Life365 extends Module
     {
         if (_PS_VERSION_ >= '1.7.7.0') {
             $order_id = $params['id_order'];
-        } else { //older versions
+        } else { // older versions
             $order_id =  $params['order']->id;
         }
-        $this->smarty->assign(array('order' => $params['order'],
-        'dropship_link' => $this->_path.'ajax_importer.php',
-        'dropship_order' => $order_id,
-        'dropship_token' => Tools::getAdminToken($this->name)
-        ));
+        $this->smarty->assign([
+            'order' => $params['order'],
+            'dropship_link' => $this->_path.'ajax_importer.php',
+            'dropship_order' => $order_id,
+            'dropship_token' => Tools::getAdminToken($this->name)
+        ]);
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
     }
@@ -184,7 +183,7 @@ class Life365 extends Module
     {
         if (_PS_VERSION_ >= '1.7.7.0') {
             $order_id = $params['id_order'];
-        } else { //older versions
+        } else { // older versions
             $order_id =  $params['order']->id;
         }
         $this->smarty->assign(array('order' => $params['order'],
@@ -393,7 +392,7 @@ class Life365 extends Module
         $login = Configuration::get($this->name.'_login');
         $password = Configuration::get($this->name.'_password');
         $referer = $_SERVER['HTTP_HOST'];
-        $user_app = "PrestaShop module ver: ".$this->version;
+        $user_app = 'PrestaShop module ver: '.$this->version;
 
         if (function_exists('curl_init')) {
             $con = curl_init();
@@ -412,8 +411,8 @@ class Life365 extends Module
 
             $res = json_decode($res_curl, true);
 
-            if ($res["response_code"] == "1") {
-                $token = $res["response_detail"];
+            if ($res['response_code'] == '1') {
+                $token = $res['response_detail'];
             } else {
                 $token = false;
             }
@@ -465,8 +464,8 @@ class Life365 extends Module
 
             $res = json_decode($res_curl, true);
 
-            if ($res["response_code"] == "1") {
-                return $res["response_detail"];
+            if ($res['response_code'] == '1') {
+                return $res['response_detail'];
             } else {
                 return false;
             }
@@ -498,8 +497,8 @@ class Life365 extends Module
             <div id="tabs">
                       <ul>';
             foreach ($root_cats as $cat) {
-                if ($cat["Cat1"] == $managed_cat) {
-                    $result_html .= '<li><a href="#tabs-'.$cat["Cat1"].'">'.$cat["description1"].'</a></li>';
+                if ($cat['Cat1'] == $managed_cat) {
+                    $result_html .= '<li><a href="#tabs-'.$cat['Cat1'].'">'.$cat['description1'].'</a></li>';
                 }
             }
             $result_html .= '</ul>';
@@ -507,8 +506,8 @@ class Life365 extends Module
             $cats_html = $this->displayExternalCatetories($managed_cat);
 
             foreach ($root_cats as $cat) {
-                $result_html .= '<div id="tabs-'.$cat["Cat1"].'">
-                    <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_cats-'.$cat["Cat1"].'">
+                $result_html .= '<div id="tabs-'.$cat['Cat1'].'">
+                    <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_cats-'.$cat['Cat1'].'">
                         <div class="margin-form">
                             '.$cats_html.'
                         </div>
@@ -535,7 +534,7 @@ class Life365 extends Module
         if (is_array($root_cats)) {
             $result_html .= '<div class="col-sm-5">';
             foreach ($root_cats as $cat) {
-                $result_html .= '<div><i>'.$cat["description1"].':</i><br>&nbsp&nbsp'.$cron_url2.$cat["Cat1"].'<br></div>';
+                $result_html .= '<div><i>'.$cat['description1'].':</i><br>&nbsp&nbsp'.$cron_url2.$cat['Cat1'].'<br></div>';
             }
             $result_html .= '</div>';
         }
@@ -554,8 +553,9 @@ class Life365 extends Module
             'searchcron.php?full=1&token='.Tools::getAdminToken($this->name);
         $cron_url_search_img = Tools::getHttpHost(true).__PS_BASE_URI__.'img/questionmark.png';
 
-//      $resume_category = Configuration::get($this->name.'_import_current_category');
+        // Resume category from where we left off
         $root_cats = $this->getRootCategories();
+
         $result_html .= '
             <script>
             var todo_categories = {};
@@ -565,16 +565,16 @@ class Life365 extends Module
 
         $categories = array();
         foreach ($root_cats as $cat) {
-            $categories[] = $cat["Cat1"];
-            $selected_categories_array = Configuration::get($this->name.'_'.$cat["Cat1"].'_categories');
+            $categories[] = $cat['Cat1'];
+            $selected_categories_array = Configuration::get($this->name.'_'.$cat['Cat1'].'_categories');
             $result_html .= '
             <fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Action').'</legend>
-                <div id="waiter_'.$cat["Cat1"].'"><img src="'.Tools::getHttpHost(true).__PS_BASE_URI__.'img/loader.gif" alt="loading..." /></div>
-                <div id="result_'.$cat["Cat1"].'"></div>
+                <div id="waiter_'.$cat['Cat1'].'"><img src="'.Tools::getHttpHost(true).__PS_BASE_URI__.'img/loader.gif" alt="loading..." /></div>
+                <div id="result_'.$cat['Cat1'].'"></div>
             </fieldset>
             <script>
-               todo_categories["'.$cat["Cat1"].'"] = ['.$selected_categories_array.'];
-			   todo_categories_desc["'.$cat["Cat1"].'"] = "'.$cat["description1"].'";
+               todo_categories['.$cat['Cat1'].'] = ['.$selected_categories_array.'];
+			   todo_categories_desc['.$cat['Cat1'].'] = "'.$cat['description1'].'";
             </script>
             ';
         }
