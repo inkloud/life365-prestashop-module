@@ -250,6 +250,7 @@ class Life365 extends Module
             Configuration::updateValue($this->name.'_sync_price', Tools::getValue($this->name.'_sync_price'));
             Configuration::updateValue($this->name.'_sync_category', Tools::getValue($this->name.'_sync_category'));
             Configuration::updateValue($this->name.'_debug_mode', Tools::getValue($this->name.'_debug_mode'));
+            Configuration::updateValue($this->name.'_sync_slow', Tools::getValue($this->name.'_sync_slow'));
             Configuration::updateValue($this->name.'_price_limit', Tools::getValue($this->name.'_price_limit'));
             // Configuration::updateValue($this->name.'_parent_categories', Tools::getValue($this->name.'_parent_categories'));
         }
@@ -518,7 +519,10 @@ class Life365 extends Module
                 <div class="clear"></div>
                 <label>'.$this->l('Debug').'</label>
                 <div class="margin-form">
-                    <input type="checkbox" name="'.$this->name.'_debug_mode'.'" '.(Configuration::get($this->name.'_debug_mode') ? 'checked="checked"' : '').' /> '.$this->l('Debug enabled').'
+                    <ul style="list-style-type:none;margin:0;padding:0;">
+                        <li><input type="checkbox" name="'.$this->name.'_debug_mode'.'" '.(Configuration::get($this->name.'_debug_mode') ? 'checked="checked"' : '').' /> '.$this->l('Debug enabled').'</li>
+                        <li><input type="checkbox" name="'.$this->name.'_sync_slow'.'" '.(Configuration::get($this->name.'_sync_slow') ? 'checked="checked"' : '').' /> '.$this->l('Slow server').'</li>
+                    </ul>
                 </div>
                 <div class="clear"></div>
                 <input type="submit" name="'.$this->name.'_save_other_settings" value="'.$this->l('Save optional settings').'" class="button" />
