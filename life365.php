@@ -662,7 +662,6 @@ class Life365 extends Module
         return $result_html;
     }
 
-
     private function manageCats2($managed_cat)
     {
         $result_html = '';
@@ -682,8 +681,7 @@ class Life365 extends Module
 
             $cats_html = $this->displayExternalCatetories($managed_cat);
 
-            foreach ($root_cats as $cat) {
-                $result_html .= '<div id="tabs-'.$cat["Cat1"].'">
+            $result_html .= '<div id="tabs-'.$cat["Cat1"].'">
                     <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_cats-'.$cat["Cat1"].'">
                         <div class="margin-form">
                             '.$cats_html.'
@@ -692,7 +690,6 @@ class Life365 extends Module
                         <input type="submit" name="'.$this->name.'_action_cats_b" value="'.$this->l('Update settings').'" class="button" />
                     </form>
                 </div>';
-            }
         }
         $result_html .= '
             </div>
