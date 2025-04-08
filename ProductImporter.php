@@ -265,7 +265,7 @@ abstract class ProductImporter
                 $image = new Image();
                 $image->id_product = (int) $this->object->id;
                 $image->position = Image::getHighestPosition($this->object->id) + 1;
-                $image->cover = (!$key && !$productHasImages) ? true : false; 
+                $image->cover = !$key && !$productHasImages ? true : false; 
                 $image->legend = self::createMultiLangField($this->object->name[$id_lang]);
                 
                 if (($fieldError = $image->validateFields($this->unfriendly_error, true)) === true && $image->add()) {
@@ -358,7 +358,7 @@ abstract class ProductImporter
                 FROM `' . _DB_PREFIX_ . 'life365_category`
                 WHERE id_category_external = ' . (int) $this->product->local_category
             );
-            $product_price = $this->object->price + ($this->object->price * $price_overhead / 100);
+            $product_price = $this->object->price + $this->object->price * $price_overhead / 100;
 
             if ($product_price > $this->object->street_price && $price_limit) {
                 return (float) $this->object->street_price;
@@ -868,8 +868,8 @@ abstract class ProductImporter
 
     public static function cleanAmount($field)
     {
-        $field = (float) (str_replace(',', '.', $field));
-        $field = (float) (str_replace('%', '', $field));
+        $field = (float) str_replace(',', '.', $field);
+        $field = (float) str_replace('%', '', $field);
         return $field;
     }
 
