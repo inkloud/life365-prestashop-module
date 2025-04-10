@@ -155,7 +155,6 @@ class Life365 extends Module
             $order_id =  $params['order']->id;
         }
 
-
         $this->smarty->assign(array('order' => $params['order'],
         'dropship_link' => $this->_path.'ajax_importer.php',
         'dropship_order' => $order_id,
@@ -381,7 +380,6 @@ class Life365 extends Module
 
     private function displayForm()
     {
-        // Get domain portion
         $myUrl = $this->siteURL();
         $e_commerce_url = array(
             'IT' => 'https://www.life365.eu',
@@ -392,139 +390,33 @@ class Life365 extends Module
         $country_id = Configuration::get($this->name.'_country');
 
         $cron_url = Tools::getHttpHost(true).__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php?action=cron&token='.Tools::getAdminToken($this->name);
-        $this->c_html .= '
-        <fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Main settings').'</legend>
-          <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_form_settings">
-          <label>'.$this->l('Select country').'</label>
-          <div class="margin-form">
-          <select id="'.$this->name.'_country" name="'.$this->name.'_country">
-                <option value="0">'.$this->l('-- Choose a country --').'</option>
-                <option value="IT" '.(Configuration::get($this->name.'_country') == 'IT' ? 'selected="selected"' : '').'>Italy</option>
-                <option value="NL" '.(Configuration::get($this->name.'_country') == 'NL' ? 'selected="selected"' : '').'>Netherlands</option>
-                <option value="PT" '.(Configuration::get($this->name.'_country') == 'PT' ? 'selected="selected"' : '').'>Portugal</option>
-                <option value="ES" '.(Configuration::get($this->name.'_country') == 'ES' ? 'selected="selected"' : '').'>Spain</option>
-            </select>
-            <a href="#" onclick="javascript:window.open(\''.$e_commerce_url[$country_id].'/user\', \'_blank\');">'.$this->l('Register new account').'</a>
-            </div>
-            <label>'.$this->l('Life365 Login').'</label>
-          <div class="margin-form">
-            <input type="text" name="'.$this->name.'_login" id="'.$this->name.'_login" value="'.Configuration::get($this->name.'_login').'" />
-          </div>
-          <label>'.$this->l('Life365 Password').'</label>
-          <div class="margin-form">
-            <table>
-                <tr>
-                    <td>
-                        <input type="password" name="'.$this->name.'_password" id="'.$this->name.'_password" value="'.Configuration::get($this->name.'_password').'" />
-                    </td>
-                    <td><div id="res_logon"></div></td>
-                    <td>
-                        <a href="#" onclick="javascript:check_user_pwd($(\'#'.$this->name.'_login\').attr(\'value\'), $(\'#'.$this->name.'_password\').attr(\'value\'), $(\'#'.$this->name.'_country\').val());">'.$this->l('Test').'</a>
-                    </td>
-                </tr>
-            </table>
-          </div>
-          <label>'.$this->l('Default mark-up rate %').'</label>
-          <div class="margin-form">
-            <input type="number" step="0.01" name="'.$this->name.'_overhead" value="'.Configuration::get($this->name.'_overhead').'" />
-          </div>
-          <label>'.$this->l('Default destination category').'</label>
-          <div class="margin-form">
-            <select id="'.$this->name.'_default_category" name="'.$this->name.'_default_category">
-                <option value="1">'.$this->l('-- Choose a category --').'</option>
-                '.$this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), Configuration::get($this->name.'_default_category'), Configuration::get('PS_LANG_DEFAULT')).'
-            </select>
-          </div>
-          <label>'.$this->l('Default tax').'</label>
-          <div class="margin-form">
-            <select name="'.$this->name.'_default_tax_id">
-            '.$this->displayTaxRules(Configuration::get($this->name.'_default_tax_id')).'
-            </select>
-          </div>
-          <input type="submit" id="'.$this->name.'_submit" name="'.$this->name.'_submit" value="'.$this->l('Update settings').'" class="button" />
-          </form>
-          <br />
-            <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_manage_cats">
-                <input type="submit" name="'.$this->name.'_manage_cats" value="'.$this->l('Manage categories ...').'" class="button" />
-            </form>
-        </fieldset>
-        <br />
-        <fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Action').'</legend>
-            <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_import">
-                <input type="submit" name="'.$this->name.'_importer" value="'.$this->l('Start import ...').'" class="button" />
-            </form>
-            <div class="clear"></div>
-            <br />
-            <div>
-                <b>'.$this->l('Complete Cron url').': </b>
-                '.$cron_url.'<br>
-            </div>
-            <div>
-                <b>'.$this->l('Cron urls by cateogry').': </b>
-                '.$this->cronUrl2().'<br>
-                <font size="-2"><a href="https://www.easycron.com/?ref=70609" target="_blank">A free CRON scheduler</a></font>
-            </div>
-        </fieldset>
-        <br />
-        <fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Optional settings').'</legend>
-            <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_other_settings'.'">
-                <label>'.$this->l('Synchronize always').'</label>
-                <div class="margin-form">
-                    <ul style="list-style-type:none;margin:0;padding:0;">
-                        <li><input type="checkbox" name="'.$this->name.'_sync_name'.'" '.(Configuration::get($this->name.'_sync_name') ? 'checked="checked"' : '').' /> '.$this->l('Product name').'</li>
-                        <li><input type="checkbox" name="'.$this->name.'_sync_short_desc'.'" '.(Configuration::get($this->name.'_sync_short_desc') ? 'checked="checked"' : '').' /> '.$this->l('Product short description').'</li>
-                        <li><input type="checkbox" name="'.$this->name.'_sync_desc'.'" '.(Configuration::get($this->name.'_sync_desc') ? 'checked="checked"' : '').' /> '.$this->l('Product description').'</li>
-                        <li><input type="checkbox" name="'.$this->name.'_sync_category'.'" '.(Configuration::get($this->name.'_sync_category') ? 'checked="checked"' : '').' /> '.$this->l('Reset association with local categories').'</li>
-                        <li><input type="checkbox" name="'.$this->name.'_sync_price'.'" '.(Configuration::get($this->name.'_sync_price') ? 'checked="checked"' : '').' /> '.$this->l('Product price').'</li>
-                    </ul>
-                </div>
-                <div class="clear"></div>
-<!--
-                <label>'.$this->l('Associate to parent categories').'</label>
-                <div class="margin-form">
-                    <input type="checkbox" name="'.$this->name.'_parent_categories'.'" '.(Configuration::get($this->name.'_parent_categories') ? 'checked="checked"' : '').' /> '.$this->l('Connect products with all parent categories').'
-                </div>
--->
-                <div class="clear"></div>
-                <label>'.$this->l('Price limit').'</label>
-                <div class="margin-form">
-                    <input type="checkbox" name="'.$this->name.'_price_limit'.'" '.(Configuration::get($this->name.'_price_limit') ? 'checked="checked"' : '').' /> '.$this->l('Limits the price not to exceed the street-price').'
-                </div>
-                <div class="clear"></div>
-                <label>'.$this->l('Debug').'</label>
-                <div class="margin-form">
-                    <ul style="list-style-type:none;margin:0;padding:0;">
-                        <li><input type="checkbox" name="'.$this->name.'_debug_mode'.'" '.(Configuration::get($this->name.'_debug_mode') ? 'checked="checked"' : '').' /> '.$this->l('Debug enabled').'</li>
-                        <li><input type="checkbox" name="'.$this->name.'_sync_slow'.'" '.(Configuration::get($this->name.'_sync_slow') ? 'checked="checked"' : '').' /> '.$this->l('Slow server').'</li>
-                    </ul>
-                </div>
-                <div class="clear"></div>
-                <input type="submit" name="'.$this->name.'_save_other_settings" value="'.$this->l('Save optional settings').'" class="button" />
-            </form>
-        </fieldset>
-        <script>
-            function check_user_pwd(user1, password1, country1) {
-                if(country1=="0") {
-                    $("#res_logon").html("Select a country, please.");
-                }
-                else {
-                    $.ajaxSetup ({cache: false});					
-                    var loadUrl = "' . _MODULE_DIR_ . $this->name . '/ajax_importer.php?action=checkLogon&token=' . Tools::getAdminToken($this->name) . '";
-                    $("#res_logon").html("<img src=\''.Tools::getHttpHost(true).__PS_BASE_URI__.'img/loader.gif\' />");
 
-                    $.ajax({
-                        type: "POST",
-                        url: loadUrl,
-                        dataType: "html",
-                        async: true,
-                        data: {u: user1, p: password1, c: country1}
-                    }).done(function( msg ) {
-                        $("#res_logon").html(msg);
-                    });
-                }
-            };
-        </script>
-        ';
+        $this->context->smarty->assign([
+            'module_path' => $this->_path,
+            'e_commerce_url' => $e_commerce_url,
+            'country_id' => $country_id,
+            'cron_url' => $cron_url,
+            'login' => Configuration::get($this->name.'_login'),
+            'password' => Configuration::get($this->name.'_password'),
+            'overhead' => Configuration::get($this->name.'_overhead'),
+            'default_category' => Configuration::get($this->name.'_default_category'),
+            'default_tax_id' => Configuration::get($this->name.'_default_tax_id'),
+            'categories' => $this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), Configuration::get($this->name.'_default_category'), Configuration::get('PS_LANG_DEFAULT')),
+            'tax_rules' => $this->displayTaxRules(Configuration::get($this->name.'_default_tax_id')),
+            'sync_name' => Configuration::get($this->name.'_sync_name'),
+            'sync_short_desc' => Configuration::get($this->name.'_sync_short_desc'),
+            'sync_desc' => Configuration::get($this->name.'_sync_desc'),
+            'sync_price' => Configuration::get($this->name.'_sync_price'),
+            'sync_category' => Configuration::get($this->name.'_sync_category'),
+            'debug_mode' => Configuration::get($this->name.'_debug_mode'),
+            'sync_slow' => Configuration::get($this->name.'_sync_slow'),
+            'price_limit' => Configuration::get($this->name.'_price_limit'),
+            'l' => function ($string) {
+                return $this->l($string);
+            },
+        ]);
+
+        $this->c_html .= $this->context->smarty->fetch($this->local_path.'views/templates/admin/display_form.tpl');
     }
 
     private function getAccessToken()
@@ -615,82 +507,58 @@ class Life365 extends Module
         }
     }
 
-
     private function manageCats()
     {
-        $result_html = '';
         $root_cats = $this->getRootCategories();
 
-        $result_html .= '<fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Manage categories to import').'</legend>';
-        if (is_array($root_cats)) {
-            $result_html .= '<div class="col-sm-5">';
-            foreach ($root_cats as $cat) {
-                $result_html .= '<div>
-                    <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_cats-'.$cat["Cat1"].'">
-                        <input type="hidden" name="'.$this->name.'_cat_click" value="'.$cat["Cat1"].'" />
-                        <input type="submit" name="'.$this->name.'_action_cat_click" value="'.$this->l('Manage category '). $cat["description1"] . '" class="button" />
-                    </form></div>';
-            }
-            $result_html .= '</div>';
-        }
-        $result_html .= '
-            </div>			
-        </fieldset>';
+        $this->context->smarty->assign([
+            'module_path' => $this->_path,
+            'root_cats' => $root_cats,
+            'request_uri' => $_SERVER['REQUEST_URI'],
+            'module_name' => $this->name,
+            'l' => function ($string) {
+                return $this->l($string);
+            },
+        ]);
 
-        return $result_html;
+        return $this->context->smarty->fetch($this->local_path.'views/templates/admin/manage_cats.tpl');
     }
 
     private function manageCats2($managed_cat)
     {
-        $result_html = '';
         $root_cats = $this->getRootCategories();
+        $cats_html = $this->displayExternalCatetories($managed_cat);
 
-        $result_html .= '<fieldset><legend><img src="'.$this->_path.'logo.gif" alt="" title="" />'.$this->l('Manage categories to import').'</legend>';
-        if (is_array($root_cats)) {
-            $cats_html = $this->displayExternalCatetories($managed_cat);
+        $this->context->smarty->assign([
+            'module_path' => $this->_path,
+            'root_cats' => $root_cats,
+            'managed_cat' => $managed_cat,
+            'cats_html' => $cats_html,
+            'request_uri' => $_SERVER['REQUEST_URI'],
+            'module_name' => $this->name,
+            'l' => function ($string) {
+                return $this->l($string);
+            },
+        ]);
 
-            $result_html .= '
-            <div id="tabs">
-                      <ul>';
-            foreach ($root_cats as $cat) {
-                if ($cat["Cat1"] == $managed_cat) {
-                    $result_html .= '<li><a href="#tabs-'.$cat["Cat1"].'">'.$cat["description1"].'</a></li>';
-                    $result_html .= '<div id="tabs-'.$cat["Cat1"].'">
-                        <form action="'.$_SERVER['REQUEST_URI'].'" method="post" id="'.$this->name.'_action_cats-'.$cat["Cat1"].'">
-                            <div class="margin-form">
-                                '.$cats_html.'
-                            </div>
-                            <input class="button" type="button" onclick="history.back()" value="'.$this->l('Cancel').'"></input>
-                            <input type="submit" name="'.$this->name.'_action_cats_b" value="'.$this->l('Update settings').'" class="button" />
-                        </form>
-                    </div>';
-                }
-            }
-            $result_html .= '</ul>';
-        }
-        $result_html .= '
-            </div>
-        </fieldset>';
-
-        return $result_html;
+        return $this->context->smarty->fetch($this->local_path.'views/templates/admin/manage_cats2.tpl');
     }
 
     private function cronUrl2()
     {
-        $result_html = '';
         $root_cats = $this->getRootCategories();
 
         $cron_url2 = Tools::getHttpHost(true).__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php?action=cron2&token='.Tools::getAdminToken($this->name).'&mc=';
 
-        if (is_array($root_cats)) {
-            $result_html .= '<div class="col-sm-5">';
-            foreach ($root_cats as $cat) {
-                $result_html .= '<div><i>'.$cat["description1"].':</i><br>&nbsp&nbsp'.$cron_url2.$cat["Cat1"].'<br></div>';
-            }
-            $result_html .= '</div>';
-        }
+        $this->context->smarty->assign([
+            'root_cats' => $root_cats,
+            'cron_url2' => $cron_url2,
+            'l' => function ($string) {
+                return $this->l($string);
+            },
+        ]);
 
-        return $result_html;
+        return $this->context->smarty->fetch($this->local_path.'views/templates/admin/cron_urls.tpl');
     }
 
     private function startImportAjax()
