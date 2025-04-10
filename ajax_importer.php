@@ -710,7 +710,7 @@ function dropship()
 
     if (_PS_VERSION_ >= '1.7.7.0') {
         $products = $cart->getProductsDetail();
-    } else { // older versions
+    } else {
         $products = $cart->getProducts();
     }
 

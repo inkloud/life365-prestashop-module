@@ -1,28 +1,28 @@
-<?php
-/*
- * 2007-2025 PrestaShop
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Academic Free License (AFL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/afl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@prestashop.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
- * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to http://www.prestashop.com for more information.
- *
- * @author    Giancarlo Spadini <giancarlo@spadini.it>
- * @copyright 2007-2025 PrestaShop SA
- * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- * International Registered Trademark & Property of PrestaShop SA
- */
+ <?php
+ /**
+  * Copyright since 2007 PrestaShop SA and Contributors
+  * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
+  *
+  * NOTICE OF LICENSE
+  *
+  * This source file is subject to the Academic Free License 3.0 (AFL-3.0)
+  * that is bundled with this package in the file LICENSE.md.
+  * It is also available through the world-wide-web at this URL:
+  * https://opensource.org/licenses/AFL-3.0
+  * If you did not receive a copy of the license and are unable to
+  * obtain it through the world-wide-web, please send an email
+  * to license@prestashop.com so we can send you a copy immediately.
+  *
+  * DISCLAIMER
+  *
+  * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+  * versions in the future. If you wish to customize PrestaShop for your
+  * needs please refer to https://devdocs.prestashop.com/ for more information.
+  *
+  * @author    Giancarlo Spadini <giancarlo@spadini.it>
+  * @copyright Since 2007 PrestaShop SA and Contributors
+  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+  */
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -45,12 +45,14 @@ abstract class ProductImporter
         $this->id_product = $this->ifExist();
 
         if (!$this->id_product) {
+
             return 0;
         }
 
         if ((int) $this->id_product && Product::existsInDatabase((int) $this->id_product, 'product')) {
             $this->object = new Product((int) $this->id_product);
         } else {
+
             return 0;
         }
 
@@ -90,12 +92,14 @@ abstract class ProductImporter
         $this->id_product = $this->ifExistId($productId);
 
         if (!$this->id_product) {
+
             return 0;
         }
 
         if ((int) $this->id_product && Product::existsInDatabase((int) $this->id_product, 'product')) {
             $this->object = new Product((int) $this->id_product);
         } else {
+
             return 0;
         }
 
@@ -125,6 +129,7 @@ abstract class ProductImporter
         if ((int) $this->id_product && Product::existsInDatabase((int) $this->id_product, 'product')) {
             $this->object = new Product((int) $this->id_product);
         } else {
+
             return 0;
         }
 
@@ -320,6 +325,7 @@ abstract class ProductImporter
     private function addTags($alltags)
     {
         if (empty($alltags)) {
+
             return;
         }
 
@@ -383,8 +389,10 @@ abstract class ProductImporter
     protected function getWeight()
     {
         if ($this->object->id) {
+
             return $this->object->weight;
         } else {
+
             return 0;
         }
     }
@@ -392,8 +400,10 @@ abstract class ProductImporter
     protected function getDepth()
     {
         if ($this->object->id) {
+
             return $this->object->depth;
         } else {
+
             return 0;
         }
     }
@@ -472,6 +482,7 @@ abstract class ProductImporter
         if ($ean13 == '0000000000000') {
             $ean13 = null;
         }
+
         return $ean13;
     }
 
@@ -712,6 +723,7 @@ abstract class ProductImporter
         $product->name = [$id_lang => ''];
         $product->id_category = [0];
         $product->id_color = [0];
+
         return $product;
     }
 
@@ -745,7 +757,8 @@ abstract class ProductImporter
                     if ($i == (sizeof($folders) - 1)) {
                         if (!is_dir($base_uri)) {
                             if (!mkdir($base_uri, 0777, true)) {
-                                die('Failed to create directory ' . $base_uri);
+
+                                throw new Exception('Failed to create directory ' . $base_uri);
                             }
                         }
                     }
@@ -760,28 +773,37 @@ abstract class ProductImporter
 
         $url = str_replace(' ', '%20', $url);
         if (Tools::copy($url, $tmpfile)) {
-            $url_info = pathinfo($url);
-            $ex_extension = 'jpg';
-            $file_type = mime_content_type($tmpfile);
 
-            switch ($file_type) {
-                case 'image/gif':
-                    $image = imagecreatefromgif($tmpfile);
-                    imagejpeg($image, $tmpfile, 100);
-                    imagedestroy($image);
-                    break;
-                case 'image/png':
-                    $image = imagecreatefrompng($tmpfile);
-                    imagejpeg($image, $tmpfile, 100);
-                    imagedestroy($image);
-                    break;
-            }
+            try {
+                $url_info = pathinfo($url);
+                $ex_extension = 'jpg';
+                $file_type = mime_content_type($tmpfile);
 
-            self::removeWhiteSpace($tmpfile, $path . '.jpg');
-            $newimage = $path . '.jpg';
-            $imagesTypes = ImageType::getImagesTypes($entity);
-            foreach ($imagesTypes as $imageType) {
-                ImageManager::resize($newimage, $path . '-' . Tools::stripslashes($imageType['name']) . '.jpg', $imageType['width'], $imageType['height']);
+                switch ($file_type) {
+                    case 'image/gif':
+                        $image = imagecreatefromgif($tmpfile);
+                        imagejpeg($image, $tmpfile, 100);
+                        imagedestroy($image);
+                        break;
+                    case 'image/png':
+                        $image = imagecreatefrompng($tmpfile);
+                        imagejpeg($image, $tmpfile, 100);
+                        imagedestroy($image);
+                        break;
+                }
+
+                self::removeWhiteSpace($tmpfile, $path . '.jpg');
+                $newimage = $path . '.jpg';
+                $imagesTypes = ImageType::getImagesTypes($entity);
+                foreach ($imagesTypes as $imageType) {
+                    ImageManager::resize($newimage, $path . '-' . Tools::stripslashes($imageType['name']) . '.jpg', $imageType['width'], $imageType['height']);
+                }
+            } catch (Exception $e) {
+                if (is_string($tmpfile)) {
+                    unlink($tmpfile);
+                }
+
+                throw $e;
             }
         } else {
             if (is_string($tmpfile)) {
@@ -876,6 +898,7 @@ abstract class ProductImporter
     {
         $field = (float) str_replace(',', '.', $field);
         $field = (float) str_replace('%', '', $field);
+
         return $field;
     }
 
@@ -884,6 +907,7 @@ abstract class ProductImporter
         if (empty($field) || $field == 0 || $field == '0') {
             return true;
         }
+
         return false;
     }
 
@@ -899,6 +923,7 @@ abstract class ProductImporter
         if (Tools::strlen($str) > $length) {
             return Tools::substr($str, 0, $length);
         }
+
         return $str;
     }
 }

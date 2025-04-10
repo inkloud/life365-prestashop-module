@@ -1,28 +1,29 @@
 <?php
 /**
-* 2007-2025 PrestaShop
-*
-* NOTICE OF LICENSE
-*
-* This source file is subject to the Academic Free License (AFL 3.0)
-* that is bundled with this package in the file LICENSE.txt.
-* It is also available through the world-wide-web at this URL:
-* http://opensource.org/licenses/afl-3.0.php
-* If you did not receive a copy of the license and are unable to
-* obtain it through the world-wide-web, please send an email
-* to license@prestashop.com so we can send you a copy immediately.
-*
-* DISCLAIMER
-*
-* Do not edit or add to this file if you wish to upgrade PrestaShop to newer
-* versions in the future. If you wish to customize PrestaShop for your
-* needs please refer to http://www.prestashop.com for more information.
-*
-*  @author    Giancarlo Spadini <giancarlo@spadini.it>
-*  @copyright 2007-2025 PrestaShop SA
-*  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-*  International Registered Trademark & Property of PrestaShop SA
-*/
+ * 2007-2025 PrestaShop
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+ * versions in the future. If you wish to customize PrestaShop for your
+ * needs please refer to http://www.prestashop.com for more information.
+ *
+ * @author    Giancarlo Spadini <giancarlo@spadini.it>
+ * @copyright 2007-2025 PrestaShop SA
+ * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * International Registered Trademark & Property of PrestaShop SA
+ */
+
 if (!defined('_PS_VERSION_'))
 {
     exit;
@@ -44,7 +45,7 @@ class Life365 extends Module
         $this->version = '8.0.97';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
-        $this->ps_versions_compliancy = array('min' => '1.6.0.4', 'max' => '8.2.0');
+        $this->ps_versions_compliancy = array('min' => '1.7.0', 'max' => '8.2.0');
         $this->module_key = '17fe516516b4f12fb1d877a3600dbedc';
 
         parent::__construct();
@@ -326,37 +327,24 @@ class Life365 extends Module
 
     private function displayExternalCatetories($root_category = 0)
     {
-        // $root_category : point of the tree to start to display children categories
-        // if $root_category = 0 then display all categories
         $selected_categories_array = explode(',', Configuration::get($this->name.'_'.$root_category.'_categories'));
         $available_cats = $this->availableCategories();
         $list_cat3 = '';
-        $cats_html = '<table>';
-        $cats_html .= '<tr>';
-        $cats_html .= '<th>'.Tools::strtoupper($this->name).' '.$this->l('category').'</th>';
-        $cats_html .= '<th>'.$this->l('Local category').'</th>';
-        $cats_html .= '<th>'.$this->l('Profit').'</th>';
-        $cats_html .= '</tr>';
+        $categories = [];
+
         if (is_array($available_cats)) {
             $cat2 = 0;
             foreach ($available_cats as $cat) {
                 if ($root_category == 0 || $cat['Cat1'] == $root_category) {
                     if ($cat2 != $cat['Cat2']) {
-                        $cats_html .= '<tr><td colspan="3">';
-                        $cats_html .= '<b>'.$cat['description1'].'::'.$cat['description2'].'</b>';
-                        $cats_html .= '</td></tr>';
                         $cat2 = $cat['Cat2'];
                     }
                     $list_cat3 .= $cat['Cat3'].',';
-                    if (in_array($cat['Cat3'], $selected_categories_array)) {
-                        $cat_checked = ' checked';
-                    } else {
-                        $cat_checked = '';
-                    }
-      
+                    $cat_checked = in_array($cat['Cat3'], $selected_categories_array) ? true : false;
+
                     $sql = 'SELECT `profit`, `id_category_ps`
-                        FROM `'._DB_PREFIX_.$this->name.'_category`
-                        WHERE id_category_external = '.(int)$cat['Cat3'];
+                            FROM `'._DB_PREFIX_.$this->name.'_category`
+                            WHERE id_category_external = '.(int)$cat['Cat3'];
                     if ($row = Db::getInstance()->getRow($sql)) {
                         $id_cat_ps = $row['id_category_ps'];
                         $profit = $row['profit'];
@@ -365,40 +353,30 @@ class Life365 extends Module
                         $profit = Configuration::get($this->name.'_overhead');
                     }
 
-                    $cats_html .= '<tr>';
-                    $cats_html .= '<td>&nbsp;&nbsp;<input type="checkbox" name="'.$this->name.'_categories[]" value="'.$cat['Cat3'].'"'.$cat_checked.' />'.$cat['description3'].'</td>';
-                    $cats_html .= '<td><select name="cat_ps_'.$cat['Cat3'].'" class="children_cats_select" data-selected-id="'.$id_cat_ps.'">';
-                    $cats_html .= '</select></td>';
-                    $cats_html .= '<td>';
-                    $cats_html .= '<input type="number" step="0.01" value="'.$profit.'" name="profit_'.$cat['Cat3'].'" placeholder="'.$this->l('profit').'" />%';
-                    $cats_html .= '</td>';
-                    $cats_html .= '</tr>';
+                    $categories[] = [
+                        'cat3' => $cat['Cat3'],
+                        'description3' => $cat['description3'],
+                        'checked' => $cat_checked,
+                        'id_cat_ps' => $id_cat_ps,
+                        'profit' => $profit,
+                    ];
                 }
             }
         }
-        $cats_html .= '</table>';
-        $cats_html .= '<input type="hidden" name="'.$this->name.'_cat1" value="'.$root_category.'" />';
-        $cats_html .= '<input type="hidden" name="'.$this->name.'_list_cat3" value="'.$list_cat3.'" />';
 
-        $cats_html .= '<select style="display:none;" id="all_categories">';
-        $cats_html .= $this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), Configuration::get('PS_HOME_CATEGORY'), Configuration::get('PS_LANG_DEFAULT'));
-        $cats_html .= '</select>';
-        
-        $cats_html .= '<script language="javascript">$(function() {		
-                var all_cats = $(\'#all_categories\').html();
+        $this->context->smarty->assign([
+            'root_category' => $root_category,
+            'categories' => $categories,
+            'list_cat3' => $list_cat3,
+            'default_category' => Configuration::get('PS_HOME_CATEGORY'),
+            'default_lang' => Configuration::get('PS_LANG_DEFAULT'),
+            'all_categories' => $this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), Configuration::get('PS_HOME_CATEGORY'), Configuration::get('PS_LANG_DEFAULT')),
+            'l' => function ($string) {
+                return $this->l($string);
+            },
+        ]);
 
-                $( ".children_cats_select" ).each(function() {
-                    var original_name = $( this ).attr(\'name\');
-                    var sel = $( this ).attr(\'data-selected-id\');
-
-                    $( this ).html(all_cats);
-
-                    $( this ).attr(\'name\', original_name);
-                    $( this ).val(sel);
-                });
-            });</script>';
-
-        return $cats_html;
+        return $this->context->smarty->fetch($this->local_path.'views/templates/admin/display_external_categories.tpl');
     }
 
     private function displayForm()
@@ -409,8 +387,7 @@ class Life365 extends Module
             'IT' => 'https://www.life365.eu',
             'PT' => 'https://www.life365.pt',
             'ES' => 'https://www.inkloud.es',
-            'NL' => 'https://www.inkloud.eu',
-            'CN' => 'https://www.inkloud.cn'
+            'NL' => 'https://www.inkloud.eu'
         );
         $country_id = Configuration::get($this->name.'_country');
 
@@ -423,7 +400,6 @@ class Life365 extends Module
           <select id="'.$this->name.'_country" name="'.$this->name.'_country">
                 <option value="0">'.$this->l('-- Choose a country --').'</option>
                 <option value="IT" '.(Configuration::get($this->name.'_country') == 'IT' ? 'selected="selected"' : '').'>Italy</option>
-                <option value="CN" '.(Configuration::get($this->name.'_country') == 'CN' ? 'selected="selected"' : '').'>China</option>
                 <option value="NL" '.(Configuration::get($this->name.'_country') == 'NL' ? 'selected="selected"' : '').'>Netherlands</option>
                 <option value="PT" '.(Configuration::get($this->name.'_country') == 'PT' ? 'selected="selected"' : '').'>Portugal</option>
                 <option value="ES" '.(Configuration::get($this->name.'_country') == 'ES' ? 'selected="selected"' : '').'>Spain</option>
@@ -479,12 +455,10 @@ class Life365 extends Module
             </form>
             <div class="clear"></div>
             <br />
-<!--
             <div>
                 <b>'.$this->l('Complete Cron url').': </b>
                 '.$cron_url.'<br>
             </div>
--->
             <div>
                 <b>'.$this->l('Cron urls by cateogry').': </b>
                 '.$this->cronUrl2().'<br>
