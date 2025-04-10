@@ -364,6 +364,7 @@ class Life365 extends Module
         }
 
         $this->context->smarty->assign([
+            'module_name' => $this->name,
             'root_category' => $root_category,
             'categories' => $categories,
             'list_cat3' => $list_cat3,
@@ -390,12 +391,46 @@ class Life365 extends Module
         $country_id = Configuration::get($this->name.'_country');
 
         $cron_url = Tools::getHttpHost(true).__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php?action=cron&token='.Tools::getAdminToken($this->name);
+        $cron_url2 = Tools::getHttpHost(true).__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php?action=cron2&token='.Tools::getAdminToken($this->name).'&mc=';
+        $root_cats = $this->getRootCategories();
+
+        $sync_options = [
+            [
+                'name' => $this->name.'_sync_name',
+                'checked' => Configuration::get($this->name.'_sync_name'),
+                'label' => $this->l('Product name'),
+            ],
+            [
+                'name' => $this->name.'_sync_short_desc',
+                'checked' => Configuration::get($this->name.'_sync_short_desc'),
+                'label' => $this->l('Product short description'),
+            ],
+            [
+                'name' => $this->name.'_sync_desc',
+                'checked' => Configuration::get($this->name.'_sync_desc'),
+                'label' => $this->l('Product description'),
+            ],
+            [
+                'name' => $this->name.'_sync_category',
+                'checked' => Configuration::get($this->name.'_sync_category'),
+                'label' => $this->l('Reset association with local categories'),
+            ],
+            [
+                'name' => $this->name.'_sync_price',
+                'checked' => Configuration::get($this->name.'_sync_price'),
+                'label' => $this->l('Product price'),
+            ],
+        ];
+
+        $check_logon_url = _MODULE_DIR_ . $this->name . '/ajax_importer.php?action=checkLogon&token=' . Tools::getAdminToken($this->name);
+        $loader_img_url = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'img/loader.gif';
 
         $this->context->smarty->assign([
             'module_path' => $this->_path,
             'e_commerce_url' => $e_commerce_url,
             'country_id' => $country_id,
             'cron_url' => $cron_url,
+            'cron_url2' => $cron_url2,
             'login' => Configuration::get($this->name.'_login'),
             'password' => Configuration::get($this->name.'_password'),
             'overhead' => Configuration::get($this->name.'_overhead'),
@@ -403,14 +438,13 @@ class Life365 extends Module
             'default_tax_id' => Configuration::get($this->name.'_default_tax_id'),
             'categories' => $this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), Configuration::get($this->name.'_default_category'), Configuration::get('PS_LANG_DEFAULT')),
             'tax_rules' => $this->displayTaxRules(Configuration::get($this->name.'_default_tax_id')),
-            'sync_name' => Configuration::get($this->name.'_sync_name'),
-            'sync_short_desc' => Configuration::get($this->name.'_sync_short_desc'),
-            'sync_desc' => Configuration::get($this->name.'_sync_desc'),
-            'sync_price' => Configuration::get($this->name.'_sync_price'),
-            'sync_category' => Configuration::get($this->name.'_sync_category'),
+            'root_cats' => $root_cats,
+            'sync_options' => $sync_options,
             'debug_mode' => Configuration::get($this->name.'_debug_mode'),
             'sync_slow' => Configuration::get($this->name.'_sync_slow'),
             'price_limit' => Configuration::get($this->name.'_price_limit'),
+            'check_logon_url' => $check_logon_url,
+            'loader_img_url' => $loader_img_url,
             'l' => function ($string) {
                 return $this->l($string);
             },
@@ -544,23 +578,6 @@ class Life365 extends Module
         return $this->context->smarty->fetch($this->local_path.'views/templates/admin/manage_cats2.tpl');
     }
 
-    private function cronUrl2()
-    {
-        $root_cats = $this->getRootCategories();
-
-        $cron_url2 = Tools::getHttpHost(true).__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php?action=cron2&token='.Tools::getAdminToken($this->name).'&mc=';
-
-        $this->context->smarty->assign([
-            'root_cats' => $root_cats,
-            'cron_url2' => $cron_url2,
-            'l' => function ($string) {
-                return $this->l($string);
-            },
-        ]);
-
-        return $this->context->smarty->fetch($this->local_path.'views/templates/admin/cron_urls.tpl');
-    }
-
     private function startImportAjax()
     {
         $current_file_name = array_reverse(explode('/', $_SERVER['SCRIPT_NAME']));
@@ -570,9 +587,10 @@ class Life365 extends Module
         $cron_url_search_img = Tools::getHttpHost(true).__PS_BASE_URI__.'img/questionmark.png';
     
         $root_cats = $this->getRootCategories();
-        $categories = array_map(function ($cat) {
-            return $cat['Cat1'];
-        }, $root_cats);
+        $categories = array();
+        foreach ($root_cats as $cat) {
+            $categories[] = $cat["Cat1"];
+        }
     
         $this->context->smarty->assign([
             'module_path' => $this->_path,

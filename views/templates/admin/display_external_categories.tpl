@@ -24,14 +24,14 @@
 *}
 <table>
     <tr>
-        <th>{$name} {l s='category' mod='life365' d='Modules.Life365.Admin'}</th>
+        <th>{$module_name} {l s='category' mod='life365' d='Modules.Life365.Admin'}</th>
         <th>{l s='Local category' mod='life365' d='Modules.Life365.Admin'}</th>
         <th>{l s='Profit' mod='life365' d='Modules.Life365.Admin'}</th>
     </tr>
     {foreach $categories as $cat}
         <tr>
             <td>
-                <input type="checkbox" name="{$name}_categories[]" value="{$cat.cat3}" {if $cat.checked}checked{/if} />
+                <input type="checkbox" name="{$module_name}_categories[]" value="{$cat.cat3}" {if $cat.checked}checked{/if} />
                 {$cat.description3}
             </td>
             <td>
@@ -45,8 +45,8 @@
         </tr>
     {/foreach}
 </table>
-<input type="hidden" name="{$name}_cat1" value="{$root_category}" />
-<input type="hidden" name="{$name}_list_cat3" value="{$list_cat3}" />
+<input type="hidden" name="{$module_name}_cat1" value="{$root_category}" />
+<input type="hidden" name="{$module_name}_list_cat3" value="{$list_cat3}" />
 
 <select style="display:none;" id="all_categories">
     {$all_categories}

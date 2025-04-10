@@ -106,8 +106,7 @@ abstract class ProductImporter
         try {
             StockAvailable::setQuantity($this->id_product, null, $qta);
         } catch (Exception $e) {
-            $module_name = getModuleInfo('name');
-            $debug = (bool) Configuration::get($module_name . '_debug_mode');
+            $debug = (bool) Configuration::get($this->module_name . '_debug_mode');
             if ($debug) {
                 p('Something went wrong when saving quantity: ' . $e->getMessage());
             }

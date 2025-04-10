@@ -168,7 +168,8 @@
     $(document).ready(function () {
         var loadUrl = "{$module_dir}ajax_importer.php";
 
-        var selected_categories = {$categories};
+        var b = 1;
+        var selected_categories = {$categories|json_encode};
 
         for (var i = 0; i < selected_categories.length; i++) {
             $("#result_" + selected_categories[i]).append(
