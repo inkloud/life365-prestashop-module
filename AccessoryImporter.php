@@ -28,28 +28,24 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class AccessoryImporter extends ProductImporter
-{
+class AccessoryImporter extends ProductImporter {
     protected $image_basepath;
 
-    public function setProductSource(&$p)
-    {
+    public function setProductSource(&$p) {
         if (empty($p)) {
             throw new Exception('No Product Source');
         }
         $this->product = $p;
     }
 
-    public function setImageBasePath($path)
-    {
+    public function setImageBasePath($path) {
         if (Tools::substr($path, Tools::strlen($path) - 1) != '/') {
             $path .= '/';
         }
         $this->image_basepath = $path;
     }
 
-    public function getVersion($id_product)
-    {
+    public function getVersion($id_product) {
         $version = Db::getInstance()->ExecuteS(
             'SELECT `version` FROM `' . _DB_PREFIX_ . 'life365_product` WHERE id_product_external = ' . (int) $id_product
         );

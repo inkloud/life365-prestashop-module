@@ -1,29 +1,28 @@
 <?php
 /**
-* 2007-2025 PrestaShop
-*
-* NOTICE OF LICENSE
-*
-* This source file is subject to the Academic Free License (AFL 3.0)
-* that is bundled with this package in the file LICENSE.txt.
-* It is also available through the world-wide-web at this URL:
-* http://opensource.org/licenses/afl-3.0.php
-* If you did not receive a copy of the license and are unable to
-* obtain it through the world-wide-web, please send an email
-* to license@prestashop.com so we can send you a copy immediately.
-*
-* DISCLAIMER
-*
-* Do not edit or add to this file if you wish to upgrade PrestaShop to newer
-* versions in the future. If you wish to customize PrestaShop for your
-* needs please refer to http://www.prestashop.com for more information.
-*
-* @author    Giancarlo Spadini <giancarlo@spadini.it>
-* @copyright 2007-2025 PrestaShop SA
-* @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-* International Registered Trademark & Property of PrestaShop SA
-*/
-
+ * Copyright since 2007 PrestaShop SA and Contributors
+ * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License 3.0 (AFL-3.0)
+ * that is bundled with this package in the file LICENSE.md.
+ * It is also available through the world-wide-web at this URL:
+ * https://opensource.org/licenses/AFL-3.0
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+ * versions in the future. If you wish to customize PrestaShop for your
+ * needs please refer to https://devdocs.prestashop.com/ for more information.
+ *
+ * @author    Giancarlo Spadini <giancarlo@spadini.it>
+ * @copyright Since 2007 PrestaShop SA and Contributors
+ * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+ */
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST');
 header('Access-Control-Allow-Headers: X-Requested-With');
@@ -48,8 +47,7 @@ if (!isset($kernel)) {
 $context = Context::getContext();
 
 if (!function_exists('p')) {
-    function p($msg)
-    {
+    function p($msg) {
         echo $msg . "\n";
     }
 }
@@ -118,35 +116,35 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $_api_url = 'https://api.life365.eu/v2.php';
-    $user_app = 'PrestaShop module ver: 8.0.97';
+    $user_app = 'PrestaShop module ver: 8.0.98';
     $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
 
-    $e_commerce_url = array(
+    $e_commerce_url = [
         'IT' => 'https://www.life365.eu',
         'PT' => 'https://www.life365.pt',
         'ES' => 'https://www.inkloud.es',
-        'NL' => 'https://www.inkloud.eu'
-    );
+        'NL' => 'https://www.inkloud.eu',
+    ];
 
-    $api_url_new = array(
+    $api_url_new = [
         'IT' => 'https://it2.life365.eu',
         'PT' => 'https://pt2.life365.eu',
         'ES' => 'https://es2.life365.eu',
-        'NL' => 'https://nl2.life365.eu'
-    );
+        'NL' => 'https://nl2.life365.eu',
+    ];
 
-    $country_default = array(
+    $country_default = [
         'IT' => 102,
         'PT' => 1,
         'ES' => 17,
-        'NL' => 150
-    );
-    $region_default = array(
+        'NL' => 150,
+    ];
+    $region_default = [
         'IT' => 1,
         'PT' => 1,
         'ES' => 1,
-        'NL' => 19
-    );
+        'NL' => 19,
+    ];
 
     $country_id = Configuration::get($module_name . '_country');
     $detail = '';
@@ -231,7 +229,7 @@ function getAccessToken()
             'login' => $login,
             'password' => $password,
             'referer' => $referer,
-            'user_app' => $user_app . ' with CRON'
+            'user_app' => $user_app . ' with CRON',
         ];
 
         curl_setopt($con, CURLOPT_URL, $url);
@@ -571,16 +569,16 @@ function getCatStock($category_id)
 
     $line = fgetcsv($fileData, 0, ';');
     $header = [];
-    foreach($line as $val) {
+    foreach ($line as $val) {
         $header[] = trim($val);
     }
 
     $cats_array = explode(',', Configuration::get($name . '_' . $category_id . '_categories'));
     $i = 0;
     $result = [];
-    while (($line = fgetcsv($fileData, 0, ';')) !== FALSE) {
-        if ($i == 0) {
-            $i += 1;
+    while (($line = fgetcsv($fileData, 0, ';')) !== false) {
+        if ($i === 0) {
+            $i++;
             continue;
         }
         $new_entry = array_combine($header, array_map('trim', $line));
@@ -639,7 +637,7 @@ function runCron3($macro_cat)
                 $accessroyImport->setProductSource($objectProduct);
                 $accessroyImport->save();
             }
-            $offset += 1;
+            $offset++;
         }
 
         p('Starting periodic cleaning of obsolete products.');
