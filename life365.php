@@ -36,8 +36,6 @@ class Life365 extends Module
 {
     private $c_html = '';
 
-    private $c_api_url = 'https://api.life365.eu/v2.php';
-
     private $c_api_url_new = [
         'IT' => 'https://it2.life365.eu',
         'PT' => 'https://pt2.life365.eu',
@@ -175,13 +173,14 @@ class Life365 extends Module
     {
         if (_PS_VERSION_ >= '1.7.7.0') {
             $order_id = $params['id_order'];
-        } else { //older versions
+        } else {
             $order_id =  $params['order']->id;
         }
-        $this->smarty->assign(array('order' => $params['order'],
-        'dropship_link' => $this->_path.'ajax_importer.php',
-        'dropship_order' => $order_id,
-        'dropship_token' => Tools::getAdminToken($this->name)
+        $this->smarty->assign(array(
+            'order' => $params['order'],
+            'dropship_link' => $this->_path.'ajax_importer.php',
+            'dropship_order' => $order_id,
+            'dropship_token' => Tools::getAdminToken($this->name)
         ));
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
@@ -470,38 +469,41 @@ class Life365 extends Module
     private function getAccessToken()
     {
         $country_id = Configuration::get($this->name.'_country');
-        $login = Configuration::get($this->name.'_login');
-        $password = Configuration::get($this->name.'_password');
+        $_api_url_new = $this->c_api_url_new[$country_id];
+
+        $user_app = 'Prestashop module v.'.$this->version;
+    
+        $login = Configuration::get($this->name . '_login');
+        $password = Configuration::get($this->name . '_password');
         $referer = $_SERVER['HTTP_HOST'];
-        $user_app = "PrestaShop module ver: ".$this->version;
-
-        if (function_exists('curl_init')) {
-            $con = curl_init();
-            $url = $this->c_api_url.'?f=getToken';
-            $my_values = array('country_id' => $country_id, 'login' => $login, 'password' => $password, 'referer' => $referer, 'user_app' => $user_app);
-
-            curl_setopt($con, CURLOPT_URL, $url);
-            curl_setopt($con, CURLOPT_POST, true);
-            curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
-            curl_setopt($con, CURLOPT_HEADER, false);
-            curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
-
-            $res_curl = curl_exec($con);
-            curl_close($con);
-
-            $res = json_decode($res_curl, true);
-
-            if ($res["response_code"] == "1") {
-                $token = $res["response_detail"];
-            } else {
-                $token = false;
-            }
-
-            return $token;
-        } else {
-            return false;
+    
+        $con = curl_init();
+        $url = $_api_url_new . '/api/auth/';
+        $my_values = [
+            'login' => $login,
+            'password' => $password,
+            'referer' => $referer,
+            'user_app' => $user_app,
+        ];
+    
+        curl_setopt($con, CURLOPT_URL, $url);
+        curl_setopt($con, CURLOPT_POST, true);
+        curl_setopt($con, CURLOPT_POSTFIELDS, json_encode($my_values));
+        curl_setopt($con, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($con, CURLOPT_HEADER, false);
+        curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
+        
+        $res_curl = curl_exec($con);
+        curl_close($con);
+        $res = json_decode($res_curl, true);
+    
+        $token = '';
+        if ($res && isset($res['jwt'])) {
+            $token = $res['jwt'];
         }
+    
+        return $token;
     }
 
     private function getRootCategories()

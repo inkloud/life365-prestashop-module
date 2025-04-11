@@ -115,9 +115,7 @@ switch ($action) {
 function getModuleInfo($info)
 {
     $module_name = 'life365';
-    $_api_url = 'https://api.life365.eu/v2.php';
     $user_app = 'PrestaShop module ver: 8.0.98';
-    $api_url_jwt = 'https://api.life365.eu/v4/auth/?f=check';
 
     $e_commerce_url = [
         'IT' => 'https://www.life365.eu',
@@ -158,16 +156,8 @@ function getModuleInfo($info)
             $detail = $module_name;
             break;
 
-        case 'api_url':
-            $detail = $_api_url;
-            break;
-
         case 'user_app':
             $detail = $user_app;
-            break;
-
-        case 'api_url_jwt':
-            $detail = $api_url_jwt;
             break;
 
         case 'e_ecommerce_url':
@@ -205,86 +195,57 @@ function getModuleInfo($info)
     return $detail;
 }
 
-function getAccessToken()
-{
-    $context = Context::getContext();
-    $token_expire = rand(0, 200);
-
-    if (isset($context->cookie->access_token) && !empty($context->cookie->access_token) && $token_expire > 1 && $token_expire < 1) {
-        $token = $context->cookie->access_token;
-    } else {
-        $_api_url = getModuleInfo('api_url');
-        $module_name = getModuleInfo('name');
-        $user_app = getModuleInfo('user_app');
-
-        $country_id = Configuration::get($module_name . '_country');
-        $login = Configuration::get($module_name . '_login');
-        $password = Configuration::get($module_name . '_password');
-        $referer = $_SERVER['HTTP_HOST'];
-
-        $con = curl_init();
-        $url = $_api_url . '?f=getToken';
-        $my_values = [
-            'country_id' => $country_id,
-            'login' => $login,
-            'password' => $password,
-            'referer' => $referer,
-            'user_app' => $user_app . ' with CRON',
-        ];
-
-        curl_setopt($con, CURLOPT_URL, $url);
-        curl_setopt($con, CURLOPT_POST, true);
-        curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
-        curl_setopt($con, CURLOPT_HEADER, false);
-        curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
-
-        $res_curl = curl_exec($con);
-        curl_close($con);
-
-        $res = json_decode($res_curl, true);
-
-        if ($res['response_code'] == '1') {
-            $token = $res['response_detail'];
-            $context->cookie->__set('access_token', $token);
-        } else {
-            $token = false;
-        }
-    }
-    return $token;
-}
-
 function getAccessJWT()
 {
+    $_api_url_new = getModuleInfo('api_url_new');
     $module_name = getModuleInfo('name');
+    $user_app = getModuleInfo('user_app');
 
-    $api_url_jwt = getModuleInfo('api_url_jwt');
-    $country_id = Configuration::get($module_name . '_country');
     $login = Configuration::get($module_name . '_login');
     $password = Configuration::get($module_name . '_password');
+    $referer = $_SERVER['HTTP_HOST'];
 
     $con = curl_init();
-    $url = $api_url_jwt;
-    $my_values = ['country' => $country_id, 'login' => $login, 'password' => $password, 'role' => 'customer'];
+    $url = $_api_url_new . '/api/auth/';
+    $my_values = [
+        'login' => $login,
+        'password' => $password,
+        'referer' => $referer,
+        'user_app' => $user_app,
+    ];
 
     curl_setopt($con, CURLOPT_URL, $url);
     curl_setopt($con, CURLOPT_POST, true);
-    curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
+    curl_setopt($con, CURLOPT_POSTFIELDS, json_encode($my_values));
+    curl_setopt($con, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
     curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
     $res_curl = curl_exec($con);
-    $res_code = curl_getinfo($con, CURLINFO_HTTP_CODE);
     curl_close($con);
+    $res = json_decode($res_curl, true);
 
-    if ($res_code == 200) {
-        $res = json_decode($res_curl, true);
-        $jwt = $res['jwt'];
-        return $jwt;
-    } else {
-        return 0;
+    $token = '';
+    if ($res && isset($res['jwt'])) {
+        $token = $res['jwt'];
     }
+
+    return $token;
+}
+
+function getAccessToken()
+{
+    $context = Context::getContext();
+    $token_expire = rand(0, 1);
+
+    if (isset($context->cookie->access_token) && !empty($context->cookie->access_token) && $token_expire > 1 && $token_expire < 1) {
+        $token = $context->cookie->access_token;
+    } else {
+        $token = getAccessJWT();
+    }
+
+    return $token;
 }
 
 function getProducts2($category_id)
@@ -438,8 +399,6 @@ function availableCategories()
         curl_close($con);
 
         $res = json_decode($res_curl, true);
-        print_r($res);
-        die();
 
         if ($res) {
             return $res;
@@ -454,12 +413,11 @@ function availableCategories()
 function checkLogon()
 {
     $jwt = getAccessJWT();
-    $response_text = 'Error';
 
     if (Tools::strlen($jwt) > 1) {
         return '<img src="' . dirname($_SERVER['PHP_SELF']) . '/../../img/admin/enabled.gif" alt="enabled"/><font color="green">Ok</font>';
     } else {
-        return '<img src="' . dirname($_SERVER['PHP_SELF']) . '/../../img/admin/disabled.gif" alt="disabled"/><font color="red">' . $response_text . '</font>';
+        return '<img src="' . dirname($_SERVER['PHP_SELF']) . '/../../img/admin/disabled.gif" alt="disabled"/><font color="red">Error</font>';
     }
 }
 
