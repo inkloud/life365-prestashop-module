@@ -27,7 +27,8 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_1_2_62($module) {
+function upgrade_module_1_2_62($module)
+{
     $t_sql = 'ALTER TABLE `' . _DB_PREFIX_ . $module->name . '_product` ADD `version` INT NOT NULL DEFAULT \'0\'';
     Db::getInstance()->execute($t_sql);
 

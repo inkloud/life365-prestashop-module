@@ -1,14 +1,13 @@
 <?php
 /**
- * Copyright since 2007 PrestaShop SA and Contributors
- * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
+ * 2007-2025 PrestaShop
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the Academic Free License 3.0 (AFL-3.0)
- * that is bundled with this package in the file LICENSE.md.
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
  * It is also available through the world-wide-web at this URL:
- * https://opensource.org/licenses/AFL-3.0
+ * http://opensource.org/licenses/afl-3.0.php
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@prestashop.com so we can send you a copy immediately.
@@ -17,11 +16,12 @@
  *
  * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
  * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to https://devdocs.prestashop.com/ for more information.
+ * needs please refer to http://www.prestashop.com for more information.
  *
  * @author    Giancarlo Spadini <giancarlo@spadini.it>
- * @copyright Since 2007 PrestaShop SA and Contributors
- * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+ * @copyright 2007-2025 PrestaShop SA
+ * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * International Registered Trademark & Property of PrestaShop SA
  */
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST');
@@ -476,7 +476,7 @@ function getProds($opt_cat = 0)
             $objectProduct->street_price = $objectProduct->price_a;
 
             $not_allowed_tag = ['iframe', 'script'];
-            $descriptionCleaned = preg_replace( '#<(' . implode( '|', $not_allowed_tag) . ').*>.*?</\1>#s', '', $objectProduct->descr->{$country_l});
+            $descriptionCleaned = preg_replace('#<(' . implode('|', $not_allowed_tag) . ').*>.*?</\1>#s', '', $objectProduct->descr->{$country_l});
             $objectProduct->description = $descriptionCleaned;
 
             $objectProduct->quantity = $objectProduct->stock;
@@ -529,8 +529,7 @@ function getCatStock($category_id)
     $i = 0;
     $result = [];
     while (($line = fgetcsv($fileData, 0, ';')) !== false) {
-        if ($i === 0) {
-            $i++;
+        if (++$i === 1) {
             continue;
         }
         $new_entry = array_combine($header, array_map('trim', $line));
@@ -563,31 +562,32 @@ function runCron3($macro_cat)
                 $accessroyImport->saveQuantity($product['id'], $product['stock']);
                 if ($accessroyImport->getVersion($product['id']) >= $product['version_data']) {
                     p('Skip product ' . $product['id'] . ' latest version already');
-                    continue;
                 }
-                p('Importing product ' . $product['id']);
+                else {
+                    p('Importing product ' . $product['id']);
 
-                $all_product_data = getSingleProduct($product['id']);
-                $objectProduct = json_decode(json_encode($all_product_data), false);
-                $objectProduct->reference = $objectProduct->code_simple;
-                $objectProduct->name = $objectProduct->title->{$country_l};
-                $objectProduct->meta_keywords = $objectProduct->keywords;
-                $objectProduct->price = $objectProduct->price->price;
-                $objectProduct->street_price = $objectProduct->price_a;
-                $objectProduct->description = strip_unsafe($objectProduct->descr->{$country_l}, $img = false);
-                $objectProduct->quantity = $objectProduct->stock;
-                $objectProduct->url_image = json_decode(json_encode($objectProduct->photos), true)[0];
-                $objectProduct->local_category = $objectProduct->level_3;
-                $objectProduct->meta_description = '';
-                $objectProduct->meta_title = $objectProduct->name;
-                $objectProduct->short_description = 'Sizes: ' . $objectProduct->dimensions . '<br>Box: ' . $objectProduct->qty_box . '<br>Color: ' . $objectProduct->color . '<br>Certificate: ' . $objectProduct->certificate . '<br>Comp. brand: ' . $objectProduct->brand;
-                $objectProduct->version = $objectProduct->last_update;
-                $objectProduct->id_manufactuter = $accessroyImport->getManufacturerId($objectProduct->brand);
-                $objectProduct->manufactuter = $objectProduct->brand;
-                $objectProduct->ean13 = $objectProduct->barcode;
+                    $all_product_data = getSingleProduct($product['id']);
+                    $objectProduct = json_decode(json_encode($all_product_data), false);
+                    $objectProduct->reference = $objectProduct->code_simple;
+                    $objectProduct->name = $objectProduct->title->{$country_l};
+                    $objectProduct->meta_keywords = $objectProduct->keywords;
+                    $objectProduct->price = $objectProduct->price->price;
+                    $objectProduct->street_price = $objectProduct->price_a;
+                    $objectProduct->description = strip_unsafe($objectProduct->descr->{$country_l}, $img = false);
+                    $objectProduct->quantity = $objectProduct->stock;
+                    $objectProduct->url_image = json_decode(json_encode($objectProduct->photos), true)[0];
+                    $objectProduct->local_category = $objectProduct->level_3;
+                    $objectProduct->meta_description = '';
+                    $objectProduct->meta_title = $objectProduct->name;
+                    $objectProduct->short_description = 'Sizes: ' . $objectProduct->dimensions . '<br>Box: ' . $objectProduct->qty_box . '<br>Color: ' . $objectProduct->color . '<br>Certificate: ' . $objectProduct->certificate . '<br>Comp. brand: ' . $objectProduct->brand;
+                    $objectProduct->version = $objectProduct->last_update;
+                    $objectProduct->id_manufactuter = $accessroyImport->getManufacturerId($objectProduct->brand);
+                    $objectProduct->manufactuter = $objectProduct->brand;
+                    $objectProduct->ean13 = $objectProduct->barcode;
 
-                $accessroyImport->setProductSource($objectProduct);
-                $accessroyImport->save();
+                    $accessroyImport->setProductSource($objectProduct);
+                    $accessroyImport->save();
+                }
             }
             $offset++;
         }
@@ -602,13 +602,13 @@ function runCron3($macro_cat)
 function getRootCategories()
 {
     $available_cats = availableCategories();
-    $root_cats = array();
+    $root_cats = [];
 
     if (is_array($available_cats)) {
         $cat1 = 0;
         foreach ($available_cats as $cat) {
             if ($cat1 != $cat['Cat1']) {
-                $new_cat = array('Cat1' => $cat['Cat1'], 'description1' => $cat['description1']);
+                $new_cat = ['Cat1' => $cat['Cat1'], 'description1' => $cat['description1']];
 
                 array_push($root_cats, $new_cat);
                 $cat1 = $cat['Cat1'];
@@ -746,7 +746,7 @@ function getNewCart()
     $con = curl_init();
 
     curl_setopt($con, CURLOPT_URL, $url);
-    curl_setopt($con, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-from-urlencoded'));
+    curl_setopt($con, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-from-urlencoded']);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($con, CURLOPT_CUSTOMREQUEST, 'POST');
     curl_setopt($con, CURLOPT_POSTFIELDS, 1);
@@ -776,7 +776,7 @@ function addProductToCart($code, $qty)
     $data = '{"type": "PUT_PRODUCT", "value": {"code": "' . $code . '", "qta": ' . $qty . '}}';
 
     curl_setopt($con, CURLOPT_URL, $url);
-    curl_setopt($con, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+    curl_setopt($con, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($con, CURLOPT_CUSTOMREQUEST, 'PUT');
     curl_setopt($con, CURLOPT_POSTFIELDS, $data);
@@ -830,7 +830,7 @@ function setShippingAddress($dropship_address)
         }';
 
     curl_setopt($con, CURLOPT_URL, $url);
-    curl_setopt($con, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+    curl_setopt($con, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($con, CURLOPT_CUSTOMREQUEST, 'PUT');
     curl_setopt($con, CURLOPT_POSTFIELDS, $data);

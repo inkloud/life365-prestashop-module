@@ -24,8 +24,7 @@
  * International Registered Trademark & Property of PrestaShop SA
  */
 
-if (!defined('_PS_VERSION_'))
-{
+if (!defined('_PS_VERSION_')) {
     exit;
 }
 
@@ -50,7 +49,7 @@ class Life365 extends Module
         $this->version = '8.0.98';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
-        $this->ps_versions_compliancy = array('min' => '1.7.0', 'max' => '8.2.1');
+        $this->ps_versions_compliancy = ['min' => '1.7.0', 'max' => '8.2.1'];
         $this->module_key = '17fe516516b4f12fb1d877a3600dbedc';
 
         parent::__construct();
@@ -71,8 +70,8 @@ class Life365 extends Module
         if (parent::install() == false || !$this->installDB() || !$this->registerHooks()) {
             return false;
         }
-        
-        Configuration::updateValue($this->name.'_import_current_category', 0);
+
+        Configuration::updateValue($this->name . '_import_current_category', 0);
         Configuration::updateValue('PS_ALLOW_HTML_IFRAME', 1);
 
         return true;
@@ -91,7 +90,7 @@ class Life365 extends Module
 
     public function installDB()
     {
-        $t_sql = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.$this->name.'_product` (
+        $t_sql = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . $this->name . '_product` (
                   `id_product_external` int(10) unsigned NOT NULL,
                   `date_import` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                   `id_product_ps` int(10) unsigned NOT NULL,
@@ -100,7 +99,7 @@ class Life365 extends Module
                   UNIQUE KEY `id_product_ps_unique` (`id_product_ps`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;';
         Db::getInstance()->execute($t_sql);
-        $t_sql = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.$this->name.'_category` (
+        $t_sql = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . $this->name . '_category` (
                   `id_category_external` int(10) unsigned NOT NULL,
                   `profit` decimal(5,2) NOT NULL DEFAULT \'50.00\',
                   `id_category_ps` int(10) unsigned NOT NULL,
@@ -113,8 +112,8 @@ class Life365 extends Module
 
     public function uninstallDB()
     {
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.$this->name.'_product`');
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.$this->name.'_category`');
+        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . $this->name . '_product`');
+        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . $this->name . '_category`');
 
         return true;
     }
@@ -125,7 +124,7 @@ class Life365 extends Module
             || !$this->uninstallDB()
             || !Configuration::deleteByName('LIFE365_NAME')
             || !$this->unregisterHook('displayBackOfficeHeader')
-            ) {
+        ) {
             return false;
         }
 
@@ -142,14 +141,10 @@ class Life365 extends Module
             && $this->registerHook('displayAdminOrderSide')
         );
     }
+
     private function unregisterHooks()
     {
         return true;
-/*  return (
-            $this->registerHook('backOfficeHome')
-            && $this->registerHook('displayBackOfficeHeader')
-        );
-*/
     }
 
     public function hookDisplayAdminOrderTabOrder($params)
@@ -157,31 +152,32 @@ class Life365 extends Module
         if (_PS_VERSION_ >= '1.7.7.0') {
             $order_id = $params['id_order'];
         } else { //older versions
-            $order_id =  $params['order']->id;
+            $order_id = $params['order']->id;
         }
 
-        $this->smarty->assign(array('order' => $params['order'],
-        'dropship_link' => $this->_path.'ajax_importer.php',
-        'dropship_order' => $order_id,
-        'dropship_token' => Tools::getAdminToken($this->name)
-        ));
+        $this->smarty->assign([
+            'order' => $params['order'],
+            'dropship_link' => $this->_path . 'ajax_importer.php',
+            'dropship_order' => $order_id,
+            'dropship_token' => Tools::getAdminToken($this->name),
+        ]);
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
     }
-    
+
     public function hookdisplayAdminOrderRight($params)
     {
         if (_PS_VERSION_ >= '1.7.7.0') {
             $order_id = $params['id_order'];
         } else {
-            $order_id =  $params['order']->id;
+            $order_id = $params['order']->id;
         }
-        $this->smarty->assign(array(
+        $this->smarty->assign([
             'order' => $params['order'],
-            'dropship_link' => $this->_path.'ajax_importer.php',
+            'dropship_link' => $this->_path . 'ajax_importer.php',
             'dropship_order' => $order_id,
-            'dropship_token' => Tools::getAdminToken($this->name)
-        ));
+            'dropship_token' => Tools::getAdminToken($this->name),
+        ]);
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
     }
@@ -191,16 +187,18 @@ class Life365 extends Module
         if (_PS_VERSION_ >= '1.7.7.0') {
             $order_id = $params['id_order'];
         } else { //older versions
-            $order_id =  $params['order']->id;
+            $order_id = $params['order']->id;
         }
-        $this->smarty->assign(array('order' => $params['order'],
-        'dropship_link' => $this->_path.'ajax_importer.php',
-        'dropship_order' => $order_id,
-        'dropship_token' => Tools::getAdminToken($this->name)
-        ));
+        $this->smarty->assign([
+            'order' => $params['order'],
+            'dropship_link' => $this->_path . 'ajax_importer.php',
+            'dropship_order' => $order_id,
+            'dropship_token' => Tools::getAdminToken($this->name),
+        ]);
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
     }
+
     public function hookbackOfficeHome($params)
     {
         return $this->display(__FILE__, 'views/templates/hook/life365.tpl');
@@ -208,66 +206,66 @@ class Life365 extends Module
 
     public function hookDisplayBackOfficeHeader($params)
     {
-        $this->context->controller->addCSS($this->_path.'views/css/life365.css', 'all');
+        $this->context->controller->addCSS($this->_path . 'views/css/life365.css', 'all');
     }
 
     public function getContent()
     {
-        if (Tools::isSubmit($this->name.'_importer')) {
+        if (Tools::isSubmit($this->name . '_importer')) {
             return $this->startImportAjax();
         }
 
-        if (Tools::isSubmit($this->name.'_action_cat_click')) {
-            $managed_cat = Tools::getValue($this->name.'_cat_click');
+        if (Tools::isSubmit($this->name . '_action_cat_click')) {
+            $managed_cat = Tools::getValue($this->name . '_cat_click');
             return $this->manageCats2($managed_cat);
         }
 
-        if (Tools::isSubmit($this->name.'_manage_cats')) {
+        if (Tools::isSubmit($this->name . '_manage_cats')) {
             return $this->manageCats();
         }
 
-        if (Tools::isSubmit($this->name.'_action_cats_b')) {
-            $cat1 = Tools::getValue($this->name.'_cat1');
-            $cats_array = Tools::getValue($this->name.'_categories');
+        if (Tools::isSubmit($this->name . '_action_cats_b')) {
+            $cat1 = Tools::getValue($this->name . '_cat1');
+            $cats_array = Tools::getValue($this->name . '_categories');
             foreach ($cats_array as $cat) {
-                $profit = Tools::getValue('profit_'.$cat) * 100;
-                $ps_cat = Tools::getValue('cat_ps_'.$cat);
+                $profit = Tools::getValue('profit_' . $cat) * 100;
+                $ps_cat = Tools::getValue('cat_ps_' . $cat);
 
-                Db::getInstance()->delete($this->name.'_category', 'id_category_external = '.(int)$cat);
-                Db::getInstance()->insert($this->name.'_category', array(
-                    'id_category_external' => (int)$cat,
-                    'profit' => (int)$profit / 100,
-                    'id_category_ps' => (int)$ps_cat
-                ));
+                Db::getInstance()->delete($this->name . '_category', 'id_category_external = ' . (int) $cat);
+                Db::getInstance()->insert($this->name . '_category', [
+                    'id_category_external' => (int) $cat,
+                    'profit' => (int) $profit / 100,
+                    'id_category_ps' => (int) $ps_cat,
+                ]);
             }
             Configuration::updateValue(
-                $this->name.'_'.$cat1.'_categories',
-                implode(',', Tools::getValue($this->name.'_categories'))
+                $this->name . '_' . $cat1 . '_categories',
+                implode(',', Tools::getValue($this->name . '_categories'))
             );
             // Force update of all products
-            $t_sql = 'UPDATE `'._DB_PREFIX_.'life365_product` SET `version` = 0;';
+            $t_sql = 'UPDATE `' . _DB_PREFIX_ . 'life365_product` SET `version` = 0;';
             Db::getInstance()->execute($t_sql);
         }
 
-        if (Tools::isSubmit($this->name.'_save_other_settings')) {
-            Configuration::updateValue($this->name.'_sync_name', Tools::getValue($this->name.'_sync_name'));
-            Configuration::updateValue($this->name.'_sync_short_desc', Tools::getValue($this->name.'_sync_short_desc'));
-            Configuration::updateValue($this->name.'_sync_desc', Tools::getValue($this->name.'_sync_desc'));
-            Configuration::updateValue($this->name.'_sync_price', Tools::getValue($this->name.'_sync_price'));
-            Configuration::updateValue($this->name.'_sync_category', Tools::getValue($this->name.'_sync_category'));
-            Configuration::updateValue($this->name.'_debug_mode', Tools::getValue($this->name.'_debug_mode'));
-            Configuration::updateValue($this->name.'_sync_slow', Tools::getValue($this->name.'_sync_slow'));
-            Configuration::updateValue($this->name.'_price_limit', Tools::getValue($this->name.'_price_limit'));
+        if (Tools::isSubmit($this->name . '_save_other_settings')) {
+            Configuration::updateValue($this->name . '_sync_name', Tools::getValue($this->name . '_sync_name'));
+            Configuration::updateValue($this->name . '_sync_short_desc', Tools::getValue($this->name . '_sync_short_desc'));
+            Configuration::updateValue($this->name . '_sync_desc', Tools::getValue($this->name . '_sync_desc'));
+            Configuration::updateValue($this->name . '_sync_price', Tools::getValue($this->name . '_sync_price'));
+            Configuration::updateValue($this->name . '_sync_category', Tools::getValue($this->name . '_sync_category'));
+            Configuration::updateValue($this->name . '_debug_mode', Tools::getValue($this->name . '_debug_mode'));
+            Configuration::updateValue($this->name . '_sync_slow', Tools::getValue($this->name . '_sync_slow'));
+            Configuration::updateValue($this->name . '_price_limit', Tools::getValue($this->name . '_price_limit'));
             // Configuration::updateValue($this->name.'_parent_categories', Tools::getValue($this->name.'_parent_categories'));
         }
 
-        if (Tools::isSubmit($this->name.'_submit')) {
-            Configuration::updateValue($this->name.'_login', Tools::getValue($this->name.'_login'));
-            Configuration::updateValue($this->name.'_password', Tools::getValue($this->name.'_password'));
-            Configuration::updateValue($this->name.'_country', Tools::getValue($this->name.'_country'));
-            Configuration::updateValue($this->name.'_default_category', Tools::getValue($this->name.'_default_category'));
-            Configuration::updateValue($this->name.'_overhead', Tools::getValue($this->name.'_overhead'));
-            Configuration::updateValue($this->name.'_default_tax_id', Tools::getValue($this->name.'_default_tax_id'));
+        if (Tools::isSubmit($this->name . '_submit')) {
+            Configuration::updateValue($this->name . '_login', Tools::getValue($this->name . '_login'));
+            Configuration::updateValue($this->name . '_password', Tools::getValue($this->name . '_password'));
+            Configuration::updateValue($this->name . '_country', Tools::getValue($this->name . '_country'));
+            Configuration::updateValue($this->name . '_default_category', Tools::getValue($this->name . '_default_category'));
+            Configuration::updateValue($this->name . '_overhead', Tools::getValue($this->name . '_overhead'));
+            Configuration::updateValue($this->name . '_default_tax_id', Tools::getValue($this->name . '_default_tax_id'));
         }
         $this->displayForm();
         return $this->c_html;
@@ -277,8 +275,8 @@ class Life365 extends Module
     {
         $level_depth = Db::getInstance()->getValue(
             'SELECT level_depth
-            FROM '._DB_PREFIX_.'category
-            WHERE id_category = '.(int)$id_category
+            FROM ' . _DB_PREFIX_ . 'category
+            WHERE id_category = ' . (int) $id_category
         );
 
         return $level_depth;
@@ -288,11 +286,11 @@ class Life365 extends Module
     {
         $result_html = '';
 
-        $result_html .= '<option value="0"'.(($id_selected == 0) ? ' selected="selected"' : '').'>No Tax</option>';
+        $result_html .= '<option value="0"' . (($id_selected == 0) ? ' selected="selected"' : '') . '>No Tax</option>';
 
         $result = TaxRulesGroup::getTaxRulesGroups(true);
         foreach ($result as $tax) {
-            $result_html .= '<option value="'.$tax['id_tax_rules_group'].'"'.(($id_selected == $tax['id_tax_rules_group']) ? ' selected="selected"' : '').'>';
+            $result_html .= '<option value="' . $tax['id_tax_rules_group'] . '"' . (($id_selected == $tax['id_tax_rules_group']) ? ' selected="selected"' : '') . '>';
             $result_html .= $tax['name'];
             $result_html .= '</option>';
         }
@@ -310,10 +308,10 @@ class Life365 extends Module
         } else {
             $protocol = 'http://';
         }
-        
+
         $domainName = $_SERVER['HTTP_HOST'];
 
-        return $protocol.$domainName;
+        return $protocol . $domainName;
     }
 
     private function displayCatetoriesChildren($id_parent, $id_selected = 1, $id_lang = 1)
@@ -322,8 +320,8 @@ class Life365 extends Module
         $result = Category::getChildren($id_parent, $id_lang, true);
         foreach ($result as $cat) {
             $level_depth = $this->getCatetoryDepth($cat['id_category']);
-            $result_html .= '<option value="'.$cat['id_category'].'"'.(($id_selected == $cat['id_category']) ? ' selected="selected"' : '').'>';
-            $result_html .= str_repeat('&nbsp;', $level_depth * 2).$cat['name'];
+            $result_html .= '<option value="' . $cat['id_category'] . '"' . (($id_selected == $cat['id_category']) ? ' selected="selected"' : '') . '>';
+            $result_html .= str_repeat('&nbsp;', $level_depth * 2) . $cat['name'];
             $result_html .= '</option>';
             $result_html .= $this->displayCatetoriesChildren($cat['id_category'], $id_selected, $id_lang);
         }
@@ -332,13 +330,13 @@ class Life365 extends Module
 
     private function displayExternalCatetories($root_category = 0)
     {
-        $selected_categories_array = explode(',', Configuration::get($this->name.'_'.$root_category.'_categories'));
+        $selected_categories_array = explode(',', Configuration::get($this->name . '_' . $root_category . '_categories'));
         $available_cats = $this->availableCategories();
         $list_cat3 = '';
         $categories = [];
         $remote_tree_category = [];
         $root_category_name = '';
-        
+
         if (is_array($available_cats)) {
             foreach ($available_cats as $cat) {
                 if ($root_category == 0 || $cat['id'] == $root_category) {
@@ -347,20 +345,20 @@ class Life365 extends Module
                     $cat1 = $cat['zchildren'];
                     foreach ($cat1 as $cat2) {
                         foreach ($cat2['zchildren'] as $cat3) {
-                            $list_cat3 .= $cat3['id'].',';
+                            $list_cat3 .= $cat3['id'] . ',';
                             $cat_checked = in_array($cat3['id'], $selected_categories_array) ? true : false;
-        
+
                             $sql = 'SELECT `profit`, `id_category_ps`
-                                    FROM `'._DB_PREFIX_.$this->name.'_category`
-                                    WHERE id_category_external = '.(int)$cat3['id'];
+                                    FROM `' . _DB_PREFIX_ . $this->name . '_category`
+                                    WHERE id_category_external = ' . (int) $cat3['id'];
                             if ($row = Db::getInstance()->getRow($sql)) {
                                 $id_cat_ps = $row['id_category_ps'];
                                 $profit = $row['profit'];
                             } else {
-                                $id_cat_ps = Configuration::get($this->name.'_default_category');
-                                $profit = Configuration::get($this->name.'_overhead');
+                                $id_cat_ps = Configuration::get($this->name . '_default_category');
+                                $profit = Configuration::get($this->name . '_overhead');
                             }
-        
+
                             $categories[] = [
                                 'cat3' => $cat3['id'],
                                 'description3' => $cat3['title'],
@@ -389,48 +387,48 @@ class Life365 extends Module
             },
         ]);
 
-        return $this->context->smarty->fetch($this->local_path.'views/templates/admin/display_external_categories.tpl');
+        return $this->context->smarty->fetch($this->local_path . 'views/templates/admin/display_external_categories.tpl');
     }
 
     private function displayForm()
     {
         $myUrl = $this->siteURL();
-        $e_commerce_url = array(
+        $e_commerce_url = [
             'IT' => 'https://www.life365.eu',
             'PT' => 'https://www.life365.pt',
             'ES' => 'https://www.inkloud.es',
-            'NL' => 'https://www.inkloud.eu'
-        );
-        $country_id = Configuration::get($this->name.'_country');
+            'NL' => 'https://www.inkloud.eu',
+        ];
+        $country_id = Configuration::get($this->name . '_country');
 
-        $cron_url = Tools::getHttpHost(true).__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php?action=cron&token='.Tools::getAdminToken($this->name);
-        $cron_url2 = Tools::getHttpHost(true).__PS_BASE_URI__.'modules/'.$this->name.'/ajax_importer.php?action=cron2&token='.Tools::getAdminToken($this->name).'&mc=';
+        $cron_url = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/ajax_importer.php?action=cron&token=' . Tools::getAdminToken($this->name);
+        $cron_url2 = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/ajax_importer.php?action=cron2&token=' . Tools::getAdminToken($this->name) . '&mc=';
         $root_cats = $this->getRootCategories();
 
         $sync_options = [
             [
-                'name' => $this->name.'_sync_name',
-                'checked' => Configuration::get($this->name.'_sync_name'),
+                'name' => $this->name . '_sync_name',
+                'checked' => Configuration::get($this->name . '_sync_name'),
                 'label' => $this->l('Product name'),
             ],
             [
-                'name' => $this->name.'_sync_short_desc',
-                'checked' => Configuration::get($this->name.'_sync_short_desc'),
+                'name' => $this->name . '_sync_short_desc',
+                'checked' => Configuration::get($this->name . '_sync_short_desc'),
                 'label' => $this->l('Product short description'),
             ],
             [
-                'name' => $this->name.'_sync_desc',
-                'checked' => Configuration::get($this->name.'_sync_desc'),
+                'name' => $this->name . '_sync_desc',
+                'checked' => Configuration::get($this->name . '_sync_desc'),
                 'label' => $this->l('Product description'),
             ],
             [
-                'name' => $this->name.'_sync_category',
-                'checked' => Configuration::get($this->name.'_sync_category'),
+                'name' => $this->name . '_sync_category',
+                'checked' => Configuration::get($this->name . '_sync_category'),
                 'label' => $this->l('Reset association with local categories'),
             ],
             [
-                'name' => $this->name.'_sync_price',
-                'checked' => Configuration::get($this->name.'_sync_price'),
+                'name' => $this->name . '_sync_price',
+                'checked' => Configuration::get($this->name . '_sync_price'),
                 'label' => $this->l('Product price'),
             ],
         ];
@@ -444,18 +442,18 @@ class Life365 extends Module
             'country_id' => $country_id,
             'cron_url' => $cron_url,
             'cron_url2' => $cron_url2,
-            'login' => Configuration::get($this->name.'_login'),
-            'password' => Configuration::get($this->name.'_password'),
-            'overhead' => Configuration::get($this->name.'_overhead'),
-            'default_category' => Configuration::get($this->name.'_default_category'),
-            'default_tax_id' => Configuration::get($this->name.'_default_tax_id'),
-            'categories' => $this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), Configuration::get($this->name.'_default_category'), Configuration::get('PS_LANG_DEFAULT')),
-            'tax_rules' => $this->displayTaxRules(Configuration::get($this->name.'_default_tax_id')),
+            'login' => Configuration::get($this->name . '_login'),
+            'password' => Configuration::get($this->name . '_password'),
+            'overhead' => Configuration::get($this->name . '_overhead'),
+            'default_category' => Configuration::get($this->name . '_default_category'),
+            'default_tax_id' => Configuration::get($this->name . '_default_tax_id'),
+            'categories' => $this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), Configuration::get($this->name . '_default_category'), Configuration::get('PS_LANG_DEFAULT')),
+            'tax_rules' => $this->displayTaxRules(Configuration::get($this->name . '_default_tax_id')),
             'root_cats' => $root_cats,
             'sync_options' => $sync_options,
-            'debug_mode' => Configuration::get($this->name.'_debug_mode'),
-            'sync_slow' => Configuration::get($this->name.'_sync_slow'),
-            'price_limit' => Configuration::get($this->name.'_price_limit'),
+            'debug_mode' => Configuration::get($this->name . '_debug_mode'),
+            'sync_slow' => Configuration::get($this->name . '_sync_slow'),
+            'price_limit' => Configuration::get($this->name . '_price_limit'),
             'check_logon_url' => $check_logon_url,
             'loader_img_url' => $loader_img_url,
             'l' => function ($string) {
@@ -463,20 +461,20 @@ class Life365 extends Module
             },
         ]);
 
-        $this->c_html .= $this->context->smarty->fetch($this->local_path.'views/templates/admin/display_form.tpl');
+        $this->c_html .= $this->context->smarty->fetch($this->local_path . 'views/templates/admin/display_form.tpl');
     }
 
     private function getAccessToken()
     {
-        $country_id = Configuration::get($this->name.'_country');
+        $country_id = Configuration::get($this->name . '_country');
         $_api_url_new = $this->c_api_url_new[$country_id];
 
-        $user_app = 'Prestashop module v.'.$this->version;
-    
+        $user_app = 'Prestashop module v.' . $this->version;
+
         $login = Configuration::get($this->name . '_login');
         $password = Configuration::get($this->name . '_password');
         $referer = $_SERVER['HTTP_HOST'];
-    
+
         $con = curl_init();
         $url = $_api_url_new . '/api/auth/';
         $my_values = [
@@ -485,7 +483,7 @@ class Life365 extends Module
             'referer' => $referer,
             'user_app' => $user_app,
         ];
-    
+
         curl_setopt($con, CURLOPT_URL, $url);
         curl_setopt($con, CURLOPT_POST, true);
         curl_setopt($con, CURLOPT_POSTFIELDS, json_encode($my_values));
@@ -493,30 +491,30 @@ class Life365 extends Module
         curl_setopt($con, CURLOPT_HEADER, false);
         curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
-        
+
         $res_curl = curl_exec($con);
         curl_close($con);
         $res = json_decode($res_curl, true);
-    
+
         $token = '';
         if ($res && isset($res['jwt'])) {
             $token = $res['jwt'];
         }
-    
+
         return $token;
     }
 
     private function getRootCategories()
     {
-        $country_id = Configuration::get($this->name.'_country');
+        $country_id = Configuration::get($this->name . '_country');
         $available_cats = $this->availableCategories();
-        $root_cats = array();
+        $root_cats = [];
 
         if (is_array($available_cats)) {
             $cat1 = 0;
             foreach ($available_cats as $cat) {
                 if ($cat1 != $cat['id']) {
-                    $new_cat = array('Cat1' => $cat['id'], 'description1' => $cat['title']);
+                    $new_cat = ['Cat1' => $cat['id'], 'description1' => $cat['title']];
 
                     array_push($root_cats, $new_cat);
                     $cat1 = $cat['id'];
@@ -529,9 +527,9 @@ class Life365 extends Module
 
     private function availableCategories()
     {
-        $country_id = Configuration::get($this->name.'_country');
+        $country_id = Configuration::get($this->name . '_country');
         $api_url_new = $this->c_api_url_new[$country_id];
-    
+
         if (function_exists('curl_init')) {
             $con = curl_init();
             $url = $api_url_new . '/api/warehouse/categoriesTree';
@@ -540,12 +538,12 @@ class Life365 extends Module
             curl_setopt($con, CURLOPT_HEADER, false);
             curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
-        
+
             $res_curl = curl_exec($con);
             curl_close($con);
-    
+
             $res = json_decode($res_curl, true);
-    
+
             if ($res) {
                 return $res;
             } else {
@@ -570,7 +568,7 @@ class Life365 extends Module
             },
         ]);
 
-        return $this->context->smarty->fetch($this->local_path.'views/templates/admin/manage_cats.tpl');
+        return $this->context->smarty->fetch($this->local_path . 'views/templates/admin/manage_cats.tpl');
     }
 
     private function manageCats2($managed_cat)
@@ -590,42 +588,42 @@ class Life365 extends Module
             },
         ]);
 
-        return $this->context->smarty->fetch($this->local_path.'views/templates/admin/manage_cats2.tpl');
+        return $this->context->smarty->fetch($this->local_path . 'views/templates/admin/manage_cats2.tpl');
     }
 
     private function startImportAjax()
     {
         $current_file_name = array_reverse(explode('/', $_SERVER['SCRIPT_NAME']));
-        $cron_url_search = Tools::getHttpHost(true, true).__PS_BASE_URI__.
-            Tools::substr($_SERVER['SCRIPT_NAME'], Tools::strlen(__PS_BASE_URI__), -Tools::strlen($current_file_name['0'])).
-            'searchcron.php?full=1&token='.Tools::getAdminToken($this->name);
-        $cron_url_search_img = Tools::getHttpHost(true).__PS_BASE_URI__.'img/questionmark.png';
-    
+        $cron_url_search = Tools::getHttpHost(true, true) . __PS_BASE_URI__ .
+            Tools::substr($_SERVER['SCRIPT_NAME'], Tools::strlen(__PS_BASE_URI__), -Tools::strlen($current_file_name['0'])) .
+            'searchcron.php?full=1&token=' . Tools::getAdminToken($this->name);
+        $cron_url_search_img = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'img/questionmark.png';
+
         $root_cats = $this->getRootCategories();
-        $categories = array();
+        $categories = [];
         foreach ($root_cats as $cat) {
             $categories[] = $cat["Cat1"];
         }
-    
+
         $this->context->smarty->assign([
             'module_path' => $this->_path,
-            'base_url' => Tools::getHttpHost(true).__PS_BASE_URI__,
+            'base_url' => Tools::getHttpHost(true) . __PS_BASE_URI__,
             'admin_token' => Tools::getAdminToken($this->name),
-            'module_dir' => _MODULE_DIR_.$this->name.'/',
+            'module_dir' => _MODULE_DIR_ . $this->name . '/',
             'categories' => $categories,
             'root_cats' => array_map(function ($cat) {
                 return [
                     'Cat1' => $cat['Cat1'],
                     'description1' => $cat['description1'],
-                    'selected_categories_array' => Configuration::get($this->name.'_'.$cat['Cat1'].'_categories'),
+                    'selected_categories_array' => Configuration::get($this->name . '_' . $cat['Cat1'] . '_categories'),
                 ];
             }, $root_cats),
-            'slow_mode' => (Configuration::get($this->name.'_sync_slow') == "on") ? 1 : 0,
+            'slow_mode' => (Configuration::get($this->name . '_sync_slow') == "on") ? 1 : 0,
             'l' => function ($string) {
                 return $this->l($string);
             },
         ]);
-    
-        return $this->context->smarty->fetch($this->local_path.'views/templates/admin/start_import_ajax.tpl');
+
+        return $this->context->smarty->fetch($this->local_path . 'views/templates/admin/start_import_ajax.tpl');
     }
 }

@@ -1,5 +1,4 @@
 <?php
-
 global $_MODULE;
 $_MODULE = [];
 $_MODULE['<{life365}prestashop>life365_a897a96eb747b13a884530204abced0f'] = 'Life365.eu dropshipping';
