@@ -24,25 +24,38 @@
 *}
 <table>
     <tr>
-        <th>{$module_name} {l s='category' mod='life365' d='Modules.Life365.Admin'}</th>
+        <th>{strtoupper($module_name)} {l s='category' mod='life365' d='Modules.Life365.Admin'}</th>
         <th>{l s='Local category' mod='life365' d='Modules.Life365.Admin'}</th>
         <th>{l s='Profit' mod='life365' d='Modules.Life365.Admin'}</th>
     </tr>
-    {foreach $categories as $cat}
+    {foreach $remote_tree_category as $cat_level2}
         <tr>
-            <td>
-                <input type="checkbox" name="{$module_name}_categories[]" value="{$cat.cat3}" {if $cat.checked}checked{/if} />
-                {$cat.description3}
-            </td>
-            <td>
-                <select name="cat_ps_{$cat.cat3}" class="children_cats_select" data-selected-id="{$cat.id_cat_ps}">
-                    {$all_categories}
-                </select>
-            </td>
-            <td>
-                <input type="number" step="0.01" value="{$cat.profit}" name="profit_{$cat.cat3}" placeholder="{l s='profit' mod='life365' d='Modules.Life365.Admin'}" />%
+            <td colspan="3">
+                <b>{$root_category_name}::{$cat_level2['name']}</b>
             </td>
         </tr>
+        {foreach $cat_level2['zchildren'] as $cat}
+            {assign var="local_cat" value=""}
+            {foreach $categories as $category}
+                {if $category.cat3 == $cat['id']}
+                    {assign var="local_cat" value=$category}
+                {/if}
+            {/foreach}
+            <tr>
+                <td>
+                    <input type="checkbox" name="{$module_name}_categories[]" value="{$local_cat['cat3']}" {if $local_cat['checked']}checked{/if} />
+                    {$cat['name']}
+                </td>
+                <td>
+                    <select name="cat_ps_{$local_cat['cat3']}" class="children_cats_select" data-selected-id="{$local_cat['id_cat_ps']}">
+                        {$all_categories}
+                    </select>
+                </td>
+                <td>
+                    <input type="number" step="0.01" value="{$local_cat['profit']}" name="profit_{$local_cat['cat3']}" placeholder="{l s='profit' mod='life365' d='Modules.Life365.Admin'}" />%
+                </td>
+            </tr>
+        {/foreach}
     {/foreach}
 </table>
 <input type="hidden" name="{$module_name}_cat1" value="{$root_category}" />

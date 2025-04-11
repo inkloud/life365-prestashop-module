@@ -38,6 +38,13 @@ class Life365 extends Module
 
     private $c_api_url = 'https://api.life365.eu/v2.php';
 
+    private $c_api_url_new = [
+        'IT' => 'https://it2.life365.eu',
+        'PT' => 'https://pt2.life365.eu',
+        'ES' => 'https://es2.life365.eu',
+        'NL' => 'https://nl2.life365.eu',
+    ];
+
     public function __construct()
     {
         $this->name = 'life365';
@@ -330,35 +337,40 @@ class Life365 extends Module
         $available_cats = $this->availableCategories();
         $list_cat3 = '';
         $categories = [];
-
+        $remote_tree_category = [];
+        $root_category_name = '';
+        
         if (is_array($available_cats)) {
-            $cat2 = 0;
             foreach ($available_cats as $cat) {
-                if ($root_category == 0 || $cat['Cat1'] == $root_category) {
-                    if ($cat2 != $cat['Cat2']) {
-                        $cat2 = $cat['Cat2'];
+                if ($root_category == 0 || $cat['id'] == $root_category) {
+                    $root_category_name = $cat['title'];
+                    $remote_tree_category = $cat['zchildren'];
+                    $cat1 = $cat['zchildren'];
+                    foreach ($cat1 as $cat2) {
+                        foreach ($cat2['zchildren'] as $cat3) {
+                            $list_cat3 .= $cat3['id'].',';
+                            $cat_checked = in_array($cat3['id'], $selected_categories_array) ? true : false;
+        
+                            $sql = 'SELECT `profit`, `id_category_ps`
+                                    FROM `'._DB_PREFIX_.$this->name.'_category`
+                                    WHERE id_category_external = '.(int)$cat3['id'];
+                            if ($row = Db::getInstance()->getRow($sql)) {
+                                $id_cat_ps = $row['id_category_ps'];
+                                $profit = $row['profit'];
+                            } else {
+                                $id_cat_ps = Configuration::get($this->name.'_default_category');
+                                $profit = Configuration::get($this->name.'_overhead');
+                            }
+        
+                            $categories[] = [
+                                'cat3' => $cat3['id'],
+                                'description3' => $cat3['title'],
+                                'checked' => $cat_checked,
+                                'id_cat_ps' => $id_cat_ps,
+                                'profit' => $profit,
+                            ];
+                        }
                     }
-                    $list_cat3 .= $cat['Cat3'].',';
-                    $cat_checked = in_array($cat['Cat3'], $selected_categories_array) ? true : false;
-
-                    $sql = 'SELECT `profit`, `id_category_ps`
-                            FROM `'._DB_PREFIX_.$this->name.'_category`
-                            WHERE id_category_external = '.(int)$cat['Cat3'];
-                    if ($row = Db::getInstance()->getRow($sql)) {
-                        $id_cat_ps = $row['id_category_ps'];
-                        $profit = $row['profit'];
-                    } else {
-                        $id_cat_ps = Configuration::get($this->name.'_default_category');
-                        $profit = Configuration::get($this->name.'_overhead');
-                    }
-
-                    $categories[] = [
-                        'cat3' => $cat['Cat3'],
-                        'description3' => $cat['description3'],
-                        'checked' => $cat_checked,
-                        'id_cat_ps' => $id_cat_ps,
-                        'profit' => $profit,
-                    ];
                 }
             }
         }
@@ -366,6 +378,8 @@ class Life365 extends Module
         $this->context->smarty->assign([
             'module_name' => $this->name,
             'root_category' => $root_category,
+            'root_category_name' => $root_category_name,
+            'remote_tree_category' => $remote_tree_category,
             'categories' => $categories,
             'list_cat3' => $list_cat3,
             'default_category' => Configuration::get('PS_HOME_CATEGORY'),
@@ -492,17 +506,18 @@ class Life365 extends Module
 
     private function getRootCategories()
     {
+        $country_id = Configuration::get($this->name.'_country');
         $available_cats = $this->availableCategories();
         $root_cats = array();
 
         if (is_array($available_cats)) {
             $cat1 = 0;
             foreach ($available_cats as $cat) {
-                if ($cat1 != $cat['Cat1']) {
-                    $new_cat = array('Cat1' => $cat['Cat1'], 'description1' => $cat['description1']);
+                if ($cat1 != $cat['id']) {
+                    $new_cat = array('Cat1' => $cat['id'], 'description1' => $cat['title']);
 
                     array_push($root_cats, $new_cat);
-                    $cat1 = $cat['Cat1'];
+                    $cat1 = $cat['id'];
                 }
             }
         }
@@ -512,27 +527,25 @@ class Life365 extends Module
 
     private function availableCategories()
     {
-        $access_token = $this->getAccessToken();
-
+        $country_id = Configuration::get($this->name.'_country');
+        $api_url_new = $this->c_api_url_new[$country_id];
+    
         if (function_exists('curl_init')) {
             $con = curl_init();
-            $url = $this->c_api_url.'?f=getCategories&access_token='.$access_token;
-            $my_values = array();
+            $url = $api_url_new . '/api/warehouse/categoriesTree';
 
             curl_setopt($con, CURLOPT_URL, $url);
-            curl_setopt($con, CURLOPT_POST, true);
-            curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
             curl_setopt($con, CURLOPT_HEADER, false);
             curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
-
+        
             $res_curl = curl_exec($con);
             curl_close($con);
-
+    
             $res = json_decode($res_curl, true);
-
-            if ($res["response_code"] == "1") {
-                return $res["response_detail"];
+    
+            if ($res) {
+                return $res;
             } else {
                 return false;
             }

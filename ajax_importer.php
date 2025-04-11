@@ -157,31 +157,31 @@ function getModuleInfo($info)
         case 'name':
             $detail = $module_name;
             break;
-            
+
         case 'api_url':
             $detail = $_api_url;
             break;
-            
+
         case 'user_app':
             $detail = $user_app;
             break;
-            
+
         case 'api_url_jwt':
             $detail = $api_url_jwt;
             break;
-            
+
         case 'e_ecommerce_url':
             if (isset($e_commerce_url[$country_id])) {
                 $detail = $e_commerce_url[$country_id];
             }
             break;
-            
+
         case 'api_url_new':
             if (isset($api_url_new[$country_id])) {
                 $detail = $api_url_new[$country_id];
             }
             break;
-            
+
         case 'default_country_id':
             $detail = $country_default[$country_id];
             break;
@@ -194,7 +194,7 @@ function getModuleInfo($info)
                 $detail = $country_default[$country_id];
             }
             break;
-            
+
         case 'region_default':
             if (isset($region_default[$country_id])) {
                 $detail = $region_default[$country_id];
@@ -317,7 +317,6 @@ function getProducts2($category_id)
     }
 
     curl_close($con);
-
     $res = json_decode($res_curl, true);
 
     return $res;
@@ -329,7 +328,7 @@ function getSingleProduct($product_id)
     $jwt = getAccessJWT();
 
     $debug = (bool)Configuration::get($module_name . '_debug_mode');
-    
+
     $api_url_new = getModuleInfo('api_url_new');
 
     $con = curl_init();
@@ -353,7 +352,6 @@ function getSingleProduct($product_id)
     }
 
     curl_close($con);
-
     $res = json_decode($res_curl, true);
 
     return $res;
@@ -365,7 +363,7 @@ function getProductsDisabled2($category_id)
     $jwt = getAccessJWT();
 
     $debug = (bool)Configuration::get($module_name . '_debug_mode');
-    
+
     $api_url_new = getModuleInfo('api_url_new');
 
     $con = curl_init();
@@ -389,7 +387,6 @@ function getProductsDisabled2($category_id)
     }
 
     curl_close($con);
-
     $res = json_decode($res_curl, true);
 
     return $res;
@@ -401,7 +398,7 @@ function setProductsDisabled2($category_id)
     $debug = (bool)Configuration::get($module_name . '_debug_mode');
 
     $result_html = '';
-    
+
     if ($category_id > 0) {
         $products = getProductsDisabled2($category_id);
         if (!empty($products)) {
@@ -426,29 +423,26 @@ function setProductsDisabled2($category_id)
 
 function availableCategories()
 {
-    $_api_url = getModuleInfo('api_url');
-
-    $access_token = getAccessToken();
+    $api_url_new = getModuleInfo('api_url_new');
 
     if (function_exists('curl_init')) {
         $con = curl_init();
-        $url = $_api_url . '?f=getCategories&access_token=' . $access_token;
-        $my_values = [];
+        $url = $api_url_new . '/api/warehouse/categoriesTree';
 
         curl_setopt($con, CURLOPT_URL, $url);
-        curl_setopt($con, CURLOPT_POST, true);
-        curl_setopt($con, CURLOPT_POSTFIELDS, $my_values);
         curl_setopt($con, CURLOPT_HEADER, false);
         curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
-
+    
         $res_curl = curl_exec($con);
         curl_close($con);
 
         $res = json_decode($res_curl, true);
+        print_r($res);
+        die();
 
-        if ($res['response_code'] == '1') {
-            return $res['response_detail'];
+        if ($res) {
+            return $res;
         } else {
             return false;
         }
