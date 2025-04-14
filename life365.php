@@ -27,8 +27,8 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once('ProductImporter.php');
-require_once('AccessoryImporter.php');
+require_once 'ProductImporter.php';
+require_once 'AccessoryImporter.php';
 
 class Life365 extends Module
 {
@@ -150,7 +150,7 @@ class Life365 extends Module
     {
         if (_PS_VERSION_ >= '1.7.7.0') {
             $order_id = $params['id_order'];
-        } else { //older versions
+        } else {
             $order_id = $params['order']->id;
         }
 
@@ -185,7 +185,7 @@ class Life365 extends Module
     {
         if (_PS_VERSION_ >= '1.7.7.0') {
             $order_id = $params['id_order'];
-        } else { //older versions
+        } else {
             $order_id = $params['order']->id;
         }
         $this->smarty->assign([
@@ -617,7 +617,7 @@ class Life365 extends Module
                     'selected_categories_array' => Configuration::get($this->name . '_' . $cat['Cat1'] . '_categories'),
                 ];
             }, $root_cats),
-            'slow_mode' => (Configuration::get($this->name . '_sync_slow') == "on") ? 1 : 0,
+            'slow_mode' => (Configuration::get($this->name . '_sync_slow') == 'on') ? 1 : 0,
             'l' => function ($string) {
                 return $this->l($string);
             },

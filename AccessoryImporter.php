@@ -23,29 +23,32 @@
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class AccessoryImporter extends ProductImporter {
+class AccessoryImporter extends ProductImporter
+{
     protected $image_basepath;
 
-    public function setProductSource(&$p) {
+    public function setProductSource(&$p)
+    {
         if (empty($p)) {
             throw new Exception('No Product Source');
         }
         $this->product = $p;
     }
 
-    public function setImageBasePath($path) {
+    public function setImageBasePath($path)
+    {
         if (Tools::substr($path, Tools::strlen($path) - 1) != '/') {
             $path .= '/';
         }
         $this->image_basepath = $path;
     }
 
-    public function getVersion($id_product) {
+    public function getVersion($id_product)
+    {
         $version = Db::getInstance()->ExecuteS(
             'SELECT `version` FROM `' . _DB_PREFIX_ . 'life365_product` WHERE id_product_external = ' . (int) $id_product
         );
@@ -62,11 +65,11 @@ class AccessoryImporter extends ProductImporter {
             'SELECT profit FROM `' . _DB_PREFIX_ . 'life365_category` WHERE id_category_external = ' . (int) $this->product->local_category
         );
         $product_price = $this->product->price + ($this->product->price * $price_overhead / 100);
-        
+
         if ($product_price > $this->product->street_price && $price_limit) {
             return (float) $this->product->street_price;
         }
-        
+
         return (float) $product_price;
     }
 
@@ -197,7 +200,7 @@ class AccessoryImporter extends ProductImporter {
 
             $id_shop = (int) Context::getContext()->shop->id;
             $language_id = (int) Context::getContext()->language->id;
-            
+
             Db::getInstance()->execute(
                 'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer_shop VALUES (' . $res[0]['id'] . ', ' . $id_shop . ')'
             );

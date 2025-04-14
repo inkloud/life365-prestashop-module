@@ -46,8 +46,9 @@ if (!isset($kernel)) {
 
 $context = Context::getContext();
 
-if (!function_exists('p')) {
-    function p($msg) {
+if (!function_exists('p')){
+    function p($msg)
+    {
         echo $msg . '\n';
     }
 }
@@ -64,7 +65,7 @@ if (PHP_SAPI === 'cli') {
 
 $module_name = getModuleInfo('name');
 if ($action_token != Tools::getAdminToken($module_name)) {
-    die('Invalid token');
+    exit('Invalid token');
 }
 
 $context->employee = new Employee(1);
@@ -87,13 +88,13 @@ switch ($action) {
         break;
 
     case 'cron2':
-        $mc = (int)Tools::getValue('mc');
-        print runCron3($mc);
+        $mc = (int) Tools::getValue('mc');
+        echo runCron3($mc);
         break;
 
     case 'cron3':
-        $mc = (int)Tools::getValue('mc');
-        print runCron3($mc);
+        $mc = (int) Tools::getValue('mc');
+        echo runCron3($mc);
         break;
 
     case 'disableProds':
@@ -101,9 +102,9 @@ switch ($action) {
         break;
 
     case 'version':
-        print getModuleInfo('user_app');
-        print '<br />';
-        print getModuleInfo('ps_version');
+        echo getModuleInfo('user_app');
+        echo '<br />';
+        echo getModuleInfo('ps_version');
         break;
 
     default:
@@ -502,7 +503,7 @@ function getCatStock($category_id)
     $login = Configuration::get($name . '_login');
     $password = Configuration::get($name . '_password');
 
-    $file = getModuleInfo('e_ecommerce_url') . '/api/utils/csvdata/prodstock?v=2&l=' . urlencode($login) . '&p=' . urlencode($password) . '&idcat=' . urlencode((int)$category_id);
+    $file = getModuleInfo('e_ecommerce_url') . '/api/utils/csvdata/prodstock?v=2&l=' . urlencode($login) . '&p=' . urlencode($password) . '&idcat=' . urlencode((int) $category_id);
 
     if (!filter_var($file, FILTER_VALIDATE_URL)) {
         throw new Exception('Invalid URL format');
@@ -582,7 +583,7 @@ function runCron3($macro_cat)
                     $accessroyImport->save();
                 }
             }
-            $offset++;
+            ++$offset;
         }
 
         p('Starting periodic cleaning of obsolete products.');
@@ -620,8 +621,9 @@ function runCron()
     $result_html = '';
 
     $root_cats = getRootCategories();
-    foreach ($root_cats as $root_cat)
+    foreach ($root_cats as $root_cat) {
         $result_html = runCron3($root_cat);
+    }
 
     return $result_html;
 }
@@ -631,8 +633,8 @@ function dropship()
     $module_name = getModuleInfo('name');
     $debug = (bool) Configuration::get($module_name . '_debug_mode');
 
-    $id_order = (int)Tools::getValue('id_o');
-    $cart = new Order((int)$id_order);
+    $id_order = (int) Tools::getValue('id_o');
+    $cart = new Order((int) $id_order);
     $address = new Address($cart->id_address_delivery);
 
     $dropship_address = [];
@@ -692,7 +694,7 @@ function getActiveCart()
     curl_setopt($con, CURLOPT_URL, $url);
     curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);    
+    curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
 
     $res_curl = curl_exec($con);
     if ($debug) {
