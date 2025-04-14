@@ -67,8 +67,7 @@ if ($action_token != Tools::getAdminToken($module_name)) {
     die('Invalid token');
 }
 
-$emplo = new Employee(1);
-$context->employee = $emplo;
+$context->employee = new Employee(1);
 
 switch ($action) {
     case 'checkLogon':
@@ -104,8 +103,7 @@ switch ($action) {
     case 'version':
         print getModuleInfo('user_app');
         print '<br />';
-        print getModuleInfo('ps_version');        
-        echo 'Life365 PrestaShop module version: 8.0.97';
+        print getModuleInfo('ps_version');
         break;
         
     default:
@@ -716,14 +714,12 @@ function getActiveCart()
     curl_close($con);
 
     $res = json_decode($res_curl, true);
-
     $cartId = 0;
 
     foreach ($res as $resCart) {
         if ($cartId == 0) {
             $cartId = $resCart['id'];
         } else {
-
             if ($resCart['id'] < $cartId) {
                 $cartId = $resCart['id'];
             }
