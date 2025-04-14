@@ -239,7 +239,7 @@ class AccessoryImporter extends ProductImporter
         $meta_keywords = preg_replace('/[!<;>;?=+#"°{}_$%]/ui', ' ', $meta_keywords);
         $str_tags = str_replace(' ', ',', $meta_keywords);
         $tags = explode(',', $str_tags);
-        
+
         return (array) array_merge(array_filter($tags));
     }
 

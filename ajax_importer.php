@@ -46,7 +46,7 @@ if (!isset($kernel)) {
 
 $context = Context::getContext();
 
-if (!function_exists('p')){
+if (!function_exists('p')) {
     function p($msg)
     {
         echo $msg . '\n';
@@ -958,7 +958,7 @@ function strip_unsafe($string, $img = false)
         '/onload="(.*?)"/is',
         '/onunload="(.*?)"/is',
         '/<html(.*?)>/is',
-        '/<\/html>/is'
+        '/<\/html>/is',
     ];
 
     // Remove graphic too if the user wants

@@ -132,13 +132,12 @@ class Life365 extends Module
 
     private function registerHooks()
     {
-        return (
+        return
             $this->registerHook('backOfficeHome')
             && $this->registerHook('DisplayBackOfficeHeader')
             && $this->registerHook('displayAdminOrderTabOrder')
             && $this->registerHook('displayAdminOrderRight')
-            && $this->registerHook('displayAdminOrderSide')
-        );
+            && $this->registerHook('displayAdminOrderSide');
     }
 
     private function unregisterHooks()
@@ -601,7 +600,7 @@ class Life365 extends Module
         $root_cats = $this->getRootCategories();
         $categories = [];
         foreach ($root_cats as $cat) {
-            $categories[] = $cat["Cat1"];
+            $categories[] = $cat['Cat1'];
         }
 
         $this->context->smarty->assign([
