@@ -48,7 +48,7 @@ $context = Context::getContext();
 
 if (!function_exists('p')) {
     function p($msg) {
-        echo $msg . "\n";
+        echo $msg . '\n';
     }
 }
 
@@ -73,39 +73,39 @@ switch ($action) {
     case 'checkLogon':
         echo checkLogon();
         break;
-        
+
     case 'dropship':
         echo dropship();
         break;
-        
+
     case 'getProds':
         echo getProds($opt_cat);
         break;
-        
+
     case 'cron':
         echo runCron();
         break;
-        
+
     case 'cron2':
         $mc = (int)Tools::getValue('mc');
         print runCron3($mc);
         break;
-        
+
     case 'cron3':
         $mc = (int)Tools::getValue('mc');
         print runCron3($mc);
         break;
-        
+
     case 'disableProds':
         echo setProductsDisabled2($opt_cat);
         break;
-        
+
     case 'version':
         print getModuleInfo('user_app');
         print '<br />';
         print getModuleInfo('ps_version');
         break;
-        
+
     default:
         echo 'Invalid action';
 }
@@ -114,21 +114,18 @@ function getModuleInfo($info)
 {
     $module_name = 'life365';
     $user_app = 'PrestaShop module ver: 8.0.98';
-
     $e_commerce_url = [
         'IT' => 'https://www.life365.eu',
         'PT' => 'https://www.life365.pt',
         'ES' => 'https://www.inkloud.es',
         'NL' => 'https://www.inkloud.eu',
     ];
-
     $api_url_new = [
         'IT' => 'https://it2.life365.eu',
         'PT' => 'https://pt2.life365.eu',
         'ES' => 'https://es2.life365.eu',
         'NL' => 'https://nl2.life365.eu',
     ];
-
     $country_default = [
         'IT' => 102,
         'PT' => 1,
@@ -141,7 +138,6 @@ function getModuleInfo($info)
         'ES' => 1,
         'NL' => 19,
     ];
-
     $country_id = Configuration::get($module_name . '_country');
     $detail = '';
 
@@ -251,8 +247,8 @@ function getProducts2($category_id)
     $module_name = getModuleInfo('name');
     $jwt = getAccessJWT();
 
-    $debug = (bool)Configuration::get($module_name . '_debug_mode');
-    
+    $debug = (bool) Configuration::get($module_name . '_debug_mode');
+
     $api_url_new = getModuleInfo('api_url_new');
 
     $con = curl_init();
@@ -286,7 +282,7 @@ function getSingleProduct($product_id)
     $module_name = getModuleInfo('name');
     $jwt = getAccessJWT();
 
-    $debug = (bool)Configuration::get($module_name . '_debug_mode');
+    $debug = (bool) Configuration::get($module_name . '_debug_mode');
 
     $api_url_new = getModuleInfo('api_url_new');
 
@@ -321,7 +317,7 @@ function getProductsDisabled2($category_id)
     $module_name = getModuleInfo('name');
     $jwt = getAccessJWT();
 
-    $debug = (bool)Configuration::get($module_name . '_debug_mode');
+    $debug = (bool) Configuration::get($module_name . '_debug_mode');
 
     $api_url_new = getModuleInfo('api_url_new');
 
@@ -354,7 +350,7 @@ function getProductsDisabled2($category_id)
 function setProductsDisabled2($category_id)
 {
     $module_name = getModuleInfo('name');
-    $debug = (bool)Configuration::get($module_name . '_debug_mode');
+    $debug = (bool) Configuration::get($module_name . '_debug_mode');
 
     $result_html = '';
 
@@ -392,7 +388,7 @@ function availableCategories()
         curl_setopt($con, CURLOPT_HEADER, false);
         curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
-    
+
         $res_curl = curl_exec($con);
         curl_close($con);
 
@@ -424,7 +420,7 @@ function getProds($opt_cat = 0)
     $module_name = getModuleInfo('name');
     $context = Context::getContext();
 
-    $debug = (bool)Configuration::get($module_name . '_debug_mode');
+    $debug = (bool) Configuration::get($module_name . '_debug_mode');
     $offset = Tools::getValue('offset');
     $qty = Tools::getValue('qty');
     $country_l = Tools::strtolower(Configuration::get($module_name . '_country'));
@@ -560,8 +556,7 @@ function runCron3($macro_cat)
                 $accessroyImport->saveQuantity($product['id'], $product['stock']);
                 if ($accessroyImport->getVersion($product['id']) >= $product['version_data']) {
                     p('Skip product ' . $product['id'] . ' latest version already');
-                }
-                else {
+                } else {
                     p('Importing product ' . $product['id']);
 
                     $all_product_data = getSingleProduct($product['id']);
@@ -634,7 +629,7 @@ function runCron()
 function dropship()
 {
     $module_name = getModuleInfo('name');
-    $debug = (bool)Configuration::get($module_name . '_debug_mode');
+    $debug = (bool) Configuration::get($module_name . '_debug_mode');
 
     $id_order = (int)Tools::getValue('id_o');
     $cart = new Order((int)$id_order);
@@ -686,14 +681,14 @@ function getActiveCart()
 {
     $module_name = getModuleInfo('name');
     $jwt = getAccessJWT();
-    
-    $debug = (bool)Configuration::get($module_name . '_debug_mode');
-    
+
+    $debug = (bool) Configuration::get($module_name . '_debug_mode');
+
     $api_url_new = getModuleInfo('api_url_new');
 
     $con = curl_init();
     $url = $api_url_new . '/api/order/cart?jwt=' . $jwt;
-    
+
     curl_setopt($con, CURLOPT_URL, $url);
     curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
@@ -762,7 +757,7 @@ function addProductToCart($code, $qty)
     $jwt = getAccessJWT();
     $cartId = getActiveCart();
 
-    $debug = (bool)Configuration::get($module_name . '_debug_mode');
+    $debug = (bool) Configuration::get($module_name . '_debug_mode');
 
     $api_url_new = getModuleInfo('api_url_new');
 
@@ -808,7 +803,7 @@ function setShippingAddress($dropship_address)
     $con = curl_init();
     $url = $api_url_new . '/api/order/cart/' . $cartId . '?jwt=' . $jwt;
 
-    $debug = (bool)Configuration::get($module_name . '_debug_mode');
+    $debug = (bool) Configuration::get($module_name . '_debug_mode');
 
     $data =
         '{"type": "PUT_ADDR",
@@ -858,7 +853,7 @@ function countryStringToNumber($countryString)
     $api_url_new = getModuleInfo('api_url_new');
     $url = $api_url_new . '/api/utils/getCountryList';
 
-    $debug = (bool)Configuration::get($module_name . '_debug_mode');
+    $debug = (bool) Configuration::get($module_name . '_debug_mode');
 
     $con = curl_init();
 
@@ -904,7 +899,7 @@ function regionStringToNumber($regionString, $countryNumber)
     $api_url_new = getModuleInfo('api_url_new');
     $url = $api_url_new . '/api/utils/getCityList/' . $countryNumber;
 
-    $debug = (bool)Configuration::get($module_name . '_debug_mode');
+    $debug = (bool) Configuration::get($module_name . '_debug_mode');
 
     $con = curl_init();
 
