@@ -204,9 +204,9 @@ class AccessoryImporter extends ProductImporter
             Db::getInstance()->execute(
                 'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer_shop VALUES (' . $res[0]['id'] . ', ' . $id_shop . ')'
             );
+
             Db::getInstance()->execute(
-                'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer_lang (`id_manufacturer`, `id_lang`) ' . 
-                'VALUES (' . $res[0]['id'] . ', ' . $language_id . ')'
+                'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer_lang (`id_manufacturer`, `id_lang`) VALUES (' . $res[0]['id'] . ', ' . $language_id . ')'
             );
         }
 
@@ -279,14 +279,12 @@ class AccessoryImporter extends ProductImporter
     protected function afterAdd()
     {
         if (!$this->ifExist()) {
-            $sql = 'INSERT INTO `' . _DB_PREFIX_ . 'life365_product` ' .
-                  '(`id_product_external`, `date_import`, `id_product_ps`, `version`) VALUES ' .
-                  '(' . (int) $this->product->id . ', CURRENT_TIMESTAMP, ' . 
-                  (int) $this->getProductID() . ', ' . (int) $this->product->version . ')';
+            $sql = 'INSERT INTO `' . _DB_PREFIX_ . 'life365_product` (`id_product_external`, `date_import`, `id_product_ps`, `version`) VALUES (' . (int) $this->product->id . ', CURRENT_TIMESTAMP, ' . (int) $this->getProductID() . ', ' . (int) $this->product->version . ')';
+
             Db::getInstance()->execute($sql);
         } else {
-            $sql = 'UPDATE `' . _DB_PREFIX_ . 'life365_product` SET `version` = ' . (int) $this->product->version . 
-                  ' WHERE `id_product_external` = ' . (int) $this->product->id;
+            $sql = 'UPDATE `' . _DB_PREFIX_ . 'life365_product` SET `version` = ' . (int) $this->product->version . ' WHERE `id_product_external` = ' . (int) $this->product->id;
+
             Db::getInstance()->execute($sql);
         }
 

@@ -45,7 +45,7 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '8.0.98';
+        $this->version = '8.0.99';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = ['min' => '1.7.0', 'max' => '8.2.1'];
@@ -54,7 +54,7 @@ class Life365 extends Module
         parent::__construct();
 
         $this->displayName = $this->l('Life365/Inkloud dropshipping');
-        $this->description = $this->l('Expand your shop. Start now selling over 10.000 products in dropshipping!');
+        $this->description = $this->l('Expand your shop. Start now selling over 20.000 products in dropshipping!');
 
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
     }
@@ -298,10 +298,10 @@ class Life365 extends Module
 
     private function siteURL()
     {
-        if (isset($_SERVER['HTTPS']) &&
-            ($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1) ||
-            isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
-            $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
+        if (isset($_SERVER['HTTPS'])
+            && ($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1)
+            || isset($_SERVER['HTTP_X_FORWARDED_PROTO'])
+            && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
             $protocol = 'https://';
         } else {
             $protocol = 'http://';
