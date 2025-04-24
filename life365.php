@@ -48,7 +48,7 @@ class Life365 extends Module
         $this->version = '8.0.99';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
-        $this->ps_versions_compliancy = ['min' => '1.7.0', 'max' => '8.2.1'];
+        $this->ps_versions_compliancy = ['min' => '1.7.0', 'max' => '9.0.0'];
         $this->module_key = '17fe516516b4f12fb1d877a3600dbedc';
 
         parent::__construct();
