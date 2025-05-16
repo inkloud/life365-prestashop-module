@@ -131,7 +131,14 @@ class AccessoryImporter
         $this->id_product = $this->ifExist();
 
         if (!$this->id_product) {
-            $this->object = self::createAndInitializeNewObject();
+            if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
+                $this->object = new Product();
+                $this->object->active = 1;
+                $this->object->save();
+//                $this->id_product = $this->object->id;
+            } else {
+                $this->object = self::createAndInitializeNewObject();
+            }
         }
 
         if ((int) $this->id_product && Product::existsInDatabase((int) $this->id_product, 'product')) {
