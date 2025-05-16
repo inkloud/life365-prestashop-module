@@ -27,7 +27,6 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once 'ProductImporter.php';
 require_once 'AccessoryImporter.php';
 
 class Life365 extends Module

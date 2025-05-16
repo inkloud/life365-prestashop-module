@@ -35,7 +35,6 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once dirname(__FILE__) . '/ProductImporter.php';
 require_once dirname(__FILE__) . '/AccessoryImporter.php';
 
 if (!isset($kernel)) {
