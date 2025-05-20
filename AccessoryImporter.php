@@ -129,16 +129,18 @@ class AccessoryImporter
     public function save()
     {
         $this->id_product = $this->ifExist();
+        $new_product = false;
 
         if (!$this->id_product) {
             if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
                 $this->object = new Product();
                 $this->object->active = 1;
                 $this->object->save();
-//                $this->id_product = $this->object->id;
+                $this->id_product = $this->object->id;
             } else {
                 $this->object = self::createAndInitializeNewObject();
             }
+            $new_product = true;
         }
 
         if ((int) $this->id_product && Product::existsInDatabase((int) $this->id_product, 'product')) {
@@ -147,10 +149,10 @@ class AccessoryImporter
             return 0;
         }
 
-        $this->addUpdated();
+        $this->addUpdated($new_product);
     }
 
-    protected function addUpdated()
+    protected function addUpdated($new_product)
     {
         $id_lang = (int) Configuration::get('PS_LANG_DEFAULT');
         $sync_name = (bool) Configuration::get($this->module_name . '_sync_name');
@@ -178,7 +180,7 @@ class AccessoryImporter
         $this->object->ean13 = $this->getEan13();
         $this->object->ecotax = self::cleanAmount($this->getEcoTax());
 
-        if ($this->object->id) {
+        if (!$new_product) {
             if ($sync_name) {
                 $name = $this->getName();
                 $this->object->name = self::createMultiLangField($name);
