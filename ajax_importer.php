@@ -28,34 +28,33 @@ header('Access-Control-Allow-Methods: GET, POST');
 header('Access-Control-Allow-Headers: X-Requested-With');
 ini_set('max_execution_time', 7200);
 
-require_once dirname(__FILE__) . '/../../config/config.inc.php';
-require_once dirname(__FILE__) . '/../../classes/Cookie.php';
+// Bootstrap PrestaShop
+$projectRoot = dirname(__DIR__, 2);
+require_once $projectRoot . '/config/config.inc.php';
+require_once $projectRoot . '/init.php';
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once dirname(__FILE__) . '/AccessoryImporter.php';
+use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
 
-if (!isset($kernel)) {
-    require_once _PS_ROOT_DIR_ . '/app/AppKernel.php';
-    $kernel = new \AppKernel('prod', false);
-    $kernel->boot();
+/** @var \PrestaShop\PrestaShop\Adapter\LegacyContext $legacyContext */
+$container = SymfonyContainer::getInstance();
+$legacyContext = $container->get('prestashop.adapter.legacy.context');
+$context = $legacyContext->getContext();
+
+// Ensure employee context
+if (!isset($context->employee) || !$context->employee) {
+    $context->employee = new Employee(1);
 }
 
-$context = Context::getContext();
-
-if (!function_exists('p')) {
-    function p($msg)
-    {
-        echo $msg . '\n';
-    }
-}
+require_once __DIR__ . '/AccessoryImporter.php';
 
 if (PHP_SAPI === 'cli') {
-    $action = $argv[1];
-    $action_token = $argv[2];
-    $opt_cat = $argv[3];
+    $action = $argv[1] ?? null;
+    $action_token = $argv[2] ?? null;
+    $opt_cat = $argv[3] ?? null;
 } else {
     $action_token = Tools::getValue('token');
     $action = Tools::getValue('action');
@@ -63,11 +62,9 @@ if (PHP_SAPI === 'cli') {
 }
 
 $module_name = getModuleInfo('name');
-if ($action_token != Tools::getAdminToken($module_name)) {
+if ($action_token !== Tools::getAdminToken($module_name)) {
     exit('Invalid token');
 }
-
-$context->employee = new Employee(1);
 
 switch ($action) {
     case 'checkLogon':
@@ -84,11 +81,6 @@ switch ($action) {
 
     case 'cron':
         echo runCron();
-        break;
-
-    case 'cron2':
-        $mc = (int) Tools::getValue('mc');
-        echo runCron3($mc);
         break;
 
     case 'cron3':

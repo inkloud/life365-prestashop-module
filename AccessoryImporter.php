@@ -134,9 +134,12 @@ class AccessoryImporter
         if (!$this->id_product) {
             if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
                 $this->object = new Product();
-                $this->object->active = 1;
                 $this->object->save();
+
                 $this->id_product = $this->object->id;
+
+	            $sql = 'INSERT INTO `' . _DB_PREFIX_ . 'life365_product` (`id_product_external`, `date_import`, `id_product_ps`, `version`) VALUES (' . (int) $this->product->id . ', CURRENT_TIMESTAMP, ' . (int) $this->object->id . ', ' . (int) $this->product->version . ')';
+				Db::getInstance()->execute($sql);
             } else {
                 $this->object = self::createAndInitializeNewObject();
             }
@@ -246,7 +249,12 @@ class AccessoryImporter
             $this->object->available_for_order = $this->getAvailablity();
             $this->object->show_price = $this->getShowPrice();
 
-            $this->object->add();
+            if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
+				$this->object->save();
+			}
+			else {
+				$this->object->add();
+			}
 
             $tags = $this->getTags();
             $this->addTags($tags);
@@ -551,7 +559,7 @@ class AccessoryImporter
 
     protected static function generateSlug($string)
     {
-        return Tools::link_rewrite($string);
+        return Tools::str2url($string);
     }
 
     public static function createMultiLangField($field)
@@ -573,7 +581,7 @@ class AccessoryImporter
             case 'products':
                 $folders = str_split($id_image);
                 $i = 0;
-                $base_uri = _PS_PROD_IMG_DIR_;
+                $base_uri = defined('_PS_PROD_IMG_DIR_') ? _PS_PROD_IMG_DIR_ : _PS_IMG_DIR_ . 'p/';
                 while ($i < sizeof($folders)) {
                     $base_uri .= $folders[$i] . '/';
                     if ($i == (sizeof($folders) - 1)) {
@@ -618,7 +626,7 @@ class AccessoryImporter
                 foreach ($imagesTypes as $imageType) {
                     ImageManager::resize(
                         $newimage,
-                        $path . '-' . Tools::stripslashes($imageType['name']) . '.jpg',
+                        $path . '-' . stripslashes($imageType['name']) . '.jpg',
                         $imageType['width'],
                         $imageType['height']
                     );
@@ -911,8 +919,14 @@ class AccessoryImporter
                 throw new Exception('Accessory Import Exception : No Manufacturer');
             }
 
-            $id_shop = (int) Context::getContext()->shop->id;
-            $language_id = (int) Context::getContext()->language->id;
+            if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
+                $employeeContext = \PrestaShop\PrestaShop\Adapter\ServiceLocator::get('\\PrestaShop\\PrestaShop\\Core\\Context\\EmployeeContext');
+                $id_shop = (int) $employeeContext->getShop()->getId();
+                $language_id = (int) $employeeContext->getLanguage()->getId();
+            } else {
+                $id_shop = (int) Shop::getContextShopID();
+                $language_id = (int) Configuration::get('PS_LANG_DEFAULT');
+            }
 
             Db::getInstance()->execute(
                 'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer_shop VALUES (' . $res[0]['id'] . ', ' . $id_shop . ')'
