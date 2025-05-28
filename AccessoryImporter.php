@@ -138,8 +138,10 @@ class AccessoryImporter
 
                 $this->id_product = $this->object->id;
 
-	            $sql = 'INSERT INTO `' . _DB_PREFIX_ . 'life365_product` (`id_product_external`, `date_import`, `id_product_ps`, `version`) VALUES (' . (int) $this->product->id . ', CURRENT_TIMESTAMP, ' . (int) $this->object->id . ', ' . (int) $this->product->version . ')';
-				Db::getInstance()->execute($sql);
+                $sql = 'INSERT INTO `' . _DB_PREFIX_ . 'life365_product` (`id_product_external`, `date_import`, `id_product_ps`, `version`)
+                        VALUES (' . (int) $this->product->id . ', CURRENT_TIMESTAMP, ' . (int) $this->object->id . ', ' . (int) $this->product->version . ')';
+
+                Db::getInstance()->execute($sql);
             } else {
                 $this->object = self::createAndInitializeNewObject();
             }
@@ -250,11 +252,10 @@ class AccessoryImporter
             $this->object->show_price = $this->getShowPrice();
 
             if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
-				$this->object->save();
-			}
-			else {
-				$this->object->add();
-			}
+                $this->object->save();
+            } else {
+                $this->object->add();
+            }
 
             $tags = $this->getTags();
             $this->addTags($tags);
@@ -1006,7 +1007,8 @@ class AccessoryImporter
     protected function afterAdd()
     {
         if (!$this->ifExist()) {
-            $sql = 'INSERT INTO `' . _DB_PREFIX_ . 'life365_product` (`id_product_external`, `date_import`, `id_product_ps`, `version`) VALUES (' . (int) $this->product->id . ', CURRENT_TIMESTAMP, ' . (int) $this->getProductID() . ', ' . (int) $this->product->version . ')';
+            $sql = 'INSERT INTO `' . _DB_PREFIX_ . 'life365_product` (`id_product_external`, `date_import`, `id_product_ps`, `version`) 
+                    VALUES (' . (int) $this->product->id . ', CURRENT_TIMESTAMP, ' . (int) $this->object->id . ', ' . (int) $this->product->version . ')';
 
             Db::getInstance()->execute($sql);
         } else {

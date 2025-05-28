@@ -37,6 +37,13 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+if (!function_exists('p')) {
+    function p($msg)
+    {
+        echo $msg . '\n';
+    }
+}
+
 use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
 
 /** @var \PrestaShop\PrestaShop\Adapter\LegacyContext $legacyContext */
@@ -105,7 +112,7 @@ switch ($action) {
 function getModuleInfo($info)
 {
     $module_name = 'life365';
-    $user_app = 'PrestaShop module ver: 8.1.100';
+    $user_app = 'PrestaShop module ver: 8.1.101';
     $e_commerce_url = [
         'IT' => 'https://www.life365.eu',
         'PT' => 'https://www.life365.pt',
@@ -181,6 +188,21 @@ function getModuleInfo($info)
     return $detail;
 }
 
+function getTranslator()
+{
+    if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
+        // Per PrestaShop 8, usa il container Symfony
+        $translator = \PrestaShop\PrestaShop\Adapter\ServiceLocator::get('\\PrestaShop\\PrestaShop\\Core\\Translation\\TranslatorInterface');
+    } else {
+        // Per PrestaShop 1.7, usa il LegacyContext
+        $container = SymfonyContainer::getInstance();
+        $legacyContext = $container->get('prestashop.adapter.legacy.context');
+        $translator = $legacyContext->getTranslator();
+    }
+
+    return $translator;
+}
+
 function getAccessJWT()
 {
     $_api_url_new = getModuleInfo('api_url_new');
@@ -222,11 +244,26 @@ function getAccessJWT()
 
 function getAccessToken()
 {
-    $context = Context::getContext();
     $token_expire = rand(0, 1);
+    if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
+        try {
+            // Ottieni i cookie tramite il container Symfony
+            $cookie = \PrestaShop\PrestaShop\Adapter\ServiceLocator::get('\\PrestaShop\\PrestaShop\\Core\\Cookie\\Cookie');
+        } catch (Exception $e) {
+            throw new Exception('Errore durante l\'accesso ai cookie: ' . $e->getMessage());
+        }
+    } else {
+        // Compatibilità con PrestaShop 1.7
+        // Ottieni il LegacyContext dal container Symfony
+        $container = SymfonyContainer::getInstance();
+        $legacyContext = $container->get('prestashop.adapter.legacy.context');
 
-    if (isset($context->cookie->access_token) && !empty($context->cookie->access_token) && $token_expire > 1 && $token_expire < 1) {
-        $token = $context->cookie->access_token;
+        // Accedi ai cookie tramite il LegacyContext
+        $cookie = $legacyContext->getContext()->cookie;
+    }
+
+    if (isset($cookie->access_token) && !empty($cookie->access_token) && $token_expire > 1) {
+        $token = $cookie->access_token;
     } else {
         $token = getAccessJWT();
     }
@@ -410,7 +447,7 @@ function checkLogon()
 function getProds($opt_cat = 0)
 {
     $module_name = getModuleInfo('name');
-    $context = Context::getContext();
+    $translator = getTranslator();
 
     $debug = (bool) Configuration::get($module_name . '_debug_mode');
     $offset = Tools::getValue('offset');
@@ -470,7 +507,7 @@ function getProds($opt_cat = 0)
             $objectProduct->local_category = $objectProduct->level_3;
             $objectProduct->meta_description = '';
             $objectProduct->meta_title = $objectProduct->name;
-            $objectProduct->short_description = $context->getTranslator()->trans('Sizes') . ': ' . $objectProduct->dimensions . '<br>' . $context->getTranslator()->trans('Box') . ': ' . $objectProduct->qty_box . '<br>' . $context->getTranslator()->trans('Color') . ': ' . $objectProduct->color . '<br>' . $context->getTranslator()->trans('Certificate') . ': ' . $objectProduct->certificate . '<br>' . $context->getTranslator()->trans('Comp. brand') . ': ' . $objectProduct->brand;
+            $objectProduct->short_description = $translator->trans('Sizes') . ': ' . $objectProduct->dimensions . '<br>' . $translator->trans('Box') . ': ' . $objectProduct->qty_box . '<br>' . $translator->trans('Color') . ': ' . $objectProduct->color . '<br>' . $translator->trans('Certificate') . ': ' . $objectProduct->certificate . '<br>' . $translator->trans('Comp. brand') . ': ' . $objectProduct->brand;
             $objectProduct->version = $objectProduct->last_update;
             $objectProduct->id_manufactuter = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
             $objectProduct->manufactuter = $objectProduct->brand;
