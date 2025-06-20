@@ -44,10 +44,10 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '8.1.101';
+        $this->version = '8.1.102';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
-        $this->ps_versions_compliancy = ['min' => '1.7.0', 'max' => '9.0.0'];
+        $this->ps_versions_compliancy = ['min' => '1.7.0', 'max' => '8.2.1'];
         $this->module_key = '17fe516516b4f12fb1d877a3600dbedc';
 
         parent::__construct();
@@ -235,10 +235,17 @@ class Life365 extends Module
                     'id_category_ps' => (int) $ps_cat,
                 ]);
             }
+
+            if (Tools::getValue($this->name . '_categories')) {
+				$sub_cat_list = implode(',', Tools::getValue($this->name . '_categories'));
+			} else {
+				$sub_cat_list = '';
+			}
             Configuration::updateValue(
                 $this->name . '_' . $cat1 . '_categories',
-                implode(',', Tools::getValue($this->name . '_categories'))
+                $sub_cat_list
             );
+
             // Force update of all products
             $t_sql = 'UPDATE `' . _DB_PREFIX_ . 'life365_product` SET `version` = 0;';
             Db::getInstance()->execute($t_sql);
@@ -399,7 +406,7 @@ class Life365 extends Module
         $country_id = Configuration::get($this->name . '_country');
 
         $cron_url = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/ajax_importer.php?action=cron&token=' . Tools::getAdminToken($this->name);
-        $cron_url2 = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/ajax_importer.php?action=cron2&token=' . Tools::getAdminToken($this->name) . '&mc=';
+        $cron_url2 = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/ajax_importer.php?action=cron3&token=' . Tools::getAdminToken($this->name) . '&mc=';
         $root_cats = $this->getRootCategories();
 
         $sync_options = [

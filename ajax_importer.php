@@ -48,12 +48,14 @@ use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
 
 /** @var \PrestaShop\PrestaShop\Adapter\LegacyContext $legacyContext */
 $container = SymfonyContainer::getInstance();
-$legacyContext = $container->get('prestashop.adapter.legacy.context');
-$context = $legacyContext->getContext();
+if ($container) {
+    $legacyContext = $container->get('prestashop.adapter.legacy.context');
+    $context = $legacyContext->getContext();
 
-// Ensure employee context
-if (!isset($context->employee) || !$context->employee) {
-    $context->employee = new Employee(1);
+    // Ensure employee context
+    if (!isset($context->employee) || !$context->employee) {
+        $context->employee = new Employee(1);
+    }
 }
 
 require_once __DIR__ . '/AccessoryImporter.php';
@@ -112,7 +114,7 @@ switch ($action) {
 function getModuleInfo($info)
 {
     $module_name = 'life365';
-    $user_app = 'PrestaShop module ver: 8.1.101';
+    $user_app = 'PrestaShop module ver: 8.1.102';
     $e_commerce_url = [
         'IT' => 'https://www.life365.eu',
         'PT' => 'https://www.life365.pt',
@@ -701,7 +703,7 @@ function dropship()
 
     $login = Configuration::get($module_name . '_login');
     $password = Configuration::get($module_name . '_password');
-    $new_url = getModuleInfo('e_ecommerce_url') . '/checkout?l=$login&p=$password';
+    $new_url = getModuleInfo('e_ecommerce_url') . '?jwt=' . getAccessJWT();
     Tools::redirect($new_url);
 
     return true;
