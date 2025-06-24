@@ -79,7 +79,7 @@ class AccessoryImporter
         return 1;
     }
 
-    protected function ifExistId($productId)
+    public function ifExistId($productId)
     {
         $id_product = 0;
 
