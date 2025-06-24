@@ -307,7 +307,7 @@ class AccessoryImporter
                 } else {
                     $_warnings[] = $image->legend[$id_lang] . ' (' . $image->id_product . ') ' . Tools::displayError('cannot be saved');
                     $errorMsg = ($fieldError !== true && $fieldError !== false) ? $fieldError : '';
-                    $_errors[] = $errorMsg . Db::getInstance()->getLink()->errorInfo();
+                    $_errors[] = $errorMsg . implode(' | ', Db::getInstance()->getLink()->errorInfo());
                 }
             }
         }
