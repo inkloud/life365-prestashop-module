@@ -40,7 +40,7 @@ if (!defined('_PS_VERSION_')) {
 if (!function_exists('p')) {
     function p($msg)
     {
-        echo $msg . '\n';
+        echo $msg;
     }
 }
 
@@ -264,7 +264,7 @@ function getAccessToken()
         $cookie = $legacyContext->getContext()->cookie;
     }
 
-    if (isset($cookie->access_token) && !empty($cookie->access_token) && $token_expire > 1) {
+    if (isset($cookie->access_token) && !empty($cookie->access_token) && $token_expire > 0.8) {
         $token = $cookie->access_token;
     } else {
         $token = getAccessJWT();
@@ -467,7 +467,7 @@ function getProds($opt_cat = 0)
         return '';
     }
 
-    $result_html = '';
+    $result_html = '<pre>';
 
     if (array_filter($products = getProducts2($cat))) {
         $result_html .= 'CATEGORY ' . $cat . ': IMPORT offset ' . $offset . '<br />';
@@ -480,19 +480,19 @@ function getProds($opt_cat = 0)
             $macro_cat = $objectProduct->level_1;
 
             if ($objectProduct->level_3 != $cat) {
-                $result_html .= 'Skip product ' . $product['id'] . ' not native category (' . $objectProduct->level_3 . ')<br />';
+                $result_html .= 'Skip product2 ' . $product['id'] . ' not native category (' . $objectProduct->level_3 . ')<br />';
                 continue;
             }
 
-            $result_html .= 'Set quantity product ' . $product['id'] . ' ' . $product['code_simple'] . ' ' . $product['last_update'] . '<br />';
+            $result_html .= 'Set quantity product2 ' . $product['id'] . ' ' . $product['code_simple'] . ' ' . $product['last_update'] . '<br />';
             $accessroyImport = new AccessoryImporter();
             $accessroyImport->saveQuantity($product['id'], $product['stock']);
 
             if ($serviceAccessoryImport->getVersion($objectProduct->id) >= $objectProduct->last_update) {
-                $result_html .= 'Skip product ' . $product['id'] . ' latest version already <br />';
+                $result_html .= 'Skip product3 ' . $product['id'] . ' latest version already <br />';
                 continue;
             }
-            $result_html .= 'Importing product ' . $product['id'] . '<br />';
+            $result_html .= 'Importing product3 ' . $product['id'] . '<br />';
 
             $objectProduct->reference = $objectProduct->code_simple;
             $objectProduct->name = $objectProduct->title->{$country_l};
@@ -519,6 +519,7 @@ function getProds($opt_cat = 0)
             $accessroyImport->save();
         }
     }
+    $result_html .= '</pre>';
 
     return $result_html;
 }
@@ -533,7 +534,7 @@ function getCatStock($category_id)
     $login = Configuration::get($name . '_login');
     $password = Configuration::get($name . '_password');
 
-    $file = getModuleInfo('e_ecommerce_url') . '/api/utils/csvdata/prodstock?v=2&l=' . urlencode($login) . '&p=' . urlencode($password) . '&idcat=' . urlencode((int) $category_id);
+    $file = getModuleInfo('e_ecommerce_url') . '/api/utils/csvdata/prodstock?v=2&l=' . urlencode($login) . '&p=' . urlencode($password) . '&idcat=' . urlencode((string) $category_id);
 
     if (!filter_var($file, FILTER_VALIDATE_URL)) {
         throw new Exception('Invalid URL format');
@@ -580,15 +581,14 @@ function runCron3($macro_cat)
         $offset = 0;
         $products = getCatStock($macro_cat);
         while (!empty($products) && $offset < 1) {
-            p('CATEGORY ' . $macro_cat . ': IMPORT offset ' . $offset . '<br />');
+            p('<h2>CATEGORY ' . $macro_cat . ': IMPORT offset ' . $offset . '</h2>');
             foreach ($products as $product) {
-                p('Set quantity product ' . $product['id'] . ' ' . $product['code'] . ' ' . $product['version_data']);
+                p('Set quantity product ' . $product['id'] . ' ' . $product['code'] . ' ' . $product['version_data'] . '<br />');
                 $accessroyImport = new AccessoryImporter();
-                $accessroyImport->saveQuantity($product['id'], $product['stock']);
                 if ($accessroyImport->getVersion($product['id']) >= $product['version_data']) {
-                    p('Skip product ' . $product['id'] . ' latest version already');
+                    p('Skip product ' . $product['id'] . ' latest version already<br />');
                 } else {
-                    p('Importing product ' . $product['id']);
+                    p('Importing product ' . $product['id'] . '<br />');
 
                     $all_product_data = getSingleProduct($product['id']);
                     $objectProduct = json_decode(json_encode($all_product_data), false);
@@ -612,6 +612,7 @@ function runCron3($macro_cat)
                     $accessroyImport->setProductSource($objectProduct);
                     $accessroyImport->save();
                 }
+                $accessroyImport->saveQuantity($product['id'], $product['stock']);
             }
             ++$offset;
         }

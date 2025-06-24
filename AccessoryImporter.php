@@ -69,7 +69,7 @@ class AccessoryImporter
 
         StockAvailable::setQuantity(
             $this->getProductID(),
-            null,
+            0,
             0
         );
 
@@ -113,7 +113,7 @@ class AccessoryImporter
         }
 
         try {
-            StockAvailable::setQuantity($this->id_product, null, $qta);
+            StockAvailable::setQuantity($this->id_product, 0, $qta);
         } catch (Exception $e) {
             $debug = (bool) Configuration::get($this->module_name . '_debug_mode');
             if ($debug) {
@@ -213,6 +213,7 @@ class AccessoryImporter
             if ($sync_category) {
                 $this->object->id_category_default = $this->getCategoryDefault();
                 $this->object->id_category[] = $this->object->id_category_default;
+                $this->object->updateCategories([$this->object->id_category_default]);
             }
 
             if ($sync_price) {
@@ -267,10 +268,6 @@ class AccessoryImporter
             $this->addFeature($features);
         }
 
-        if (isset($this->object->id_category)) {
-            $this->object->updateCategories(array_map('intval', $this->object->id_category));
-        }
-
         $this->afterAdd();
     }
 
@@ -308,8 +305,9 @@ class AccessoryImporter
                         p('Something went wrong downloading image: ' . $e->getMessage());
                     }
                 } else {
-                    $_warnings[] = $image->legend[$id_lang] . (isset($image->id_product) ? ' (' . $image->id_product . ')' : '') . ' ' . Tools::displayError('cannot be saved');
-                    $_errors[] = ($fieldError !== true ? $fieldError : '') . Db::getInstance()->getLink()->errorInfo();
+                    $_warnings[] = $image->legend[$id_lang] . ' (' . $image->id_product . ') ' . Tools::displayError('cannot be saved');
+                    $errorMsg = ($fieldError !== true && $fieldError !== false) ? $fieldError : '';
+                    $_errors[] = $errorMsg . Db::getInstance()->getLink()->errorInfo();
                 }
             }
         }
@@ -552,8 +550,6 @@ class AccessoryImporter
         $product->description_short = [$id_lang => ''];
         $product->link_rewrite = [$id_lang => ''];
         $product->name = [$id_lang => ''];
-        $product->id_category = [0];
-        $product->id_color = [0];
 
         return $product;
     }
@@ -730,8 +726,7 @@ class AccessoryImporter
 
     public static function cleanAmount($field)
     {
-        $field = (float) str_replace(',', '.', $field);
-        $field = (float) str_replace('%', '', $field);
+        $field = (float) str_replace('%', '', str_replace(',', '.', $field));
 
         return $field;
     }

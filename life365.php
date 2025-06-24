@@ -139,11 +139,6 @@ class Life365 extends Module
             && $this->registerHook('displayAdminOrderSide');
     }
 
-    private function unregisterHooks()
-    {
-        return true;
-    }
-
     public function hookDisplayAdminOrderTabOrder($params)
     {
         if (_PS_VERSION_ >= '1.7.7.0') {
@@ -237,10 +232,11 @@ class Life365 extends Module
             }
 
             if (Tools::getValue($this->name . '_categories')) {
-				$sub_cat_list = implode(',', Tools::getValue($this->name . '_categories'));
-			} else {
-				$sub_cat_list = '';
-			}
+                $sub_cat_list = implode(',', Tools::getValue($this->name . '_categories'));
+            } else {
+                $sub_cat_list = '';
+            }
+
             Configuration::updateValue(
                 $this->name . '_' . $cat1 . '_categories',
                 $sub_cat_list
@@ -365,7 +361,7 @@ class Life365 extends Module
 
                             $categories[] = [
                                 'cat3' => $cat3['id'],
-                                'description3' => $cat3['title'],
+                                'description3' => $cat3['name'],
                                 'checked' => $cat_checked,
                                 'id_cat_ps' => $id_cat_ps,
                                 'profit' => $profit,
@@ -466,46 +462,6 @@ class Life365 extends Module
         ]);
 
         $this->c_html .= $this->context->smarty->fetch($this->local_path . 'views/templates/admin/display_form.tpl');
-    }
-
-    private function getAccessToken()
-    {
-        $country_id = Configuration::get($this->name . '_country');
-        $_api_url_new = $this->c_api_url_new[$country_id];
-
-        $user_app = 'Prestashop module v.' . $this->version;
-
-        $login = Configuration::get($this->name . '_login');
-        $password = Configuration::get($this->name . '_password');
-        $referer = $_SERVER['HTTP_HOST'];
-
-        $con = curl_init();
-        $url = $_api_url_new . '/api/auth/';
-        $my_values = [
-            'login' => $login,
-            'password' => $password,
-            'referer' => $referer,
-            'user_app' => $user_app,
-        ];
-
-        curl_setopt($con, CURLOPT_URL, $url);
-        curl_setopt($con, CURLOPT_POST, true);
-        curl_setopt($con, CURLOPT_POSTFIELDS, json_encode($my_values));
-        curl_setopt($con, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        curl_setopt($con, CURLOPT_HEADER, false);
-        curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
-
-        $res_curl = curl_exec($con);
-        curl_close($con);
-        $res = json_decode($res_curl, true);
-
-        $token = '';
-        if ($res && isset($res['jwt'])) {
-            $token = $res['jwt'];
-        }
-
-        return $token;
     }
 
     private function getRootCategories()
