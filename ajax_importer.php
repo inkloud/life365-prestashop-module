@@ -114,7 +114,7 @@ switch ($action) {
 function getModuleInfo($info)
 {
     $module_name = 'life365';
-    $user_app = 'PrestaShop module ver: 8.1.103';
+    $user_app = 'PrestaShop module ver: 8.1.104';
     $e_commerce_url = [
         'IT' => 'https://www.life365.eu',
         'PT' => 'https://www.life365.pt',
@@ -192,15 +192,9 @@ function getModuleInfo($info)
 
 function getTranslator()
 {
-    if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
-        // Per PrestaShop 8, usa il container Symfony
-        $translator = \PrestaShop\PrestaShop\Adapter\ServiceLocator::get('\\PrestaShop\\PrestaShop\\Core\\Translation\\TranslatorInterface');
-    } else {
-        // Per PrestaShop 1.7, usa il LegacyContext
-        $container = SymfonyContainer::getInstance();
-        $legacyContext = $container->get('prestashop.adapter.legacy.context');
-        $translator = $legacyContext->getTranslator();
-    }
+    $container = SymfonyContainer::getInstance();
+    $legacyContext = $container->get('prestashop.adapter.legacy.context');
+    $translator = $legacyContext->getTranslator();
 
     return $translator;
 }
