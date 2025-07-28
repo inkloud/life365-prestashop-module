@@ -114,7 +114,7 @@ switch ($action) {
 function getModuleInfo($info)
 {
     $module_name = 'life365';
-    $user_app = 'PrestaShop module ver: 8.1.104';
+    $user_app = 'PrestaShop module ver: 8.1.105';
     $e_commerce_url = [
         'IT' => 'https://www.life365.eu',
         'PT' => 'https://www.life365.pt',
@@ -192,11 +192,34 @@ function getModuleInfo($info)
 
 function getTranslator()
 {
-    $container = SymfonyContainer::getInstance();
-    $legacyContext = $container->get('prestashop.adapter.legacy.context');
-    $translator = $legacyContext->getTranslator();
+    if (class_exists('\PrestaShop\PrestaShop\Adapter\SymfonyContainer')) {
+        $container = \PrestaShop\PrestaShop\Adapter\SymfonyContainer::getInstance();
+        if ($container) {
+            // PrestaShop 8.x: usa il servizio 'translator'
+            if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
+                return $container->get('translator');
+            }
+            // PrestaShop 1.7.x: usa il legacy context
+            if ($container->has('prestashop.adapter.legacy.context')) {
+                $legacyContext = $container->get('prestashop.adapter.legacy.context');
+                return $legacyContext->getTranslator();
+            }
+        }
+    }
 
-    return $translator;
+    if (class_exists('Translate')) {
+        return new class {
+            public function trans($string) {
+                return Translate::getModuleTranslation('life365', $string, 'life365');
+            }
+        };
+    }
+
+    return new class {
+        public function trans($string) {
+            return $string;
+        }
+    };
 }
 
 function getAccessJWT()
