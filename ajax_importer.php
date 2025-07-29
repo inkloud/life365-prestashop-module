@@ -208,15 +208,17 @@ function getTranslator()
     }
 
     if (class_exists('Translate')) {
-        return new class {
-            public function trans($string) {
+        return new class() {
+            public function trans($string)
+            {
                 return Translate::getModuleTranslation('life365', $string, 'life365');
             }
         };
     }
 
-    return new class {
-        public function trans($string) {
+    return new class() {
+        public function trans($string)
+        {
             return $string;
         }
     };
