@@ -980,25 +980,26 @@ class AccessoryImporter
         return $default_category;
     }
 
-	protected function ifExist()
-	{
-		$id_product = false;
-		$sql = 'SELECT id_product_ps FROM ' . _DB_PREFIX_ . 'life365_product WHERE id_product_external = ' . (int) $this->product->id;
+    protected function ifExist()
+    {
+        $id_product = false;
+        $sql = 'SELECT id_product_ps FROM ' . _DB_PREFIX_ . 'life365_product WHERE id_product_external = ' . (int) $this->product->id;
 
-		$rows = Db::getInstance()->executeS($sql);
-		if ($rows && isset($rows[0]['id_product_ps'])) {
-			$id_product = (int) $rows[0]['id_product_ps'];
+        $rows = Db::getInstance()->executeS($sql);
 
-			if (!Product::existsInDatabase($id_product, 'product')) {
-				Db::getInstance()->execute(
-					'DELETE FROM ' . _DB_PREFIX_ . 'life365_product WHERE id_product_ps = ' . $id_product
-				);
-				$id_product = false;
-			}
-		}
+        if ($rows && isset($rows[0]['id_product_ps'])) {
+            $id_product = (int) $rows[0]['id_product_ps'];
 
-		return $id_product;
-	}
+            if (!Product::existsInDatabase($id_product, 'product')) {
+                Db::getInstance()->execute(
+                    'DELETE FROM ' . _DB_PREFIX_ . 'life365_product WHERE id_product_ps = ' . $id_product
+                );
+                $id_product = false;
+            }
+        }
+
+        return $id_product;
+    }
 
     protected function afterAdd()
     {
