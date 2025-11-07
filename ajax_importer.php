@@ -114,7 +114,7 @@ switch ($action) {
 function getModuleInfo($info)
 {
     $module_name = 'life365';
-    $user_app = 'PrestaShop module ver: 8.1.105';
+    $user_app = 'PrestaShop module ver: 8.1.106';
     $e_commerce_url = [
         'IT' => 'https://www.life365.eu',
         'PT' => 'https://www.life365.pt',
@@ -530,8 +530,8 @@ function getProds($opt_cat = 0)
             $objectProduct->meta_title = $objectProduct->name;
             $objectProduct->short_description = $translator->trans('Sizes') . ': ' . $objectProduct->dimensions . '<br>' . $translator->trans('Box') . ': ' . $objectProduct->qty_box . '<br>' . $translator->trans('Color') . ': ' . $objectProduct->color . '<br>' . $translator->trans('Certificate') . ': ' . $objectProduct->certificate . '<br>' . $translator->trans('Comp. brand') . ': ' . $objectProduct->brand;
             $objectProduct->version = $objectProduct->last_update;
-            $objectProduct->id_manufactuter = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
-            $objectProduct->manufactuter = $objectProduct->brand;
+            $objectProduct->id_manufacturer = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
+            $objectProduct->manufacturer = $objectProduct->brand;
             $objectProduct->ean13 = $objectProduct->barcode;
 
             $accessroyImport->setProductSource($objectProduct);
@@ -623,8 +623,8 @@ function runCron3($macro_cat)
                     $objectProduct->meta_title = $objectProduct->name;
                     $objectProduct->short_description = 'Sizes: ' . $objectProduct->dimensions . '<br>Box: ' . $objectProduct->qty_box . '<br>Color: ' . $objectProduct->color . '<br>Certificate: ' . $objectProduct->certificate . '<br>Comp. brand: ' . $objectProduct->brand;
                     $objectProduct->version = $objectProduct->last_update;
-                    $objectProduct->id_manufactuter = $accessroyImport->getManufacturerId($objectProduct->brand);
-                    $objectProduct->manufactuter = $objectProduct->brand;
+                    $objectProduct->id_manufacturer = $accessroyImport->getManufacturerId($objectProduct->brand);
+                    $objectProduct->manufacturer = $objectProduct->brand;
                     $objectProduct->ean13 = $objectProduct->barcode;
 
                     $accessroyImport->setProductSource($objectProduct);

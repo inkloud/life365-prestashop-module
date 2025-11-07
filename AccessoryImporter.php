@@ -819,7 +819,7 @@ class AccessoryImporter
     {
         $str_tmp = strip_tags($this->product->short_description);
         $str_tmp = str_replace("\r\n", '<br>', $str_tmp);
-        return $this->product->short_description;
+        return $str_tmp;
     }
 
     protected function getDesciption()
@@ -980,24 +980,25 @@ class AccessoryImporter
         return $default_category;
     }
 
-    protected function ifExist()
-    {
-        $id_product = 0;
-        $sql = 'SELECT id_product_ps FROM ' . _DB_PREFIX_ . 'life365_product WHERE id_product_external = ' . (int) $this->product->id;
-        $res = Db::getInstance()->getRow($sql);
+	protected function ifExist()
+	{
+		$id_product = false;
+		$sql = 'SELECT id_product_ps FROM ' . _DB_PREFIX_ . 'life365_product WHERE id_product_external = ' . (int) $this->product->id;
 
-        if ($res) {
-            $id_product = $res['id_product_ps'];
-            if (!Product::existsInDatabase((int) $id_product, 'product')) {
-                Db::getInstance()->execute(
-                    'DELETE FROM ' . _DB_PREFIX_ . 'life365_product WHERE id_product_ps = ' . (int) $id_product
-                );
-                $id_product = 0;
-            }
-        }
+		$rows = Db::getInstance()->executeS($sql);
+		if ($rows && isset($rows[0]['id_product_ps'])) {
+			$id_product = (int) $rows[0]['id_product_ps'];
 
-        return $id_product;
-    }
+			if (!Product::existsInDatabase($id_product, 'product')) {
+				Db::getInstance()->execute(
+					'DELETE FROM ' . _DB_PREFIX_ . 'life365_product WHERE id_product_ps = ' . $id_product
+				);
+				$id_product = false;
+			}
+		}
+
+		return $id_product;
+	}
 
     protected function afterAdd()
     {
