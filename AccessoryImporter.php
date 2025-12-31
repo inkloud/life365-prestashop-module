@@ -128,8 +128,8 @@ class AccessoryImporter
 
     public function save()
     {
-        $this->id_product = $this->ifExist();
         $new_product = false;
+        $this->id_product = $this->ifExist();
 
         if (!$this->id_product) {
             if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
@@ -150,7 +150,8 @@ class AccessoryImporter
 
         if ((int) $this->id_product && Product::existsInDatabase((int) $this->id_product, 'product')) {
             $this->object = new Product((int) $this->id_product);
-        } else {
+        } elseif (!$new_product) {
+            print_r('Error: Product ID ' . $this->id_product . ' does not exist in database' . PHP_EOL);
             return 0;
         }
 

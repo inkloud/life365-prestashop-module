@@ -61,9 +61,9 @@ if ($container) {
 require_once __DIR__ . '/AccessoryImporter.php';
 
 if (PHP_SAPI === 'cli') {
-    $action = $argv[1] ?? null;
-    $action_token = $argv[2] ?? null;
-    $opt_cat = $argv[3] ?? null;
+    $action = isset($argv[1]) ? $argv[1] : null;
+    $action_token = isset($argv[2]) ? $argv[2] : null;
+    $opt_cat = isset($argv[3]) ? $argv[3] : null;
 } else {
     $action_token = Tools::getValue('token');
     $action = Tools::getValue('action');
@@ -114,7 +114,7 @@ switch ($action) {
 function getModuleInfo($info)
 {
     $module_name = 'life365';
-    $user_app = 'PrestaShop module ver: 8.1.106';
+    $user_app = 'PrestaShop module ver: 8.1.107';
     $e_commerce_url = [
         'IT' => 'https://www.life365.eu',
         'PT' => 'https://www.life365.pt',
@@ -139,7 +139,7 @@ function getModuleInfo($info)
         'ES' => 1,
         'NL' => 19,
     ];
-    $country_id = Configuration::get($module_name . '_country');
+    $country_id = Configuration::get($module_name . '_country') ?: 'IT';
     $detail = '';
 
     switch ($info) {
@@ -473,7 +473,7 @@ function getProds($opt_cat = 0)
     $debug = (bool) Configuration::get($module_name . '_debug_mode');
     $offset = Tools::getValue('offset');
     $qty = Tools::getValue('qty');
-    $country_l = Tools::strtolower(Configuration::get($module_name . '_country'));
+    $country_l = Tools::strtolower(Configuration::get($module_name . '_country') ?: 'IT');
     $macro_cat = 0;
 
     if ($opt_cat == 0) {
@@ -590,7 +590,7 @@ function getCatStock($category_id)
 function runCron3($macro_cat)
 {
     $module_name = getModuleInfo('name');
-    $country_l = Tools::strtolower(Configuration::get($module_name . '_country'));
+    $country_l = Tools::strtolower(Configuration::get($module_name . '_country') ?: 'IT');
 
     $result_html = '';
 
@@ -666,7 +666,7 @@ function getRootCategories()
 function runCron()
 {
     $module_name = getModuleInfo('name');
-    $country_l = Tools::strtolower(Configuration::get($module_name . '_country'));
+    $country_l = Tools::strtolower(Configuration::get($module_name . '_country') ?: 'IT');
 
     $result_html = '';
 
@@ -936,7 +936,7 @@ function countryStringToNumber($countryString)
     }
 
     foreach ($res as $countries) {
-        if ($countries['name'] == Configuration::get($module_name . '_country')) {
+        if ($countries['name'] == (Configuration::get($module_name . '_country') ?: 'IT')) {
             return $countries['id'];
         }
     }
