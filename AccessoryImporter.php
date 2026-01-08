@@ -894,7 +894,7 @@ class AccessoryImporter
 
     protected function getManufacturerName()
     {
-        return (string) $this->product->manufactuter;
+        return (string) $this->product->manufacturer;
     }
 
     public function getManufacturerId($name)
