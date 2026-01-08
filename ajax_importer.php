@@ -514,7 +514,7 @@ function getProds($opt_cat = 0)
             $result_html .= 'Importing product ' . $product['id'] . '<br />';
 
             $objectProduct->reference = $objectProduct->code_simple;
-            $objectProduct->name = $objectProduct->title->{$country_l};
+            $objectProduct->name = htmlspecialchars($objectProduct->title->{$country_l}, ENT_QUOTES, 'UTF-8');
             $objectProduct->meta_keywords = $objectProduct->keywords;
             $objectProduct->price = $objectProduct->price->price;
             $objectProduct->street_price = $objectProduct->price_a;
@@ -611,11 +611,11 @@ function runCron3($macro_cat)
                     $all_product_data = getSingleProduct($product['id']);
                     $objectProduct = json_decode(json_encode($all_product_data), false);
                     $objectProduct->reference = $objectProduct->code_simple;
-                    $objectProduct->name = $objectProduct->title->{$country_l};
+                    $objectProduct->name = htmlspecialchars($objectProduct->title->{$country_l}, ENT_QUOTES, 'UTF-8');
                     $objectProduct->meta_keywords = $objectProduct->keywords;
                     $objectProduct->price = $objectProduct->price->price;
                     $objectProduct->street_price = $objectProduct->price_a;
-                    $objectProduct->description = strip_unsafe($objectProduct->descr->{$country_l}, $img = false);
+                    $objectProduct->description = strip_unsafe(htmlspecialchars($objectProduct->descr->{$country_l}, ENT_QUOTES, 'UTF-8'), $img = false);
                     $objectProduct->quantity = $objectProduct->stock;
                     $objectProduct->url_image = json_decode(json_encode($objectProduct->photos), true)[0];
                     $objectProduct->local_category = $objectProduct->level_3;

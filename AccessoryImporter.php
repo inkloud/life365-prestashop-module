@@ -631,7 +631,12 @@ class AccessoryImporter
                 }
             } catch (Exception $e) {
                 if (is_string($tmpfile)) {
-                    unlink($tmpfile);
+                    $uploadDir = realpath(_PS_UPLOAD_DIR_);
+                    $safeTmpfile = basename($tmpfile);
+                    $safePath = realpath($uploadDir . DIRECTORY_SEPARATOR . $safeTmpfile);
+                    if ($safePath !== false && strpos($safePath, $uploadDir) === 0 && file_exists($safePath)) {
+                        unlink($safePath);
+                    }
                 }
 
                 throw $e;
