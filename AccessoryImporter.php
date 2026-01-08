@@ -256,6 +256,11 @@ class AccessoryImporter
             if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
                 $this->object->save();
             } else {
+                $desc = $this->object->description[1];
+                if (!Validate::isCleanHtml($desc)) {
+                    echo 'Setting empty description to bypass validation<br>';
+                    $this->object->description = ['1' => ''];
+                }
                 $this->object->add();
             }
 

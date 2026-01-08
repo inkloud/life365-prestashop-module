@@ -514,14 +514,20 @@ function getProds($opt_cat = 0)
             $result_html .= 'Importing product ' . $product['id'] . '<br />';
 
             $objectProduct->reference = $objectProduct->code_simple;
-            $objectProduct->name = htmlspecialchars($objectProduct->title->{$country_l}, ENT_QUOTES, 'UTF-8');
+            $objectProduct->name = strip_tags($objectProduct->title->{$country_l});
             $objectProduct->meta_keywords = $objectProduct->keywords;
             $objectProduct->price = $objectProduct->price->price;
             $objectProduct->street_price = $objectProduct->price_a;
 
-            $not_allowed_tag = ['iframe', 'script'];
-            $descriptionCleaned = preg_replace('#<(' . implode('|', $not_allowed_tag) . ').*>.*?</\1>#s', '', $objectProduct->descr->{$country_l});
-            $objectProduct->description = $descriptionCleaned;
+            $cleanDescription = strip_unsafe($objectProduct->descr->{$country_l}, $img = false);
+            // Compress HTML: remove extra whitespace, tabs, and newlines
+            $cleanDescription = preg_replace('/\s+/', ' ', $cleanDescription);
+            $cleanDescription = preg_replace('/>\s+</', '><', $cleanDescription);
+            $cleanDescription = trim($cleanDescription);
+            // Decode HTML entities and validate with PrestaShop
+            $cleanDescription = html_entity_decode($cleanDescription, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $cleanDescription = Tools::purifyHTML($cleanDescription);
+            $objectProduct->description = !empty($cleanDescription) ? $cleanDescription : '';
 
             $objectProduct->quantity = $objectProduct->stock;
             $objectProduct->url_image = json_decode(json_encode($objectProduct->photos), true)[0];
@@ -611,11 +617,21 @@ function runCron3($macro_cat)
                     $all_product_data = getSingleProduct($product['id']);
                     $objectProduct = json_decode(json_encode($all_product_data), false);
                     $objectProduct->reference = $objectProduct->code_simple;
-                    $objectProduct->name = htmlspecialchars($objectProduct->title->{$country_l}, ENT_QUOTES, 'UTF-8');
+                    $objectProduct->name = strip_tags($objectProduct->title->{$country_l});
                     $objectProduct->meta_keywords = $objectProduct->keywords;
                     $objectProduct->price = $objectProduct->price->price;
                     $objectProduct->street_price = $objectProduct->price_a;
-                    $objectProduct->description = strip_unsafe(htmlspecialchars($objectProduct->descr->{$country_l}, ENT_QUOTES, 'UTF-8'), $img = false);
+
+                    $cleanDescription = strip_unsafe($objectProduct->descr->{$country_l}, $img = false);
+                    // Compress HTML: remove extra whitespace, tabs, and newlines
+                    $cleanDescription = preg_replace('/\s+/', ' ', $cleanDescription);
+                    $cleanDescription = preg_replace('/>\s+</', '><', $cleanDescription);
+                    $cleanDescription = trim($cleanDescription);
+                    // Decode HTML entities and validate with PrestaShop
+                    $cleanDescription = html_entity_decode($cleanDescription, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    $cleanDescription = Tools::purifyHTML($cleanDescription);
+                    $objectProduct->description = !empty($cleanDescription) ? $cleanDescription : '';
+
                     $objectProduct->quantity = $objectProduct->stock;
                     $objectProduct->url_image = json_decode(json_encode($objectProduct->photos), true)[0];
                     $objectProduct->local_category = $objectProduct->level_3;
