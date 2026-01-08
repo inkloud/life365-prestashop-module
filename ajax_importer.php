@@ -530,7 +530,8 @@ function getProds($opt_cat = 0)
             $objectProduct->description = !empty($cleanDescription) ? $cleanDescription : '';
 
             $objectProduct->quantity = $objectProduct->stock;
-            $objectProduct->url_image = json_decode(json_encode($objectProduct->photos), true)[0];
+            $photos = json_decode(json_encode($objectProduct->photos), true);
+            $objectProduct->url_image = !empty($photos) ? $photos[0] : '';
             $objectProduct->local_category = $objectProduct->level_3;
             $objectProduct->meta_description = '';
             $objectProduct->meta_title = $objectProduct->name;
@@ -633,7 +634,8 @@ function runCron3($macro_cat)
                     $objectProduct->description = !empty($cleanDescription) ? $cleanDescription : '';
 
                     $objectProduct->quantity = $objectProduct->stock;
-                    $objectProduct->url_image = json_decode(json_encode($objectProduct->photos), true)[0];
+                    $photos = json_decode(json_encode($objectProduct->photos), true);
+                    $objectProduct->url_image = !empty($photos) ? $photos[0] : '';
                     $objectProduct->local_category = $objectProduct->level_3;
                     $objectProduct->meta_description = '';
                     $objectProduct->meta_title = $objectProduct->name;
