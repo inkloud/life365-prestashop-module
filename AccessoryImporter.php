@@ -223,6 +223,21 @@ class AccessoryImporter
                 $this->object->wholesale_price = self::cleanAmount($this->getWholesalePrice());
             }
 
+            // Validate and fix description before update
+            if (is_string($this->object->description)) {
+                // Description is a string (loaded from DB) - validate directly
+                if (!empty($this->object->description) && !Validate::isCleanHtml($this->object->description)) {
+                    $this->object->description = '';
+                }
+            } elseif (is_array($this->object->description)) {
+                // Description is an array - validate each language
+                foreach ($this->object->description as $lang_id => $desc) {
+                    if (!empty($desc) && !Validate::isCleanHtml($desc)) {
+                        $this->object->description[$lang_id] = '';
+                    }
+                }
+            }
+
             $this->object->active = true;
             $this->object->update();
         } else {
@@ -231,7 +246,13 @@ class AccessoryImporter
             $this->object->name = self::createMultiLangField($name);
             $this->object->id_category_default = $this->getCategoryDefault();
             $this->object->id_category[] = $this->object->id_category_default;
-            $this->object->description[$id_lang] = $this->getDesciption();
+
+            $description = $this->getDesciption();
+            // Validate description, set empty if validation fails
+            if (!Validate::isCleanHtml($description)) {
+                $description = '';
+            }
+            $this->object->description[$id_lang] = $description;
 
             $description_short_limit = (int) Configuration::get('PS_PRODUCT_SHORT_DESC_LIMIT');
             if ($description_short_limit <= 0) {
@@ -256,10 +277,9 @@ class AccessoryImporter
             if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
                 $this->object->save();
             } else {
-                $desc = $this->object->description[1];
-                if (!Validate::isCleanHtml($desc)) {
-                    echo 'Setting empty description to bypass validation<br>';
-                    $this->object->description = ['1' => ''];
+                // Validate and fix description before saving
+                if (isset($this->object->description[1]) && !Validate::isCleanHtml($this->object->description[1])) {
+                    $this->object->description[1] = '';
                 }
                 $this->object->add();
             }
