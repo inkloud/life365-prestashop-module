@@ -48,7 +48,11 @@
                 </td>
                 <td>
                     <select name="cat_ps_{$local_cat['cat3']|escape:'html':'UTF-8'}" class="children_cats_select" data-selected-id="{$local_cat['id_cat_ps']|escape:'html':'UTF-8'}">
-                        {$all_categories nofilter}
+                        {foreach from=$all_categories item=category}
+                            <option value="{$category.id_category|intval}" {if $category.selected}selected="selected"{/if}>
+                                {for $i=0 to $category.level_depth*2}&nbsp;{/for}{$category.name|escape:'html':'UTF-8'}
+                            </option>
+                        {/foreach}
                     </select>
                 </td>
                 <td>
@@ -62,7 +66,11 @@
 <input type="hidden" name="{$module_name|escape:'html':'UTF-8'}_list_cat3" value="{$list_cat3|escape:'html':'UTF-8'}" />
 
 <select style="display:none;" id="all_categories">
-    {$all_categories nofilter}
+    {foreach from=$all_categories item=category}
+        <option value="{$category.id_category|intval}">
+            {for $i=0 to $category.level_depth*2}&nbsp;{/for}{$category.name|escape:'html':'UTF-8'}
+        </option>
+    {/foreach}
 </select>
 
 <script>

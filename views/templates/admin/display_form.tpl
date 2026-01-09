@@ -62,13 +62,21 @@
         <div class="margin-form">
             <select id="{$module_name|escape:'html':'UTF-8'}_default_category" name="{$module_name|escape:'html':'UTF-8'}_default_category">
                 <option value="1">{l s='-- Choose a category --' mod='life365' d='Modules.Life365.Admin'}</option>
-                {$categories nofilter}
+                {foreach from=$categories item=category}
+                    <option value="{$category.id_category|intval}" {if $category.selected}selected="selected"{/if}>
+                        {for $i=0 to $category.level_depth*2}&nbsp;{/for}{$category.name|escape:'html':'UTF-8'}
+                    </option>
+                {/foreach}
             </select>
         </div>
         <label>{l s='Default tax' mod='life365' d='Modules.Life365.Admin'}</label>
         <div class="margin-form">
             <select name="{$module_name|escape:'html':'UTF-8'}_default_tax_id">
-                {$tax_rules nofilter}
+                {foreach from=$tax_rules item=tax}
+                    <option value="{$tax.id_tax_rules_group|intval}" {if $tax.selected}selected="selected"{/if}>
+                        {$tax.name|escape:'html':'UTF-8'}
+                    </option>
+                {/foreach}
             </select>
         </div>
         <input type="submit" id="{$module_name|escape:'html':'UTF-8'}_submit" name="{$module_name|escape:'html':'UTF-8'}_submit" value="{l s='Update settings' mod='life365' d='Modules.Life365.Admin'}" class="button" />

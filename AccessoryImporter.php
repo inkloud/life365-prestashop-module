@@ -956,11 +956,11 @@ class AccessoryImporter
             }
 
             Db::getInstance()->execute(
-                'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer_shop VALUES (' . (int)$res[0]['id'] . ', ' . (int)$id_shop . ')'
+                'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer_shop VALUES (' . (int) $res[0]['id'] . ', ' . (int) $id_shop . ')'
             );
 
             Db::getInstance()->execute(
-                'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer_lang (`id_manufacturer`, `id_lang`) VALUES (' . (int)$res[0]['id'] . ', ' . (int)$language_id . ')'
+                'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer_lang (`id_manufacturer`, `id_lang`) VALUES (' . (int) $res[0]['id'] . ', ' . (int) $language_id . ')'
             );
         }
 

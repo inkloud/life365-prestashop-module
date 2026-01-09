@@ -44,10 +44,10 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '8.1.108';
+        $this->version = '8.1.109';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
-        $this->ps_versions_compliancy = ['min' => '1.7.4', 'max' => '8.2.3'];
+        $this->ps_versions_compliancy = ['min' => '1.7.4', 'max' => '9.1.0'];
         $this->module_key = '17fe516516b4f12fb1d877a3600dbedc';
 
         parent::__construct();
@@ -284,18 +284,24 @@ class Life365 extends Module
 
     private function displayTaxRules($id_selected = 0)
     {
-        $result_html = '';
+        $tax_rules = [];
 
-        $result_html .= '<option value="0"' . (($id_selected == 0) ? ' selected="selected"' : '') . '>No Tax</option>';
+        $tax_rules[] = [
+            'id_tax_rules_group' => 0,
+            'name' => 'No Tax',
+            'selected' => ($id_selected == 0),
+        ];
 
         $result = TaxRulesGroup::getTaxRulesGroups(true);
         foreach ($result as $tax) {
-            $result_html .= '<option value="' . $tax['id_tax_rules_group'] . '"' . (($id_selected == $tax['id_tax_rules_group']) ? ' selected="selected"' : '') . '>';
-            $result_html .= $tax['name'];
-            $result_html .= '</option>';
+            $tax_rules[] = [
+                'id_tax_rules_group' => (int) $tax['id_tax_rules_group'],
+                'name' => $tax['name'],
+                'selected' => ((int) $id_selected == (int) $tax['id_tax_rules_group']),
+            ];
         }
 
-        return $result_html;
+        return $tax_rules;
     }
 
     private function siteURL()
@@ -314,80 +320,23 @@ class Life365 extends Module
         return $protocol . $domainName;
     }
 
-    private function displayCatetoriesChildren($id_parent, $id_selected = 1, $id_lang = 1)
+    private function displayCatetoriesChildren($id_parent, $id_selected = 1, $id_lang = 1, $level = 0)
     {
-        $result_html = '';
+        $categories = [];
         $result = Category::getChildren($id_parent, $id_lang, true);
         foreach ($result as $cat) {
             $level_depth = $this->getCatetoryDepth($cat['id_category']);
-            $result_html .= '<option value="' . $cat['id_category'] . '"' . (($id_selected == $cat['id_category']) ? ' selected="selected"' : '') . '>';
-            $result_html .= str_repeat('&nbsp;', $level_depth * 2) . $cat['name'];
-            $result_html .= '</option>';
-            $result_html .= $this->displayCatetoriesChildren($cat['id_category'], $id_selected, $id_lang);
-        }
-        return $result_html;
-    }
-
-    private function displayExternalCatetories($root_category = 0)
-    {
-        $selected_categories_array = explode(',', Configuration::get($this->name . '_' . $root_category . '_categories'));
-        $available_cats = $this->availableCategories();
-        $list_cat3 = '';
-        $categories = [];
-        $remote_tree_category = [];
-        $root_category_name = '';
-
-        if (is_array($available_cats)) {
-            foreach ($available_cats as $cat) {
-                if ($root_category == 0 || $cat['id'] == $root_category) {
-                    $root_category_name = $cat['title'];
-                    $remote_tree_category = $cat['zchildren'];
-                    $cat1 = $cat['zchildren'];
-                    foreach ($cat1 as $cat2) {
-                        foreach ($cat2['zchildren'] as $cat3) {
-                            $list_cat3 .= $cat3['id'] . ',';
-                            $cat_checked = in_array($cat3['id'], $selected_categories_array) ? true : false;
-
-                            $sql = 'SELECT `profit`, `id_category_ps`
-                                    FROM `' . _DB_PREFIX_ . $this->name . '_category`
-                                    WHERE id_category_external = ' . (int) $cat3['id'];
-                            if ($row = Db::getInstance()->getRow($sql)) {
-                                $id_cat_ps = $row['id_category_ps'];
-                                $profit = $row['profit'];
-                            } else {
-                                $id_cat_ps = Configuration::get($this->name . '_default_category');
-                                $profit = Configuration::get($this->name . '_overhead');
-                            }
-
-                            $categories[] = [
-                                'cat3' => $cat3['id'],
-                                'description3' => $cat3['name'],
-                                'checked' => $cat_checked,
-                                'id_cat_ps' => $id_cat_ps,
-                                'profit' => $profit,
-                            ];
-                        }
-                    }
-                }
-            }
+            $categories[] = [
+                'id_category' => (int) $cat['id_category'],
+                'name' => $cat['name'],
+                'level_depth' => (int) $level_depth,
+                'selected' => ((int) $id_selected == (int) $cat['id_category']),
+            ];
+            $children = $this->displayCatetoriesChildren($cat['id_category'], $id_selected, $id_lang, $level + 1);
+            $categories = array_merge($categories, $children);
         }
 
-        $this->context->smarty->assign([
-            'module_name' => $this->name,
-            'root_category' => $root_category,
-            'root_category_name' => $root_category_name,
-            'remote_tree_category' => $remote_tree_category,
-            'categories' => $categories,
-            'list_cat3' => $list_cat3,
-            'default_category' => Configuration::get('PS_HOME_CATEGORY'),
-            'default_lang' => Configuration::get('PS_LANG_DEFAULT'),
-            'all_categories' => $this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), Configuration::get('PS_HOME_CATEGORY'), Configuration::get('PS_LANG_DEFAULT')),
-            'l' => function ($string) {
-                return $this->l($string);
-            },
-        ]);
-
-        return $this->context->smarty->fetch($this->local_path . 'views/templates/admin/display_external_categories.tpl');
+        return $categories;
     }
 
     private function displayForm()
@@ -534,13 +483,60 @@ class Life365 extends Module
     private function manageCats2($managed_cat)
     {
         $root_cats = $this->getRootCategories();
-        $cats_html = $this->displayExternalCatetories($managed_cat);
+
+        // Prepare data for display_external_categories.tpl
+        $selected_categories_array = explode(',', Configuration::get($this->name . '_' . $managed_cat . '_categories'));
+        $available_cats = $this->availableCategories();
+        $list_cat3 = '';
+        $categories = [];
+        $remote_tree_category = [];
+        $root_category_name = '';
+
+        if (is_array($available_cats)) {
+            foreach ($available_cats as $cat) {
+                if ($managed_cat == 0 || $cat['id'] == $managed_cat) {
+                    $root_category_name = $cat['title'];
+                    $remote_tree_category = $cat['zchildren'];
+                    $cat1 = $cat['zchildren'];
+                    foreach ($cat1 as $cat2) {
+                        foreach ($cat2['zchildren'] as $cat3) {
+                            $list_cat3 .= $cat3['id'] . ',';
+                            $cat_checked = in_array($cat3['id'], $selected_categories_array) ? true : false;
+
+                            $sql = 'SELECT `profit`, `id_category_ps`
+                                    FROM `' . _DB_PREFIX_ . $this->name . '_category`
+                                    WHERE id_category_external = ' . (int) $cat3['id'];
+                            if ($row = Db::getInstance()->getRow($sql)) {
+                                $id_cat_ps = $row['id_category_ps'];
+                                $profit = $row['profit'];
+                            } else {
+                                $id_cat_ps = Configuration::get($this->name . '_default_category');
+                                $profit = Configuration::get($this->name . '_overhead');
+                            }
+
+                            $categories[] = [
+                                'cat3' => $cat3['id'],
+                                'description3' => $cat3['name'],
+                                'checked' => $cat_checked,
+                                'id_cat_ps' => $id_cat_ps,
+                                'profit' => $profit,
+                            ];
+                        }
+                    }
+                }
+            }
+        }
 
         $this->context->smarty->assign([
             'module_path' => $this->_path,
             'root_cats' => $root_cats,
             'managed_cat' => $managed_cat,
-            'cats_html' => $cats_html,
+            'root_category' => $managed_cat,
+            'root_category_name' => $root_category_name,
+            'remote_tree_category' => $remote_tree_category,
+            'categories' => $categories,
+            'list_cat3' => $list_cat3,
+            'all_categories' => $this->displayCatetoriesChildren(Configuration::get('PS_HOME_CATEGORY'), Configuration::get('PS_HOME_CATEGORY'), Configuration::get('PS_LANG_DEFAULT')),
             'request_uri' => $_SERVER['REQUEST_URI'],
             'module_name' => $this->name,
             'l' => function ($string) {
@@ -572,10 +568,12 @@ class Life365 extends Module
             'module_dir' => _MODULE_DIR_ . $this->name . '/',
             'categories' => $categories,
             'root_cats' => array_map(function ($cat) {
+                $categories_string = Configuration::get($this->name . '_' . $cat['Cat1'] . '_categories');
+                $categories_array = !empty($categories_string) ? array_map('intval', explode(',', $categories_string)) : [];
                 return [
                     'Cat1' => $cat['Cat1'],
                     'description1' => $cat['description1'],
-                    'selected_categories_array' => Configuration::get($this->name . '_' . $cat['Cat1'] . '_categories'),
+                    'selected_categories_array' => $categories_array,
                 ];
             }, $root_cats),
             'slow_mode' => (Configuration::get($this->name . '_sync_slow') == 'on') ? 1 : 0,

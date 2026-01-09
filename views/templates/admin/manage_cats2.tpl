@@ -38,10 +38,10 @@
                     <div id="tabs-{$cat.Cat1|escape:'html':'UTF-8'}">
                         <form action="{$request_uri|escape:'html':'UTF-8'}" method="post" id="{$module_name|escape:'html':'UTF-8'}_action_cats-{$cat.Cat1|escape:'html':'UTF-8'}">
                             <div class="margin-form">
-                                {$cats_html nofilter}
+                                {include file='./display_external_categories.tpl'}
                             </div>
                             <input class="button" type="button" onclick="history.back()" value="{l s='Cancel' mod='life365' d='Modules.Life365.Admin'}" />
-                            <input type="submit" name="{$module_name}_action_cats_b" value="{l s='Update settings' mod='life365' d='Modules.Life365.Admin'}" class="button" />
+                            <input type="submit" name="{$module_name|escape:'html':'UTF-8'}_action_cats_b" value="{l s='Update settings' mod='life365' d='Modules.Life365.Admin'}" class="button" />
                         </form>
                     </div>
                 {/if}

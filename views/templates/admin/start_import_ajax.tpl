@@ -40,7 +40,7 @@
     <div id="result_{$cat.Cat1|escape:'html':'UTF-8'}"></div>
 </fieldset>
 <script>
-    todo_categories["{$cat.Cat1|escape:'javascript':'UTF-8'}"] = [{$cat.selected_categories_array nofilter}];
+    todo_categories["{$cat.Cat1|escape:'javascript':'UTF-8'}"] = [{foreach from=$cat.selected_categories_array item=cat_id name=cat_loop}{$cat_id|intval}{if !$smarty.foreach.cat_loop.last},{/if}{/foreach}];
     todo_categories_desc["{$cat.Cat1|escape:'javascript':'UTF-8'}"] = "{$cat.description1|escape:'javascript':'UTF-8'}";
 </script>
 {/foreach}
@@ -167,7 +167,7 @@
 
     $(document).ready(function () {
         var loadUrl = "{$module_dir|escape:'javascript':'UTF-8'}ajax_importer.php";
-        var selected_categories = {$categories|json_encode nofilter};
+        var selected_categories = ["{foreach from=$categories item=cat_id name=cat_loop}{$cat_id|escape:'javascript':'UTF-8'}"{if !$smarty.foreach.cat_loop.last},{/if}{/foreach}];
 
         for (var i = 0; i < selected_categories.length; i++) {
             $("#result_" + selected_categories[i]).append(
