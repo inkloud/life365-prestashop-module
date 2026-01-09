@@ -24,14 +24,14 @@
 *}
 <table>
     <tr>
-        <th>{strtoupper($module_name)} {l s='category' mod='life365' d='Modules.Life365.Admin'}</th>
+        <th>{strtoupper($module_name)|escape:'html':'UTF-8'} {l s='category' mod='life365' d='Modules.Life365.Admin'}</th>
         <th>{l s='Local category' mod='life365' d='Modules.Life365.Admin'}</th>
         <th>{l s='Profit' mod='life365' d='Modules.Life365.Admin'}</th>
     </tr>
     {foreach $remote_tree_category as $cat_level2}
         <tr>
             <td colspan="3">
-                <b>{$root_category_name}::{$cat_level2['name']}</b>
+                <b>{$root_category_name|escape:'html':'UTF-8'}::{$cat_level2['name']|escape:'html':'UTF-8'}</b>
             </td>
         </tr>
         {foreach $cat_level2['zchildren'] as $cat}
@@ -43,26 +43,26 @@
             {/foreach}
             <tr>
                 <td>
-                    <input type="checkbox" name="{$module_name}_categories[]" value="{$local_cat['cat3']}" {if $local_cat['checked']}checked{/if} />
-                    {$cat['name']}
+                    <input type="checkbox" name="{$module_name|escape:'html':'UTF-8'}_categories[]" value="{$local_cat['cat3']|escape:'html':'UTF-8'}" {if $local_cat['checked']}checked{/if} />
+                    {$cat['name']|escape:'html':'UTF-8'}
                 </td>
                 <td>
-                    <select name="cat_ps_{$local_cat['cat3']}" class="children_cats_select" data-selected-id="{$local_cat['id_cat_ps']}">
-                        {$all_categories}
+                    <select name="cat_ps_{$local_cat['cat3']|escape:'html':'UTF-8'}" class="children_cats_select" data-selected-id="{$local_cat['id_cat_ps']|escape:'html':'UTF-8'}">
+                        {$all_categories nofilter}
                     </select>
                 </td>
                 <td>
-                    <input type="number" step="0.01" value="{$local_cat['profit']}" name="profit_{$local_cat['cat3']}" placeholder="{l s='profit' mod='life365' d='Modules.Life365.Admin'}" />%
+                    <input type="number" step="0.01" value="{$local_cat['profit']|escape:'html':'UTF-8'}" name="profit_{$local_cat['cat3']|escape:'html':'UTF-8'}" placeholder="{l s='profit' mod='life365' d='Modules.Life365.Admin'}" />%
                 </td>
             </tr>
         {/foreach}
     {/foreach}
 </table>
-<input type="hidden" name="{$module_name}_cat1" value="{$root_category}" />
-<input type="hidden" name="{$module_name}_list_cat3" value="{$list_cat3}" />
+<input type="hidden" name="{$module_name|escape:'html':'UTF-8'}_cat1" value="{$root_category|escape:'html':'UTF-8'}" />
+<input type="hidden" name="{$module_name|escape:'html':'UTF-8'}_list_cat3" value="{$list_cat3|escape:'html':'UTF-8'}" />
 
 <select style="display:none;" id="all_categories">
-    {$all_categories}
+    {$all_categories nofilter}
 </select>
 
 <script>

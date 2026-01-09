@@ -23,22 +23,22 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 <fieldset>
-    <legend><img src="{$module_path}logo.gif" alt="" title="" />{l s='Manage categories to import' mod='life365' d='Modules.Life365.Admin'}</legend>
+    <legend><img src="{$module_path|escape:'html':'UTF-8'}logo.gif" alt="" title="" />{l s='Manage categories to import' mod='life365' d='Modules.Life365.Admin'}</legend>
     {if $root_cats|@count > 0}
         <div id="tabs">
             <ul>
                 {foreach $root_cats as $cat}
                     {if $cat.Cat1 == $managed_cat}
-                        <li><a href="#tabs-{$cat.Cat1}">{$cat.description1}</a></li>
+                        <li><a href="#tabs-{$cat.Cat1|escape:'html':'UTF-8'}">{$cat.description1|escape:'html':'UTF-8'}</a></li>
                     {/if}
                 {/foreach}
             </ul>
             {foreach $root_cats as $cat}
                 {if $cat.Cat1 == $managed_cat}
-                    <div id="tabs-{$cat.Cat1}">
-                        <form action="{$request_uri}" method="post" id="{$module_name}_action_cats-{$cat.Cat1}">
+                    <div id="tabs-{$cat.Cat1|escape:'html':'UTF-8'}">
+                        <form action="{$request_uri|escape:'html':'UTF-8'}" method="post" id="{$module_name|escape:'html':'UTF-8'}_action_cats-{$cat.Cat1|escape:'html':'UTF-8'}">
                             <div class="margin-form">
-                                {$cats_html}
+                                {$cats_html nofilter}
                             </div>
                             <input class="button" type="button" onclick="history.back()" value="{l s='Cancel' mod='life365' d='Modules.Life365.Admin'}" />
                             <input type="submit" name="{$module_name}_action_cats_b" value="{l s='Update settings' mod='life365' d='Modules.Life365.Admin'}" class="button" />

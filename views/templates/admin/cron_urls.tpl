@@ -26,8 +26,8 @@
     <div class="col-sm-5">
         {foreach $root_cats as $cat}
             <div>
-                <i>{$cat.description1}:</i><br />
-                &nbsp;&nbsp;{$cron_url2}{$cat.Cat1}<br />
+                <i>{$cat.description1|escape:'html':'UTF-8'}:</i><br />
+                &nbsp;&nbsp;{$cron_url2|escape:'html':'UTF-8'}{$cat.Cat1|escape:'html':'UTF-8'}<br />
             </div>
         {/foreach}
     </div>

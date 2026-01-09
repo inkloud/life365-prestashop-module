@@ -23,14 +23,14 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 <fieldset>
-    <legend><img src="{$module_path}logo.gif" alt="" title="" />{l s='Manage categories to import' mod='life365' d='Modules.Life365.Admin'}</legend>
+    <legend><img src="{$module_path|escape:'html':'UTF-8'}logo.gif" alt="" title="" />{l s='Manage categories to import' mod='life365' d='Modules.Life365.Admin'}</legend>
     {if $root_cats|@count > 0}
         <div class="col-sm-5">
             {foreach $root_cats as $cat}
                 <div>
-                    <form action="{$request_uri}" method="post" id="{$module_name}_action_cats-{$cat.Cat1}">
-                        <input type="hidden" name="{$module_name}_cat_click" value="{$cat.Cat1}" />
-                        <input type="submit" name="{$module_name}_action_cat_click" value="{l s='Manage category' mod='life365' d='Modules.Life365.Admin'} {$cat.description1}" class="button" />
+                    <form action="{$request_uri|escape:'html':'UTF-8'}" method="post" id="{$module_name|escape:'html':'UTF-8'}_action_cats-{$cat.Cat1|escape:'html':'UTF-8'}">
+                        <input type="hidden" name="{$module_name|escape:'html':'UTF-8'}_cat_click" value="{$cat.Cat1|escape:'html':'UTF-8'}" />
+                        <input type="submit" name="{$module_name|escape:'html':'UTF-8'}_action_cat_click" value="{l s='Manage category' mod='life365' d='Modules.Life365.Admin'} {$cat.description1|escape:'html':'UTF-8'}" class="button" />
                     </form>
                 </div>
             {/foreach}

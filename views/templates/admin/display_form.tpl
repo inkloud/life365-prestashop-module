@@ -23,71 +23,71 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 <fieldset>
-    <legend><img src="{$module_path}logo.gif" alt="" title="" />{l s='Main settings' mod='life365' d='Modules.Life365.Admin'}</legend>
-    <form action="{$smarty.server.REQUEST_URI}" method="post" id="{$module_name}_form_settings">
+    <legend><img src="{$module_path|escape:'html':'UTF-8'}logo.gif" alt="" title="" />{l s='Main settings' mod='life365' d='Modules.Life365.Admin'}</legend>
+    <form action="{$smarty.server.REQUEST_URI|escape:'html':'UTF-8'}" method="post" id="{$module_name|escape:'html':'UTF-8'}_form_settings">
         <label>{l s='Select country' mod='life365' d='Modules.Life365.Admin'}</label>
         <div class="margin-form">
-            <select id="{$module_name}_country" name="{$module_name}_country">
+            <select id="{$module_name|escape:'html':'UTF-8'}_country" name="{$module_name|escape:'html':'UTF-8'}_country">
                 <option value="0">{l s='-- Choose a country --' mod='life365' d='Modules.Life365.Admin'}</option>
                 <option value="IT" {if $country_id == 'IT'}selected="selected"{/if}>Italy</option>
                 <option value="NL" {if $country_id == 'NL'}selected="selected"{/if}>Netherlands</option>
                 <option value="PT" {if $country_id == 'PT'}selected="selected"{/if}>Portugal</option>
                 <option value="ES" {if $country_id == 'ES'}selected="selected"{/if}>Spain</option>
             </select>
-            <a href="#" onclick="javascript:window.open('{$e_commerce_url[$country_id]}/user', '_blank');">{l s='Register new account' mod='life365' d='Modules.Life365.Admin'}</a>
+            <a href="#" onclick="javascript:window.open('{$e_commerce_url[$country_id]|escape:'javascript':'UTF-8'}/user', '_blank');">{l s='Register new account' mod='life365' d='Modules.Life365.Admin'}</a>
         </div>
         <label>{l s='Life365 Login' mod='life365' d='Modules.Life365.Admin'}</label>
         <div class="margin-form">
-            <input type="text" name="{$module_name}_login" id="{$module_name}_login" value="{$login}" />
+            <input type="text" name="{$module_name|escape:'html':'UTF-8'}_login" id="{$module_name|escape:'html':'UTF-8'}_login" value="{$login|escape:'html':'UTF-8'}" />
         </div>
         <label>{l s='Life365 Password' mod='life365' d='Modules.Life365.Admin'}</label>
         <div class="margin-form">
             <table>
                 <tr>
                     <td>
-                        <input type="password" name="{$module_name}_password" id="{$module_name}_password" value="{$password}" />
+                        <input type="password" name="{$module_name|escape:'html':'UTF-8'}_password" id="{$module_name|escape:'html':'UTF-8'}_password" value="{$password|escape:'html':'UTF-8'}" />
                     </td>
                     <td><div id="res_logon"></div></td>
                     <td>
-                        <a href="#" onclick="javascript:check_user_pwd($('#{$module_name}_login').val(), $('#{$module_name}_password').val(), $('#{$module_name}_country').val());">{l s='Test' mod='life365' d='Modules.Life365.Admin'}</a>
+                        <a href="#" onclick="javascript:check_user_pwd($('#{$module_name|escape:'javascript':'UTF-8'}_login').val(), $('#{$module_name|escape:'javascript':'UTF-8'}_password').val(), $('#{$module_name|escape:'javascript':'UTF-8'}_country').val());">{l s='Test' mod='life365' d='Modules.Life365.Admin'}</a>
                     </td>
                 </tr>
             </table>
         </div>
         <label>{l s='Default mark-up rate %' mod='life365' d='Modules.Life365.Admin'}</label>
         <div class="margin-form">
-            <input type="number" step="0.01" name="{$module_name}_overhead" value="{$overhead}" />
+            <input type="number" step="0.01" name="{$module_name|escape:'html':'UTF-8'}_overhead" value="{$overhead|escape:'html':'UTF-8'}" />
         </div>
         <label>{l s='Default destination category' mod='life365' d='Modules.Life365.Admin'}</label>
         <div class="margin-form">
-            <select id="{$module_name}_default_category" name="{$module_name}_default_category">
+            <select id="{$module_name|escape:'html':'UTF-8'}_default_category" name="{$module_name|escape:'html':'UTF-8'}_default_category">
                 <option value="1">{l s='-- Choose a category --' mod='life365' d='Modules.Life365.Admin'}</option>
-                {$categories}
+                {$categories nofilter}
             </select>
         </div>
         <label>{l s='Default tax' mod='life365' d='Modules.Life365.Admin'}</label>
         <div class="margin-form">
-            <select name="{$module_name}_default_tax_id">
-                {$tax_rules}
+            <select name="{$module_name|escape:'html':'UTF-8'}_default_tax_id">
+                {$tax_rules nofilter}
             </select>
         </div>
-        <input type="submit" id="{$module_name}_submit" name="{$module_name}_submit" value="{l s='Update settings' mod='life365' d='Modules.Life365.Admin'}" class="button" />
+        <input type="submit" id="{$module_name|escape:'html':'UTF-8'}_submit" name="{$module_name|escape:'html':'UTF-8'}_submit" value="{l s='Update settings' mod='life365' d='Modules.Life365.Admin'}" class="button" />
     </form>
     <br />
-    <form action="{$smarty.server.REQUEST_URI}" method="post" id="{$module_name}_action_manage_cats">
-        <input type="submit" name="{$module_name}_manage_cats" value="{l s='Manage categories ...' mod='life365' d='Modules.Life365.Admin'}" class="button" />
+    <form action="{$smarty.server.REQUEST_URI|escape:'html':'UTF-8'}" method="post" id="{$module_name|escape:'html':'UTF-8'}_action_manage_cats">
+        <input type="submit" name="{$module_name|escape:'html':'UTF-8'}_manage_cats" value="{l s='Manage categories ...' mod='life365' d='Modules.Life365.Admin'}" class="button" />
     </form>
 </fieldset>
 <br />
-<fieldset><legend><img src="{$module_path}logo.gif" alt="" title="" />{l s='Action' mod='life365' d='Modules.Life365.Admin'}</legend>
-    <form action="{$smarty.server.REQUEST_URI}" method="post" id="{$module_name}_action_import">
-        <input type="submit" name="{$module_name}_importer" value="{l s='Start import ...' mod='life365' d='Modules.Life365.Admin'}" class="button" />
+<fieldset><legend><img src="{$module_path|escape:'html':'UTF-8'}logo.gif" alt="" title="" />{l s='Action' mod='life365' d='Modules.Life365.Admin'}</legend>
+    <form action="{$smarty.server.REQUEST_URI|escape:'html':'UTF-8'}" method="post" id="{$module_name|escape:'html':'UTF-8'}_action_import">
+        <input type="submit" name="{$module_name|escape:'html':'UTF-8'}_importer" value="{l s='Start import ...' mod='life365' d='Modules.Life365.Admin'}" class="button" />
     </form>
     <div class="clear"></div>
     <br />
 <!--
     <div>
-        <b>{l s='Complete Cron url' mod='life365' d='Modules.Life365.Admin'}: </b>{$cron_url}
+        <b>{l s='Complete Cron url' mod='life365' d='Modules.Life365.Admin'}: </b>{$cron_url|escape:'html':'UTF-8'}
         <br>
     </div>
 -->
@@ -97,8 +97,8 @@
             <div class="col-sm-5">
                 {foreach $root_cats as $cat}
                     <div>
-                        <i>{$cat.description1}:</i><br />
-                        &nbsp;&nbsp;{$cron_url2}{$cat.Cat1}<br />
+                        <i>{$cat.description1|escape:'html':'UTF-8'}:</i><br />
+                        &nbsp;&nbsp;{$cron_url2|escape:'html':'UTF-8'}{$cat.Cat1|escape:'html':'UTF-8'}<br />
                     </div>
                 {/foreach}
             </div>
@@ -109,15 +109,15 @@
         <font size="-2"><a href="https://www.easycron.com/?ref=70609" target="_blank">A free CRON scheduler</a></font>
     </div>
 </fieldset>
-<fieldset><legend><img src="{$module_path}logo.gif" alt="" title="" />{l s='Optional settings' mod='life365' d='Modules.Life365.Admin'}</legend>
-    <form action="{$smarty.server.REQUEST_URI}" method="post" id="{$module_name}_action_other_settings">
+<fieldset><legend><img src="{$module_path|escape:'html':'UTF-8'}logo.gif" alt="" title="" />{l s='Optional settings' mod='life365' d='Modules.Life365.Admin'}</legend>
+    <form action="{$smarty.server.REQUEST_URI|escape:'html':'UTF-8'}" method="post" id="{$module_name|escape:'html':'UTF-8'}_action_other_settings">
         <label>{l s='Synchronize always' mod='life365' d='Modules.Life365.Admin'}</label>
         <div class="margin-form">
             <ul style="list-style-type:none;margin:0;padding:0;">
                 {foreach $sync_options as $option}
                     <li>
-                        <input type="checkbox" name="{$option.name}" {if $option.checked}checked="checked"{/if} />
-                        {$option.label}
+                        <input type="checkbox" name="{$option.name|escape:'html':'UTF-8'}" {if $option.checked}checked="checked"{/if} />
+                        {$option.label|escape:'html':'UTF-8'}
                     </li>
                 {/foreach}
             </ul>
@@ -125,7 +125,7 @@
         <div class="clear"></div>
         <label>{l s='Price limit' mod='life365' d='Modules.Life365.Admin'}</label>
         <div class="margin-form">
-            <input type="checkbox" name="{$module_name}_price_limit" {if $price_limit}checked="checked"{/if} />
+            <input type="checkbox" name="{$module_name|escape:'html':'UTF-8'}_price_limit" {if $price_limit}checked="checked"{/if} />
             {l s='Limits the price not to exceed the street-price' mod='life365' d='Modules.Life365.Admin'}
         </div>
         <div class="clear"></div>
@@ -133,17 +133,17 @@
         <div class="margin-form">
             <ul style="list-style-type:none;margin:0;padding:0;">
                 <li>
-                    <input type="checkbox" name="{$module_name}_debug_mode" {if $debug_mode}checked="checked"{/if} />
+                    <input type="checkbox" name="{$module_name|escape:'html':'UTF-8'}_debug_mode" {if $debug_mode}checked="checked"{/if} />
                     {l s='Debug enabled' mod='life365' d='Modules.Life365.Admin'}
                 </li>
                 <li>
-                    <input type="checkbox" name="{$module_name}_sync_slow" {if $sync_slow}checked="checked"{/if} />
+                    <input type="checkbox" name="{$module_name|escape:'html':'UTF-8'}_sync_slow" {if $sync_slow}checked="checked"{/if} />
                     {l s='Slow server' mod='life365' d='Modules.Life365.Admin'}
                 </li>
             </ul>
         </div>
         <div class="clear"></div>
-        <input type="submit" name="{$module_name}_save_other_settings" value="{l s='Save optional settings' mod='life365' d='Modules.Life365.Admin'}" class="button" />
+        <input type="submit" name="{$module_name|escape:'html':'UTF-8'}_save_other_settings" value="{l s='Save optional settings' mod='life365' d='Modules.Life365.Admin'}" class="button" />
     </form>
 </fieldset>
 <script>
@@ -152,8 +152,8 @@
             $("#res_logon").html("{l s='Select a country, please.' mod='life365' d='Modules.Life365.Admin'}");
         } else {
             $.ajaxSetup({ cache: false });
-            var loadUrl = "{$check_logon_url}";
-            $("#res_logon").html("<img src='{$loader_img_url}' />");
+            var loadUrl = "{$check_logon_url|escape:'javascript':'UTF-8'}";
+            $("#res_logon").html("<img src='{$loader_img_url|escape:'javascript':'UTF-8'}' />");
 
             $.ajax({
                 type: "POST",
