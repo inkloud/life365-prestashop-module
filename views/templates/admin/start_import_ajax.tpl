@@ -25,23 +25,23 @@
 <script>
     var todo_categories = {};
     var todo_categories_desc = {};
-    var slow_mode = {$slow_mode};
+    var slow_mode = {$slow_mode|intval};
 </script>
 
 {foreach from=$root_cats item=cat}
 <fieldset>
     <legend>
-        <img src="{$module_path}logo.gif" alt="" title="" />
+        <img src="{$module_path|escape:'html':'UTF-8'}logo.gif" alt="" title="" />
         {l s='Action' mod='life365' d='Modules.Life365.Admin'}
     </legend>
-    <div id="waiter_{$cat.Cat1}">
-        <img src="{$base_url}img/loader.gif" alt="loading..." />
+    <div id="waiter_{$cat.Cat1|escape:'html':'UTF-8'}">
+        <img src="{$base_url|escape:'html':'UTF-8'}img/loader.gif" alt="loading..." />
     </div>
-    <div id="result_{$cat.Cat1}"></div>
+    <div id="result_{$cat.Cat1|escape:'html':'UTF-8'}"></div>
 </fieldset>
 <script>
-    todo_categories["{$cat.Cat1}"] = [{$cat.selected_categories_array}];
-    todo_categories_desc["{$cat.Cat1}"] = "{$cat.description1}";
+    todo_categories["{$cat.Cat1|escape:'javascript':'UTF-8'}"] = [{$cat.selected_categories_array nofilter}];
+    todo_categories_desc["{$cat.Cat1|escape:'javascript':'UTF-8'}"] = "{$cat.description1|escape:'javascript':'UTF-8'}";
 </script>
 {/foreach}
 
@@ -110,7 +110,7 @@
                 url: loadUrl,
                 dataType: "html",
                 async: true,
-                data: { cat: todo_cat[g], offset: k, qty: 20, action: "getProds", token: "{$admin_token}" }
+                data: { cat: todo_cat[g], offset: k, qty: 20, action: "getProds", token: "{$admin_token|escape:'javascript':'UTF-8'}" }
             };
             
             var ajaxFunction = slow_mode ? $.ajaxQueue : $.ajax;
@@ -147,7 +147,7 @@
             url: loadUrl,
             dataType: "html",
             async: true,
-            data: { cat: selected_category, action: "disableProds", token: "{$admin_token}" }
+            data: { cat: selected_category, action: "disableProds", token: "{$admin_token|escape:'javascript':'UTF-8'}" }
         };
         
         var ajaxFunction = slow_mode ? $.ajaxQueue : $.ajax;
@@ -166,8 +166,8 @@
     }
 
     $(document).ready(function () {
-        var loadUrl = "{$module_dir}ajax_importer.php";
-        var selected_categories = {$categories|json_encode};
+        var loadUrl = "{$module_dir|escape:'javascript':'UTF-8'}ajax_importer.php";
+        var selected_categories = {$categories|json_encode nofilter};
 
         for (var i = 0; i < selected_categories.length; i++) {
             $("#result_" + selected_categories[i]).append(
