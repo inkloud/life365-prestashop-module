@@ -581,9 +581,6 @@ function getCatStock($category_id)
     $i = 0;
     $result = [];
     while (($line = fgetcsv($fileData, 0, ';')) !== false) {
-        if (++$i === 1) {
-            continue;
-        }
         $new_entry = array_combine($header, array_map('trim', $line));
         if (in_array($new_entry['level_3'], $cats_array)) {
             $result[] = $new_entry;
