@@ -95,14 +95,14 @@ class Life365 extends Module
                   `version` int(10) unsigned NOT NULL DEFAULT \'0\',
                   PRIMARY KEY (`id_product_external`),
                   UNIQUE KEY `id_product_ps_unique` (`id_product_ps`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;';
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;';
         Db::getInstance()->execute($t_sql);
         $t_sql = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . $this->name . '_category` (
                   `id_category_external` int(10) unsigned NOT NULL,
                   `profit` decimal(5,2) NOT NULL DEFAULT \'50.00\',
                   `id_category_ps` int(10) unsigned NOT NULL,
                   PRIMARY KEY (`id_category_external`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;';
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;';
         Db::getInstance()->execute($t_sql);
 
         return true;

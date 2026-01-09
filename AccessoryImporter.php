@@ -929,17 +929,17 @@ class AccessoryImporter
         }
 
         $res = Db::getInstance()->ExecuteS(
-            'SELECT id_manufacturer AS id FROM ' . _DB_PREFIX_ . 'manufacturer WHERE name = \'' . $name . '\''
+            'SELECT id_manufacturer AS id FROM ' . _DB_PREFIX_ . 'manufacturer WHERE name = \'' . pSQL($name) . '\''
         );
 
         if (empty($res)) {
             Db::getInstance()->execute(
                 'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer (`name`, `active`, `date_add`, `date_upd`) ' .
-                'VALUES (\'' . $name . '\', 1, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())'
+                'VALUES (\'' . pSQL($name) . '\', 1, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())'
             );
 
             $res = Db::getInstance()->ExecuteS(
-                'SELECT id_manufacturer AS id FROM ' . _DB_PREFIX_ . 'manufacturer WHERE name = \'' . $name . '\''
+                'SELECT id_manufacturer AS id FROM ' . _DB_PREFIX_ . 'manufacturer WHERE name = \'' . pSQL($name) . '\''
             );
 
             if (empty($res)) {
@@ -956,11 +956,11 @@ class AccessoryImporter
             }
 
             Db::getInstance()->execute(
-                'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer_shop VALUES (' . $res[0]['id'] . ', ' . $id_shop . ')'
+                'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer_shop VALUES (' . (int)$res[0]['id'] . ', ' . (int)$id_shop . ')'
             );
 
             Db::getInstance()->execute(
-                'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer_lang (`id_manufacturer`, `id_lang`) VALUES (' . $res[0]['id'] . ', ' . $language_id . ')'
+                'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer_lang (`id_manufacturer`, `id_lang`) VALUES (' . (int)$res[0]['id'] . ', ' . (int)$language_id . ')'
             );
         }
 
