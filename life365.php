@@ -44,10 +44,10 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '8.1.109';
+        $this->version = '8.1.110';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
-        $this->ps_versions_compliancy = ['min' => '1.7.4', 'max' => '9.1.0'];
+        $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => '9.1.0'];
         $this->module_key = '17fe516516b4f12fb1d877a3600dbedc';
 
         parent::__construct();
@@ -405,6 +405,7 @@ class Life365 extends Module
             'price_limit' => Configuration::get($this->name . '_price_limit'),
             'check_logon_url' => $check_logon_url,
             'loader_img_url' => $loader_img_url,
+            'module_name' => $this->name,
             'l' => function ($string) {
                 return $this->l($string);
             },

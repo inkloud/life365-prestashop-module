@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file original="module:life365" source-language="en" target-language="pt" datatype="plaintext">
+    <body>
+      <trans-unit id="1" resname="Main settings">
+        <source>Main settings</source>
+        <target>Configurações principais</target>
+      </trans-unit>
+      <trans-unit id="2" resname="Select country">
+        <source>Select country</source>
+        <target>Selecionar país</target>
+      </trans-unit>
+      <trans-unit id="3" resname="-- Choose a country --">
+        <source>-- Choose a country --</source>
+        <target>-- Escolha um país --</target>
+      </trans-unit>
+      <trans-unit id="4" resname="Register new account">
+        <source>Register new account</source>
+        <target>Registrar nova conta</target>
+      </trans-unit>
+      <trans-unit id="5" resname="Life365 Login">
+        <source>Life365 Login</source>
+        <target>Life365 Login</target>
+      </trans-unit>
+      <trans-unit id="6" resname="Life365 Password">
+        <source>Life365 Password</source>
+        <target>Life365 Password</target>
+      </trans-unit>
+      <trans-unit id="7" resname="Test">
+        <source>Test</source>
+        <target>Verificar</target>
+      </trans-unit>
+      <trans-unit id="8" resname="Default mark-up rate %">
+        <source>Default mark-up rate %</source>
+        <target>Margem padrão %</target>
+      </trans-unit>
+      <trans-unit id="9" resname="Default destination category">
+        <source>Default destination category</source>
+        <target>Categoria de destino padrão</target>
+      </trans-unit>
+      <trans-unit id="10" resname="-- Choose a category --">
+        <source>-- Choose a category --</source>
+        <target>-- Escolha uma categoria --</target>
+      </trans-unit>
+      <trans-unit id="11" resname="Default tax">
+        <source>Default tax</source>
+        <target>Imposto padrão</target>
+      </trans-unit>
+      <trans-unit id="12" resname="Update settings">
+        <source>Update settings</source>
+        <target>Atualizar configurações</target>
+      </trans-unit>
+      <trans-unit id="13" resname="Manage categories ...">
+        <source>Manage categories ...</source>
+        <target>Gerenciar categorias ...</target>
+      </trans-unit>
+      <trans-unit id="14" resname="Action">
+        <source>Action</source>
+        <target>Ação</target>
+      </trans-unit>
+      <trans-unit id="15" resname="Start import ...">
+        <source>Start import ...</source>
+        <target>Iniciar importação ...</target>
+      </trans-unit>
+      <trans-unit id="16" resname="Complete Cron url">
+        <source>Complete Cron url</source>
+        <target>Cron url</target>
+      </trans-unit>
+      <trans-unit id="17" resname="Cron urls by cateogry">
+        <source>Cron urls by cateogry</source>
+        <target>Cron url por categoria</target>
+      </trans-unit>
+      <trans-unit id="18" resname="No categories available for cron URLs.">
+        <source>No categories available for cron URLs.</source>
+        <target>Nenhuma categoria disponível para cron URLs.</target>
+      </trans-unit>
+      <trans-unit id="19" resname="Optional settings">
+        <source>Optional settings</source>
+        <target>Configurações opcionais</target>
+      </trans-unit>
+      <trans-unit id="20" resname="Synchronize always">
+        <source>Synchronize always</source>
+        <target>Sincronizar sempre</target>
+      </trans-unit>
+      <trans-unit id="21" resname="Price limit">
+        <source>Price limit</source>
+        <target>Limite de preço</target>
+      </trans-unit>
+      <trans-unit id="22" resname="Limits the price not to exceed the street-price">
+        <source>Limits the price not to exceed the street-price</source>
+        <target>Limita o preço para não exceder o preço recomendado</target>
+      </trans-unit>
+      <trans-unit id="23" resname="Debug">
+        <source>Debug</source>
+        <target>Debug</target>
+      </trans-unit>
+      <trans-unit id="24" resname="Debug enabled">
+        <source>Debug enabled</source>
+        <target>Debug habilitado</target>
+      </trans-unit>
+      <trans-unit id="25" resname="Slow server">
+        <source>Slow server</source>
+        <target>Servidor lento</target>
+      </trans-unit>
+      <trans-unit id="26" resname="Save optional settings">
+        <source>Save optional settings</source>
+        <target>Salvar configurações opcionais</target>
+      </trans-unit>
+      <trans-unit id="27" resname="Select a country, please.">
+        <source>Select a country, please.</source>
+        <target>Selecione um país, por favor.</target>
+      </trans-unit>
+      <trans-unit id="28" resname="Manage categories to import">
+        <source>Manage categories to import</source>
+        <target>Gerenciar categorias para importar</target>
+      </trans-unit>
+      <trans-unit id="29" resname="Manage category">
+        <source>Manage category</source>
+        <target>Gerenciar categoria</target>
+      </trans-unit>
+      <trans-unit id="30" resname="No categories available to manage.">
+        <source>No categories available to manage.</source>
+        <target>Nenhuma categoria disponível para gerenciar.</target>
+      </trans-unit>
+      <trans-unit id="31" resname="Cancel">
+        <source>Cancel</source>
+        <target>Cancelar</target>
+      </trans-unit>
+      <trans-unit id="32" resname="category">
+        <source>category</source>
+        <target>categoria</target>
+      </trans-unit>
+      <trans-unit id="33" resname="Local category">
+        <source>Local category</source>
+        <target>Categoria local</target>
+      </trans-unit>
+      <trans-unit id="34" resname="Profit">
+        <source>Profit</source>
+        <target>Lucro</target>
+      </trans-unit>
+      <trans-unit id="35" resname="profit">
+        <source>profit</source>
+        <target>lucro</target>
+      </trans-unit>
+      <trans-unit id="36" resname="Click this link">
+        <source>Click this link</source>
+        <target>Clique neste link</target>
+      </trans-unit>
+      <trans-unit id="37" resname="Copy dropship order on Life365">
+        <source>Copy dropship order on Life365</source>
+        <target>Copiar pedido dropship no Life365</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
