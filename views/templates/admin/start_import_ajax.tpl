@@ -41,7 +41,7 @@
 </fieldset>
 <script>
     todo_categories[{$cat.Cat1|intval}] = [{foreach from=$cat.selected_categories_array item=cat_id name=cat_loop}{$cat_id|intval}{if !$smarty.foreach.cat_loop.last},{/if}{/foreach}];
-    todo_categories_desc[{$cat.Cat1|intval}] = {$cat.description1|json_encode nofilter};
+    todo_categories_desc[{$cat.Cat1|intval}] = "{$cat.description1|escape:'javascript':'UTF-8'}";
 </script>
 {/foreach}
 
