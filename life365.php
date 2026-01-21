@@ -44,7 +44,7 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '8.1.110';
+        $this->version = '8.1.111';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => '9.1.0'];
@@ -151,7 +151,7 @@ class Life365 extends Module
             'order' => $params['order'],
             'dropship_link' => $this->_path . 'ajax_importer.php',
             'dropship_order' => $order_id,
-            'dropship_token' => Tools::getAdminToken($this->name),
+            'dropship_token' => md5(_COOKIE_KEY_ . $this->name),
         ]);
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
@@ -168,7 +168,7 @@ class Life365 extends Module
             'order' => $params['order'],
             'dropship_link' => $this->_path . 'ajax_importer.php',
             'dropship_order' => $order_id,
-            'dropship_token' => Tools::getAdminToken($this->name),
+            'dropship_token' => md5(_COOKIE_KEY_ . $this->name),
         ]);
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
@@ -185,7 +185,7 @@ class Life365 extends Module
             'order' => $params['order'],
             'dropship_link' => $this->_path . 'ajax_importer.php',
             'dropship_order' => $order_id,
-            'dropship_token' => Tools::getAdminToken($this->name),
+            'dropship_token' => md5(_COOKIE_KEY_ . $this->name),
         ]);
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
@@ -350,8 +350,9 @@ class Life365 extends Module
         ];
         $country_id = Configuration::get($this->name . '_country') ?: 'IT';
 
-        $cron_url = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/ajax_importer.php?action=cron&token=' . Tools::getAdminToken($this->name);
-        $cron_url2 = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/ajax_importer.php?action=cron3&token=' . Tools::getAdminToken($this->name) . '&mc=';
+        $module_token = md5(_COOKIE_KEY_ . $this->name);
+        $cron_url = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/ajax_importer.php?action=cron&token=' . $module_token;
+        $cron_url2 = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/ajax_importer.php?action=cron3&token=' . $module_token . '&mc=';
         $root_cats = $this->getRootCategories();
 
         $sync_options = [
@@ -382,7 +383,7 @@ class Life365 extends Module
             ],
         ];
 
-        $check_logon_url = _MODULE_DIR_ . $this->name . '/ajax_importer.php?action=checkLogon&token=' . Tools::getAdminToken($this->name);
+        $check_logon_url = _MODULE_DIR_ . $this->name . '/ajax_importer.php?action=checkLogon&token=' . $module_token;
         $loader_img_url = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'img/loader.gif';
 
         $this->context->smarty->assign([
@@ -551,9 +552,10 @@ class Life365 extends Module
     private function startImportAjax()
     {
         $current_file_name = array_reverse(explode('/', $_SERVER['SCRIPT_NAME']));
+        $module_token = md5(_COOKIE_KEY_ . $this->name);
         $cron_url_search = Tools::getHttpHost(true, true) . __PS_BASE_URI__ .
             Tools::substr($_SERVER['SCRIPT_NAME'], Tools::strlen(__PS_BASE_URI__), -Tools::strlen($current_file_name['0'])) .
-            'searchcron.php?full=1&token=' . Tools::getAdminToken($this->name);
+            'searchcron.php?full=1&token=' . $module_token;
         $cron_url_search_img = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'img/questionmark.png';
 
         $root_cats = $this->getRootCategories();
@@ -565,7 +567,7 @@ class Life365 extends Module
         $this->context->smarty->assign([
             'module_path' => $this->_path,
             'base_url' => Tools::getHttpHost(true) . __PS_BASE_URI__,
-            'admin_token' => Tools::getAdminToken($this->name),
+            'admin_token' => $module_token,
             'module_dir' => _MODULE_DIR_ . $this->name . '/',
             'categories' => $categories,
             'root_cats' => array_map(function ($cat) {

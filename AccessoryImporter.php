@@ -240,6 +240,11 @@ class AccessoryImporter
 
             $this->object->active = true;
             $this->object->update();
+
+            // Reindicizza il prodotto se l'indicizzazione è abilitata
+            if (Configuration::get('PS_SEARCH_INDEXATION')) {
+                Search::indexation(false, $this->object->id);
+            }
         } else {
             $name = $this->getName();
             $link_rewrite = self::generateSlug($name);
@@ -292,6 +297,11 @@ class AccessoryImporter
 
             $features = $this->getFeatures();
             $this->addFeature($features);
+
+            // Reindicizza il prodotto se l'indicizzazione è abilitata
+            if (Configuration::get('PS_SEARCH_INDEXATION')) {
+                Search::indexation(false, $this->object->id);
+            }
         }
 
         $this->afterAdd();

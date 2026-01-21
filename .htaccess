@@ -1,0 +1,17 @@
+# Security: Block direct access to PHP files (PrestaShop 9+ requirement)
+# This forces use of ModuleFrontController instead of direct file access
+
+<FilesMatch "\.php$">
+    # Allow index.php files (required for security check)
+    <If "%{REQUEST_URI} =~ m#/index\.php$#">
+        Require all granted
+    </If>
+    # Block all other PHP files from direct browser access
+    <Else>
+        # Uncomment the line below to enable PS9 security (block direct PHP access)
+        # Require all denied
+
+        # For now, allow access for backward compatibility with PS 1.7/8
+        Require all granted
+    </Else>
+</FilesMatch>

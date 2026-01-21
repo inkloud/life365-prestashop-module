@@ -102,7 +102,7 @@
     <div>
         <b>{l s='Cron urls by cateogry' mod='life365' d='Modules.Life365.Admin'}: </b>
         {if $root_cats|@count > 0}
-            <div class="col-sm-5">
+            <div>
                 {foreach $root_cats as $cat}
                     <div>
                         <i>{$cat.description1|escape:'html':'UTF-8'}:</i><br />
