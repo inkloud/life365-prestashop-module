@@ -213,8 +213,7 @@ class AccessoryImporter
 
             if ($sync_category) {
                 $this->object->id_category_default = $this->getCategoryDefault();
-                $this->object->id_category[] = $this->object->id_category_default;
-                $this->object->updateCategories([$this->object->id_category_default]);
+                $this->object->id_category = [$this->object->id_category_default];
             }
 
             if ($sync_price) {
@@ -241,16 +240,23 @@ class AccessoryImporter
             $this->object->active = true;
             $this->object->update();
 
-            // Reindicizza il prodotto se l'indicizzazione è abilitata
+            // Aggiorna le categorie dopo l'update (importante per PS9)
+            if ($sync_category) {
+                $this->object->updateCategories([$this->object->id_category_default]);
+            }
+
+            // Reindicizza il prodotto se l'indicizzazione è abilitata (un 10% dei casi per ridurre il carico)
             if (Configuration::get('PS_SEARCH_INDEXATION')) {
-                Search::indexation(false, $this->object->id);
+                if (rand(1, 10) === 1) {
+                    Search::indexation(false, $this->object->id);
+                }
             }
         } else {
             $name = $this->getName();
             $link_rewrite = self::generateSlug($name);
             $this->object->name = self::createMultiLangField($name);
             $this->object->id_category_default = $this->getCategoryDefault();
-            $this->object->id_category[] = $this->object->id_category_default;
+            $this->object->id_category = [$this->object->id_category_default];
 
             $description = $this->getDesciption();
             // Validate description, set empty if validation fails
@@ -288,6 +294,9 @@ class AccessoryImporter
                 }
                 $this->object->add();
             }
+
+            // Aggiorna le categorie dopo save/add (importante per PS9)
+            $this->object->updateCategories([$this->object->id_category_default]);
 
             $tags = $this->getTags();
             $this->addTags($tags);
@@ -917,6 +926,7 @@ class AccessoryImporter
         $not_valid = ['#', '{', '}', '^', '<', '>', ';', '='];
         $name = str_replace($not_valid, '', (string) $this->product->name);
         if (empty($name)) {
+            p('No name: ');
             p((string) $this->product);
         }
         return $name;
