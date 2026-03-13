@@ -73,8 +73,8 @@ class AccessoryImporter
             0
         );
 
-        $this->object->active = false;
-        $this->object->save();
+        Db::getInstance()->update('product', ['active' => 0], 'id_product = ' . (int) $this->id_product);
+        Db::getInstance()->update('product_shop', ['active' => 0], 'id_product = ' . (int) $this->id_product);
 
         return 1;
     }
@@ -910,7 +910,7 @@ class AccessoryImporter
 
     protected function getMetaKeyword()
     {
-        $meta_keywords = $this->product->meta_keywords;
+        $meta_keywords = (string) $this->product->meta_keywords;
         $meta_keywords = preg_replace('/[<>;=#{}]/ui', ' ', $meta_keywords);
         return (string) Tools::substr($meta_keywords, 0, 255);
     }
