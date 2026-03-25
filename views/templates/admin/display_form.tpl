@@ -22,6 +22,7 @@
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
+<div style="text-align: right; font-size: 0.75em; color: #aaa; margin-bottom: 4px;">v{$module_version|escape:'html':'UTF-8'}</div>
 <fieldset>
     <legend><img src="{$module_path|escape:'html':'UTF-8'}logo.gif" alt="" title="" />{l s='Main settings' mod='life365' d='Modules.Life365.Admin'}</legend>
     <form action="{$smarty.server.REQUEST_URI|escape:'html':'UTF-8'}" method="post" id="{$module_name|escape:'html':'UTF-8'}_form_settings">

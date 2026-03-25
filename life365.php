@@ -407,6 +407,7 @@ class Life365 extends Module
             'check_logon_url' => $check_logon_url,
             'loader_img_url' => $loader_img_url,
             'module_name' => $this->name,
+            'module_version' => $this->version,
             'l' => function ($string) {
                 return $this->l($string);
             },
