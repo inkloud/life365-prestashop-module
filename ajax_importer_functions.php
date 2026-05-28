@@ -41,10 +41,10 @@ function getModuleInfo($info)
     $module_name = 'life365';
     $user_app = 'PrestaShop module ver: 8.1.112';
     $e_commerce_url = [
-        'IT' => 'https://www.life365.eu',
-        'PT' => 'https://www.life365.pt',
-        'ES' => 'https://www.inkloud.es',
-        'NL' => 'https://www.inkloud.eu',
+        'IT' => 'https://b2b.life365.eu',
+        'PT' => 'https://b2b.life365.pt',
+        'ES' => 'https://b2b.inkloud.es',
+        'NL' => 'https://b2b.inkloud.eu',
     ];
     $api_url_new = [
         'IT' => 'https://it2.life365.eu',

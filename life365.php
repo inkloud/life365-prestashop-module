@@ -343,10 +343,10 @@ class Life365 extends Module
     {
         $myUrl = $this->siteURL();
         $e_commerce_url = [
-            'IT' => 'https://www.life365.eu',
-            'PT' => 'https://www.life365.pt',
-            'ES' => 'https://www.inkloud.es',
-            'NL' => 'https://www.inkloud.eu',
+            'IT' => 'https://b2b.life365.eu',
+            'PT' => 'https://b2b.life365.pt',
+            'ES' => 'https://b2b.inkloud.es',
+            'NL' => 'https://b2b.inkloud.eu',
         ];
         $country_id = Configuration::get($this->name . '_country') ?: 'IT';
 
