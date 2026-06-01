@@ -22,16 +22,20 @@
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
-<table>
-    <tr>
-        <th>{strtoupper($module_name)|escape:'html':'UTF-8'} {l s='category' mod='life365' d='Modules.Life365.Admin'}</th>
-        <th>{l s='Local category' mod='life365' d='Modules.Life365.Admin'}</th>
-        <th>{l s='Profit' mod='life365' d='Modules.Life365.Admin'}</th>
-    </tr>
-    {foreach $remote_tree_category as $cat_level2}
+<div class="table-responsive">
+<table class="table table-bordered life365-cats-table">
+    <thead>
         <tr>
+            <th style="width:45%;">{strtoupper($module_name)|escape:'html':'UTF-8'} {l s='category' mod='life365' d='Modules.Life365.Admin'}</th>
+            <th style="width:40%;">{l s='Local category' mod='life365' d='Modules.Life365.Admin'}</th>
+            <th style="width:15%;">{l s='Profit' mod='life365' d='Modules.Life365.Admin'}</th>
+        </tr>
+    </thead>
+    <tbody>
+    {foreach $remote_tree_category as $cat_level2}
+        <tr class="life365-cat-group">
             <td colspan="3">
-                <b>{$root_category_name|escape:'html':'UTF-8'}::{$cat_level2['name']|escape:'html':'UTF-8'}</b>
+                <strong>{$root_category_name|escape:'html':'UTF-8'} :: {$cat_level2['name']|escape:'html':'UTF-8'}</strong>
             </td>
         </tr>
         {foreach $cat_level2['zchildren'] as $cat}
@@ -43,11 +47,15 @@
             {/foreach}
             <tr>
                 <td>
-                    <input type="checkbox" name="{$module_name|escape:'html':'UTF-8'}_categories[]" value="{$local_cat['cat3']|escape:'html':'UTF-8'}" {if $local_cat['checked']}checked{/if} />
-                    {$cat['name']|escape:'html':'UTF-8'}
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="{$module_name|escape:'html':'UTF-8'}_categories[]" value="{$local_cat['cat3']|escape:'html':'UTF-8'}" {if $local_cat['checked']}checked{/if} />
+                            {$cat['name']|escape:'html':'UTF-8'}
+                        </label>
+                    </div>
                 </td>
                 <td>
-                    <select name="cat_ps_{$local_cat['cat3']|escape:'html':'UTF-8'}" class="children_cats_select" data-selected-id="{$local_cat['id_cat_ps']|escape:'html':'UTF-8'}">
+                    <select name="cat_ps_{$local_cat['cat3']|escape:'html':'UTF-8'}" class="children_cats_select form-control" data-selected-id="{$local_cat['id_cat_ps']|escape:'html':'UTF-8'}">
                         {foreach from=$all_categories item=category}
                             <option value="{$category.id_category|intval}" {if $category.selected}selected="selected"{/if}>
                                 {for $i=0 to $category.level_depth*2}&nbsp;{/for}{$category.name|escape:'html':'UTF-8'}
@@ -56,12 +64,17 @@
                     </select>
                 </td>
                 <td>
-                    <input type="number" step="0.01" value="{$local_cat['profit']|escape:'html':'UTF-8'}" name="profit_{$local_cat['cat3']|escape:'html':'UTF-8'}" placeholder="{l s='profit' mod='life365' d='Modules.Life365.Admin'}" />%
+                    <div class="input-group">
+                        <input type="number" step="0.01" class="form-control" value="{$local_cat['profit']|escape:'html':'UTF-8'}" name="profit_{$local_cat['cat3']|escape:'html':'UTF-8'}" placeholder="{l s='profit' mod='life365' d='Modules.Life365.Admin'}" />
+                        <span class="input-group-addon">%</span>
+                    </div>
                 </td>
             </tr>
         {/foreach}
     {/foreach}
+    </tbody>
 </table>
+</div>
 <input type="hidden" name="{$module_name|escape:'html':'UTF-8'}_cat1" value="{$root_category|escape:'html':'UTF-8'}" />
 <input type="hidden" name="{$module_name|escape:'html':'UTF-8'}_list_cat3" value="{$list_cat3|escape:'html':'UTF-8'}" />
 

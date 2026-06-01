@@ -166,7 +166,7 @@
     }
 
     $(document).ready(function () {
-        var loadUrl = "{$module_dir|escape:'javascript':'UTF-8'}ajax_importer.php";
+        var loadUrl = "{$importer_url|escape:'javascript':'UTF-8'}";
         var selected_categories = [{foreach from=$categories item=cat_id name=cat_loop}{$cat_id|intval}{if !$smarty.foreach.cat_loop.last},{/if}{/foreach}];
 
         for (var i = 0; i < selected_categories.length; i++) {

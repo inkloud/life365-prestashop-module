@@ -39,3 +39,24 @@
 	padding: 1em 1.4em;
 	background: none;
 }
+/* Manage categories to import table */
+.life365-cats-table {
+	margin-top: 10px;
+}
+.life365-cats-table > thead > tr > th {
+	background: #f4f4f4;
+	white-space: nowrap;
+}
+.life365-cats-table > tbody > tr > td {
+	vertical-align: middle;
+}
+.life365-cats-table tr.life365-cat-group > td {
+	background: #eef3f7;
+	border-top: 2px solid #ccc;
+}
+.life365-cats-table .checkbox {
+	margin: 0;
+}
+.life365-cats-table .input-group {
+	max-width: 140px;
+}

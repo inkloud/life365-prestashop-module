@@ -39,7 +39,7 @@ if (!function_exists('p')) {
 function getModuleInfo($info)
 {
     $module_name = 'life365';
-    $user_app = 'PrestaShop module ver: 8.1.112';
+    $user_app = 'PrestaShop module ver: 8.1.113';
     $e_commerce_url = [
         'IT' => 'https://b2b.life365.eu',
         'PT' => 'https://b2b.life365.pt',
@@ -361,9 +361,9 @@ function checkLogon()
     $jwt = getAccessJWT();
 
     if (Tools::strlen($jwt) > 1) {
-        return '<img src="' . dirname($_SERVER['PHP_SELF']) . '/../../img/admin/enabled.gif" alt="enabled"/><font color="green">Ok</font>';
+        return '<span style="color:green;font-weight:bold;">&#10004; Ok</span>';
     } else {
-        return '<img src="' . dirname($_SERVER['PHP_SELF']) . '/../../img/admin/disabled.gif" alt="disabled"/><font color="red">Error</font>';
+        return '<span style="color:red;font-weight:bold;">&#10008; Error</span>';
     }
 }
 

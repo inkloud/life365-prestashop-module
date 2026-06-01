@@ -44,10 +44,10 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '8.1.112';
+        $this->version = '8.1.113';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
-        $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => '9.1.0'];
+        $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => '9.2.0'];
         $this->module_key = '17fe516516b4f12fb1d877a3600dbedc';
 
         parent::__construct();
@@ -149,9 +149,11 @@ class Life365 extends Module
 
         $this->smarty->assign([
             'order' => $params['order'],
-            'dropship_link' => $this->_path . 'ajax_importer.php',
-            'dropship_order' => $order_id,
-            'dropship_token' => md5(_COOKIE_KEY_ . $this->name),
+            'dropship_link' => $this->getImporterLink([
+                'action' => 'dropship',
+                'token' => md5(_COOKIE_KEY_ . $this->name),
+                'id_o' => $order_id,
+            ]),
         ]);
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
@@ -166,9 +168,11 @@ class Life365 extends Module
         }
         $this->smarty->assign([
             'order' => $params['order'],
-            'dropship_link' => $this->_path . 'ajax_importer.php',
-            'dropship_order' => $order_id,
-            'dropship_token' => md5(_COOKIE_KEY_ . $this->name),
+            'dropship_link' => $this->getImporterLink([
+                'action' => 'dropship',
+                'token' => md5(_COOKIE_KEY_ . $this->name),
+                'id_o' => $order_id,
+            ]),
         ]);
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
@@ -183,9 +187,11 @@ class Life365 extends Module
         }
         $this->smarty->assign([
             'order' => $params['order'],
-            'dropship_link' => $this->_path . 'ajax_importer.php',
-            'dropship_order' => $order_id,
-            'dropship_token' => md5(_COOKIE_KEY_ . $this->name),
+            'dropship_link' => $this->getImporterLink([
+                'action' => 'dropship',
+                'token' => md5(_COOKIE_KEY_ . $this->name),
+                'id_o' => $order_id,
+            ]),
         ]);
 
         return $this->display(__FILE__, 'views/templates/hook/dropship.tpl');
@@ -339,6 +345,20 @@ class Life365 extends Module
         return $categories;
     }
 
+    /**
+     * Costruisce l'URL base verso il ModuleFrontController "importer".
+     * Su PS9 l'accesso diretto a ajax_importer.php è bloccato dal server (403),
+     * quindi tutte le chiamate passano da qui (index.php?fc=module&...&controller=importer
+     * oppure URL friendly /module/life365/importer). Funziona anche su PS 1.7/8.
+     *
+     * @param array $params Parametri querystring (action, token, ...)
+     * @return string
+     */
+    public function getImporterLink(array $params = [])
+    {
+        return $this->context->link->getModuleLink($this->name, 'importer', $params, true);
+    }
+
     private function displayForm()
     {
         $myUrl = $this->siteURL();
@@ -351,8 +371,10 @@ class Life365 extends Module
         $country_id = Configuration::get($this->name . '_country') ?: 'IT';
 
         $module_token = md5(_COOKIE_KEY_ . $this->name);
-        $cron_url = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/ajax_importer.php?action=cron&token=' . $module_token;
-        $cron_url2 = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/ajax_importer.php?action=cron3&token=' . $module_token . '&mc=';
+        $importer_base = $this->getImporterLink();
+        $sep = (strpos($importer_base, '?') === false) ? '?' : '&';
+        $cron_url = $importer_base . $sep . 'action=cron&token=' . $module_token;
+        $cron_url2 = $importer_base . $sep . 'action=cron3&token=' . $module_token . '&mc=';
         $root_cats = $this->getRootCategories();
 
         $sync_options = [
@@ -383,7 +405,7 @@ class Life365 extends Module
             ],
         ];
 
-        $check_logon_url = _MODULE_DIR_ . $this->name . '/ajax_importer.php?action=checkLogon&token=' . $module_token;
+        $check_logon_url = $importer_base . $sep . 'action=checkLogon&token=' . $module_token;
         $loader_img_url = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'img/loader.gif';
 
         $this->context->smarty->assign([
@@ -569,7 +591,7 @@ class Life365 extends Module
             'module_path' => $this->_path,
             'base_url' => Tools::getHttpHost(true) . __PS_BASE_URI__,
             'admin_token' => $module_token,
-            'module_dir' => _MODULE_DIR_ . $this->name . '/',
+            'importer_url' => $this->getImporterLink(),
             'categories' => $categories,
             'root_cats' => array_map(function ($cat) {
                 $categories_string = Configuration::get($this->name . '_' . $cat['Cat1'] . '_categories');
