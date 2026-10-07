@@ -253,9 +253,7 @@ function getSingleProduct($product_id)
 
     $retcode = curl_getinfo($con, CURLINFO_HTTP_CODE);
     if ($retcode != 200) {
-        $info = curl_getinfo($con);
-        p($info);
-        p($res_curl);
+        p('API error HTTP ' . $retcode . ' for product ' . $product_id . ': ' . $res_curl . '<br />');
     }
 
     curl_close($con);
@@ -515,6 +513,10 @@ function runCron3($macro_cat)
                     p('Importing product ' . $product['id'] . '<br />');
 
                     $all_product_data = getSingleProduct($product['id']);
+                    if (!is_array($all_product_data) || empty($all_product_data['id'])) {
+                        p('Skip product ' . $product['id'] . ': not available from API<br />');
+                        continue;
+                    }
                     $objectProduct = json_decode(json_encode($all_product_data), false);
                     $objectProduct->reference = $objectProduct->code_simple;
                     $objectProduct->name = strip_tags($objectProduct->title->{$country_l});
