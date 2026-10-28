@@ -68,6 +68,12 @@ class AccessoryImporter
             return 0;
         }
 
+        // Già disattivato in una passata precedente: rifare setQuantity su
+        // centinaia di prodotti a ogni cron costa solo tempo di esecuzione.
+        if (!$this->object->active) {
+            return 0;
+        }
+
         StockAvailable::setQuantity(
             $this->getProductID(),
             0,

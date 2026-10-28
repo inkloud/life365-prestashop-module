@@ -40,7 +40,7 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '8.1.118';
+        $this->version = '8.1.119';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => '9.2.0'];

@@ -618,8 +618,15 @@ function getProductsDisabled2($category_id)
 
     $api_url_new = getModuleInfo('api_url_new');
 
+    // Il magazzino della nazione: senza di esso l'API segnalerebbe anche i
+    // prodotti invisibili in altri magazzini, che qui sono regolarmente in vendita.
+    $warehouse_id = (int) getModuleInfo('warehouse_id');
+
     $con = curl_init();
     $url = $api_url_new . '/api/warehouse/getDisabledProducts/' . $category_id . '?jwt=' . $jwt;
+    if ($warehouse_id > 0) {
+        $url .= '&warehouse_id=' . $warehouse_id;
+    }
 
     curl_setopt($con, CURLOPT_URL, $url);
     curl_setopt($con, CURLOPT_HEADER, false);
@@ -653,28 +660,43 @@ function setProductsDisabled2($category_id)
 
     if ($category_id > 0) {
         $products = getProductsDisabled2($category_id);
-        if (!empty($products)) {
+        if (!empty($products) && is_array($products)) {
             $result_html .= 'MACROCATEGORY ' . $category_id . ' - CLEANING PHASE<br />Disabling products:';
+            $accessroyImport = new AccessoryImporter();
+
             foreach ($products as $product) {
+                if (!is_array($product)) {
+                    continue;
+                }
                 if ($debug) {
                     p($product);
                 }
-                $result_html .= ' ' . $product['id'];
-                $objectProduct = json_decode(json_encode($product), false);
 
-                $accessroyImport = new AccessoryImporter();
-                // getDisabledProducts restituisce l'id prodotto, mentre
-                // life365_product è indicizzato per product_stock_id: risaliamo
-                // alla chiave locale prima di disattivare.
+                // Le nuove API danno il product_stock_id del magazzino della
+                // nazione, che è la chiave di life365_product; i payload più
+                // vecchi hanno solo l'id prodotto, da risolvere per reference.
+                $product_stock_id = isset($product['product_stock_id']) ? (int) $product['product_stock_id'] : 0;
                 $reference = isset($product['reference']) ? $product['reference'] : '';
-                $external_id = $accessroyImport->resolveExternalIdByProductId((int) $product['id'], $reference);
+                $external_id = 0;
+
+                if ($product_stock_id > 0 && $accessroyImport->ifExistId($product_stock_id) != 0) {
+                    $external_id = $product_stock_id;
+                } else {
+                    $product_id = isset($product['id']) ? (int) $product['id'] : 0;
+                    $external_id = $accessroyImport->resolveExternalIdByProductId($product_id, $reference);
+                }
+
                 if (!$external_id) {
                     continue;
                 }
+
+                $objectProduct = json_decode(json_encode($product), false);
                 $objectProduct->id = (int) $external_id;
 
                 $accessroyImport->setProductSource($objectProduct);
-                $accessroyImport->disable();
+                if ($accessroyImport->disable()) {
+                    $result_html .= ' ' . $reference;
+                }
             }
         }
     }
