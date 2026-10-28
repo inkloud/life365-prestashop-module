@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 2007-2026 PrestaShop
  *
@@ -98,6 +99,91 @@ class AccessoryImporter
         return $id_product;
     }
 
+    /**
+     * Transizione verso le API b2b: lo stesso prodotto può essere mappato con
+     * una chiave diversa da quella corrente (l'id prodotto, oppure la riga di
+     * stock di un altro magazzino). Se troviamo una di quelle chiavi la
+     * spostiamo sulla nuova, senza duplicare il prodotto in PrestaShop.
+     *
+     * @param int       $external_id product_stock_id del magazzino della nazione
+     * @param array|int $legacy_ids  chiavi alternative con cui il prodotto può essere salvato
+     *
+     * @return bool true se la riga è stata convertita
+     */
+    public function reconcileExternalId($external_id, $legacy_ids)
+    {
+        $external_id = (int) $external_id;
+
+        if ($external_id <= 0) {
+            return false;
+        }
+
+        $already_mapped = Db::getInstance()->getValue(
+            'SELECT id_product_ps FROM `' . _DB_PREFIX_ . 'life365_product` WHERE id_product_external = ' . $external_id
+        );
+
+        if ($already_mapped) {
+            return false;
+        }
+
+        foreach ((array) $legacy_ids as $legacy_id) {
+            $legacy_id = (int) $legacy_id;
+
+            if ($legacy_id <= 0 || $legacy_id === $external_id) {
+                continue;
+            }
+
+            $legacy_mapped = Db::getInstance()->getValue(
+                'SELECT id_product_ps FROM `' . _DB_PREFIX_ . 'life365_product` WHERE id_product_external = ' . $legacy_id
+            );
+
+            if ($legacy_mapped) {
+                return (bool) Db::getInstance()->execute(
+                    'UPDATE `' . _DB_PREFIX_ . 'life365_product` SET id_product_external = ' . $external_id .
+                    ' WHERE id_product_external = ' . $legacy_id
+                );
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Risale alla chiave locale partendo dall'id prodotto delle nuove API:
+     * prima come chiave legacy, poi tramite la reference del prodotto PrestaShop.
+     *
+     * @param int    $product_id
+     * @param string $reference
+     *
+     * @return int
+     */
+    public function resolveExternalIdByProductId($product_id, $reference = '')
+    {
+        $product_id = (int) $product_id;
+
+        if ($product_id > 0) {
+            $legacy = Db::getInstance()->getValue(
+                'SELECT id_product_external FROM `' . _DB_PREFIX_ . 'life365_product` WHERE id_product_external = ' . $product_id
+            );
+
+            if ($legacy) {
+                return (int) $legacy;
+            }
+        }
+
+        if (empty($reference)) {
+            return 0;
+        }
+
+        $id_external = Db::getInstance()->getValue(
+            'SELECT lp.id_product_external FROM `' . _DB_PREFIX_ . 'life365_product` lp ' .
+            'INNER JOIN `' . _DB_PREFIX_ . 'product` p ON p.id_product = lp.id_product_ps ' .
+            'WHERE p.reference = \'' . pSQL($reference) . '\' LIMIT 1'
+        );
+
+        return (int) $id_external;
+    }
+
     public function saveQuantity($productId, $qta)
     {
         $this->id_product = $this->ifExistId($productId);
@@ -152,6 +238,7 @@ class AccessoryImporter
             $this->object = new Product((int) $this->id_product);
         } elseif (!$new_product) {
             print_r('Error: Product ID ' . $this->id_product . ' does not exist in database' . PHP_EOL);
+
             return 0;
         }
 
@@ -418,9 +505,9 @@ class AccessoryImporter
     {
         if ($this->object->id) {
             return $this->object->id_category;
-        } else {
-            return [1];
         }
+
+        return [1];
     }
 
     protected function getCategoryTree($id_category)
@@ -446,36 +533,36 @@ class AccessoryImporter
     {
         if ($this->object->id) {
             return Configuration::get($this->module_name . '_default_tax_id');
-        } else {
-            return Configuration::get($this->module_name . '_default_tax_id');
         }
+
+        return Configuration::get($this->module_name . '_default_tax_id');
     }
 
     protected function getUnity()
     {
         if ($this->object->id) {
             return $this->object->unity;
-        } else {
-            return 0;
         }
+
+        return 0;
     }
 
     protected function getAdditionalShippingCost()
     {
         if ($this->object->id) {
             return $this->object->additional_shipping_cost;
-        } else {
-            return 0.00;
         }
+
+        return 0.00;
     }
 
     protected function getEcoTax()
     {
         if ($this->object->id) {
             return $this->object->ecotax;
-        } else {
-            return 0.00;
         }
+
+        return 0.00;
     }
 
     protected function getUpc()
@@ -487,99 +574,99 @@ class AccessoryImporter
     {
         if ($this->object->id) {
             return $this->object->on_sale;
-        } else {
-            return 0;
         }
+
+        return 0;
     }
 
     protected function getColors()
     {
         if ($this->object->id) {
             return $this->object->id_color;
-        } else {
-            return [0];
         }
+
+        return [0];
     }
 
     protected function getDefualtColorId()
     {
         if ($this->object->id) {
             return $this->object->id_color_default;
-        } else {
-            return 0;
         }
+
+        return 0;
     }
 
     protected function getSupplierId()
     {
         if ($this->object->id) {
             return $this->object->id_supplier;
-        } else {
-            return 0;
         }
+
+        return 0;
     }
 
     protected function getShowPrice()
     {
         if ($this->object->id) {
             return $this->object->show_price;
-        } else {
-            return 1;
         }
+
+        return 1;
     }
 
     protected function getCondition()
     {
         if ($this->object->id) {
             return $this->object->condition;
-        } else {
-            return 'new';
         }
+
+        return 'new';
     }
 
     protected function getOutOfStock()
     {
         if ($this->object->id) {
             return $this->object->out_of_stock;
-        } else {
-            return 1;
         }
+
+        return 1;
     }
 
     protected function getAvailablity()
     {
         if ($this->object->id) {
             return $this->object->available_for_order;
-        } else {
-            return 1;
         }
+
+        return 1;
     }
 
     protected function getIndexed()
     {
         if ($this->object->id) {
             return $this->object->indexed;
-        } else {
-            return 1;
         }
+
+        return 1;
     }
 
     protected function getOnlineOnly()
     {
         if ($this->object->id) {
             return $this->object->online_only;
-        } else {
-            return 0;
         }
+
+        return 0;
     }
 
     protected function getActive()
     {
         if ($this->object->id) {
             return $this->object->active;
-        } else {
-            return 1;
         }
+
+        return 1;
     }
 
     protected function getFeatures()
@@ -822,6 +909,7 @@ class AccessoryImporter
         if (empty($version)) {
             return 0;
         }
+
         return $version[0]['version'];
     }
 
@@ -869,6 +957,7 @@ class AccessoryImporter
     {
         $str_tmp = strip_tags($this->product->short_description);
         $str_tmp = str_replace("\r\n", '<br>', $str_tmp);
+
         return $str_tmp;
     }
 
@@ -881,6 +970,7 @@ class AccessoryImporter
     {
         $meta_description = (string) $this->product->meta_description;
         $meta_description = preg_replace('/[<>;=#{}]/ui', ' ', $meta_description);
+
         return (Tools::strlen($meta_description) > 255) ? Tools::substr($meta_description, 0, 255) : $meta_description;
     }
 
@@ -890,6 +980,7 @@ class AccessoryImporter
         if ($ean13 == '0000000000000') {
             $ean13 = null;
         }
+
         return $ean13;
     }
 
@@ -912,12 +1003,14 @@ class AccessoryImporter
     {
         $meta_keywords = (string) $this->product->meta_keywords;
         $meta_keywords = preg_replace('/[<>;=#{}]/ui', ' ', $meta_keywords);
+
         return (string) Tools::substr($meta_keywords, 0, 255);
     }
 
     protected function getMetaTitle()
     {
         $meta_title = (string) $this->product->meta_title;
+
         return preg_replace('/[<>;=#{}]/ui', ' ', $meta_title);
     }
 
@@ -929,6 +1022,7 @@ class AccessoryImporter
             p('No name: ');
             p((string) $this->product);
         }
+
         return $name;
     }
 
@@ -967,7 +1061,7 @@ class AccessoryImporter
             }
 
             if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
-                $employeeContext = \PrestaShop\PrestaShop\Adapter\ServiceLocator::get('\\PrestaShop\\PrestaShop\\Core\\Context\\EmployeeContext');
+                $employeeContext = PrestaShop\PrestaShop\Adapter\ServiceLocator::get('\\PrestaShop\\PrestaShop\\Core\\Context\\EmployeeContext');
                 $id_shop = (int) $employeeContext->getShop()->getId();
                 $language_id = (int) $employeeContext->getLanguage()->getId();
             } else {

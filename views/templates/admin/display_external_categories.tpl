@@ -47,12 +47,10 @@
             {/foreach}
             <tr>
                 <td>
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" name="{$module_name|escape:'html':'UTF-8'}_categories[]" value="{$local_cat['cat3']|escape:'html':'UTF-8'}" {if $local_cat['checked']}checked{/if} />
-                            {$cat['name']|escape:'html':'UTF-8'}
-                        </label>
-                    </div>
+                    <label class="life365-check">
+                        <input type="checkbox" name="{$module_name|escape:'html':'UTF-8'}_categories[]" value="{$local_cat['cat3']|escape:'html':'UTF-8'}" {if $local_cat['checked']}checked{/if} />
+                        {$cat['name']|escape:'html':'UTF-8'}
+                    </label>
                 </td>
                 <td>
                     <select name="cat_ps_{$local_cat['cat3']|escape:'html':'UTF-8'}" class="children_cats_select form-control" data-selected-id="{$local_cat['id_cat_ps']|escape:'html':'UTF-8'}">
@@ -64,9 +62,9 @@
                     </select>
                 </td>
                 <td>
-                    <div class="input-group">
+                    <div class="life365-input-group">
                         <input type="number" step="0.01" class="form-control" value="{$local_cat['profit']|escape:'html':'UTF-8'}" name="profit_{$local_cat['cat3']|escape:'html':'UTF-8'}" placeholder="{l s='profit' mod='life365' d='Modules.Life365.Admin'}" />
-                        <span class="input-group-addon">%</span>
+                        <span class="life365-addon">%</span>
                     </div>
                 </td>
             </tr>

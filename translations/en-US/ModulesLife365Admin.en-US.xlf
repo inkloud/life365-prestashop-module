@@ -58,9 +58,9 @@
         <source>Action</source>
         <target>Action</target>
       </trans-unit>
-      <trans-unit id="15" resname="Start import ...">
-        <source>Start import ...</source>
-        <target>Start import ...</target>
+      <trans-unit id="15" resname="Start manual import ...">
+        <source>Start manual import ...</source>
+        <target>Start manual import ...</target>
       </trans-unit>
       <trans-unit id="16" resname="Complete Cron url">
         <source>Complete Cron url</source>
@@ -149,6 +149,74 @@
       <trans-unit id="37" resname="Copy dropship order on Life365">
         <source>Copy dropship order on Life365</source>
         <target>Copy dropship order on Life365</target>
+      </trans-unit>
+      <trans-unit id="38" resname="A free CRON scheduler">
+        <source>A free CRON scheduler</source>
+        <target>A free CRON scheduler</target>
+      </trans-unit>
+      <trans-unit id="39" resname="Are you sure you want to uninstall?">
+        <source>Are you sure you want to uninstall?</source>
+        <target>Are you sure you want to uninstall?</target>
+      </trans-unit>
+      <trans-unit id="40" resname="Box">
+        <source>Box</source>
+        <target>Box</target>
+      </trans-unit>
+      <trans-unit id="41" resname="Certificate">
+        <source>Certificate</source>
+        <target>Certificate</target>
+      </trans-unit>
+      <trans-unit id="42" resname="Color">
+        <source>Color</source>
+        <target>Color</target>
+      </trans-unit>
+      <trans-unit id="43" resname="Comp. brand">
+        <source>Comp. brand</source>
+        <target>Comp. brand</target>
+      </trans-unit>
+      <trans-unit id="44" resname="Copy link">
+        <source>Copy link</source>
+        <target>Copy link</target>
+      </trans-unit>
+      <trans-unit id="45" resname="Expand your shop. Start now selling over 20.000 products in dropshipping!">
+        <source>Expand your shop. Start now selling over 20.000 products in dropshipping!</source>
+        <target>Expand your shop. Start now selling over 20.000 products in dropshipping!</target>
+      </trans-unit>
+      <trans-unit id="46" resname="Life365/Inkloud dropshipping">
+        <source>Life365/Inkloud dropshipping</source>
+        <target>Life365/Inkloud dropshipping</target>
+      </trans-unit>
+      <trans-unit id="47" resname="Open in new tab">
+        <source>Open in new tab</source>
+        <target>Open in new tab</target>
+      </trans-unit>
+      <trans-unit id="48" resname="Product description">
+        <source>Product description</source>
+        <target>Product description</target>
+      </trans-unit>
+      <trans-unit id="49" resname="Product name">
+        <source>Product name</source>
+        <target>Product name</target>
+      </trans-unit>
+      <trans-unit id="50" resname="Product price">
+        <source>Product price</source>
+        <target>Product price</target>
+      </trans-unit>
+      <trans-unit id="51" resname="Product short description">
+        <source>Product short description</source>
+        <target>Product short description</target>
+      </trans-unit>
+      <trans-unit id="52" resname="Reset association with local categories">
+        <source>Reset association with local categories</source>
+        <target>Reset association with local categories</target>
+      </trans-unit>
+      <trans-unit id="53" resname="Sizes">
+        <source>Sizes</source>
+        <target>Sizes</target>
+      </trans-unit>
+      <trans-unit id="54" resname="The country selects the warehouse products are imported from.">
+        <source>The country selects the warehouse products are imported from.</source>
+        <target>The country selects the warehouse products are imported from.</target>
       </trans-unit>
     </body>
   </file>

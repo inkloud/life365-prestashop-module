@@ -39,37 +39,41 @@ if (!function_exists('p')) {
 function getModuleInfo($info)
 {
     $module_name = 'life365';
-    $user_app = 'PrestaShop module ver: 8.1.113';
-    $e_commerce_url = [
-        'IT' => 'https://b2b.life365.eu',
-        'PT' => 'https://b2b.life365.pt',
-        'ES' => 'https://b2b.inkloud.es',
-        'NL' => 'https://b2b.inkloud.eu',
-    ];
-    $api_url_new = [
-        'IT' => 'https://it2.life365.eu',
-        'PT' => 'https://pt2.life365.eu',
-        'ES' => 'https://es2.life365.eu',
-        'NL' => 'https://nl2.life365.eu',
-    ];
+    // La versione la prende dal modulo, così non va riallineata a mano a ogni release
+    static $module_version = null;
+    if ($module_version === null) {
+        $module = Module::getInstanceByName($module_name);
+        $module_version = ($module && !empty($module->version)) ? $module->version : 'unknown';
+    }
+    $user_app = 'PrestaShop module ver: ' . $module_version;
+    // Un solo portale per tutti i paesi: la nazione sceglie il magazzino
+    $b2b_url = 'https://b2b.life365.eu';
     $country_default = [
         'IT' => 102,
-        'PT' => 1,
-        'ES' => 17,
+        'PT' => 159,
+        'ES' => 188,
         'NL' => 150,
     ];
     $region_default = [
         'IT' => 1,
-        'PT' => 1,
-        'ES' => 1,
-        'NL' => 19,
+        'PT' => 125,
+        'ES' => 114,
+        'NL' => 130,
+    ];
+    // Ogni nazione lavora sul magazzino del proprio paese
+    $warehouse_default = [
+        'IT' => 1,
+        'ES' => 17,
+        'NL' => 18,
+        'PT' => 21,
     ];
     $country_id = Configuration::get($module_name . '_country') ?: 'IT';
     $detail = '';
 
     switch ($info) {
         case 'api_url_new':
-            $detail = $api_url_new[$country_id];
+        case 'e_ecommerce_url':
+            $detail = $b2b_url;
             break;
 
         case 'name':
@@ -78,12 +82,6 @@ function getModuleInfo($info)
 
         case 'user_app':
             $detail = $user_app;
-            break;
-
-        case 'e_ecommerce_url':
-            if (isset($e_commerce_url[$country_id])) {
-                $detail = $e_commerce_url[$country_id];
-            }
             break;
 
         case 'default_country_id':
@@ -104,6 +102,10 @@ function getModuleInfo($info)
             if (isset($region_default[$country_id])) {
                 $detail = $region_default[$country_id];
             }
+            break;
+
+        case 'warehouse_id':
+            $detail = isset($warehouse_default[$country_id]) ? $warehouse_default[$country_id] : 0;
             break;
     }
 
@@ -187,11 +189,342 @@ function getAccessJWT()
     return $token;
 }
 
+/**
+ * Senza JWT le API rispondono 200 ma senza prezzo cliente: meglio fermarsi
+ * subito con un messaggio chiaro che importare prodotti a prezzo mancante.
+ *
+ * @return bool
+ */
+function apiLoginOk()
+{
+    return Tools::strlen(getAccessJWT()) > 1;
+}
+
 function getAccessToken()
 {
     // Questa funzione non è più usata - manteniamo per retrocompatibilità
     // ma ritorniamo sempre un nuovo JWT
     return getAccessJWT();
+}
+
+/**
+ * Chiamata GET alle API, con il codice HTTP restituito nel secondo parametro.
+ *
+ * @param string $url
+ * @param int    $http_code
+ *
+ * @return array|null
+ */
+function apiGetJson($url, &$http_code)
+{
+    $http_code = 0;
+
+    if (!function_exists('curl_init')) {
+        return null;
+    }
+
+    $con = curl_init();
+
+    curl_setopt($con, CURLOPT_URL, $url);
+    curl_setopt($con, CURLOPT_HEADER, false);
+    curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
+
+    $res_curl = curl_exec($con);
+    $http_code = (int) curl_getinfo($con, CURLINFO_HTTP_CODE);
+    curl_close($con);
+
+    if ($res_curl === false) {
+        return null;
+    }
+
+    $res = json_decode($res_curl, true);
+
+    return is_array($res) ? $res : null;
+}
+
+/**
+ * Estrae il valore nella lingua dello shop da un campo che le nuove API
+ * restituiscono come dizionario per lingua e le vecchie come stringa.
+ *
+ * @param mixed  $value
+ * @param string $lang
+ *
+ * @return string
+ */
+function apiLangValue($value, $lang)
+{
+    if (is_object($value)) {
+        $value = json_decode(json_encode($value), true);
+    }
+
+    if (is_array($value)) {
+        if (isset($value[$lang]) && $value[$lang] !== '') {
+            return (string) $value[$lang];
+        }
+        if (isset($value['en']) && $value['en'] !== '') {
+            return (string) $value['en'];
+        }
+        $value = array_filter($value, 'is_scalar');
+
+        return empty($value) ? '' : (string) reset($value);
+    }
+
+    return (string) $value;
+}
+
+/**
+ * Sceglie la riga di product_stocks da usare per un prodotto.
+ *
+ * Lo shop lavora su un solo magazzino, quello della nazione configurata:
+ * (product_id, warehouse_id) è univoca e identifica il product_stock_id.
+ * Senza riga per quel magazzino il prodotto non è vendibile dallo shop.
+ *
+ * @param array $data
+ * @param int   $warehouse_id
+ *
+ * @return array
+ */
+function pickStockRow($data, $warehouse_id = 0)
+{
+    if (empty($data['product_stocks']) || !is_array($data['product_stocks'])) {
+        return [];
+    }
+
+    foreach ($data['product_stocks'] as $row) {
+        if (!is_array($row) || !isset($row['warehouse_id'])) {
+            continue;
+        }
+        if ((int) $row['warehouse_id'] === (int) $warehouse_id) {
+            return $row;
+        }
+    }
+
+    return [];
+}
+
+/**
+ * Arrotondamento prudenziale dello stock pubblicato, stesso scaglionamento
+ * applicato dalle API nel CSV prodstock.
+ *
+ * @param int $stock
+ * @param int $min_qty_delivery
+ *
+ * @return int
+ */
+function warehouseStockRound($stock, $min_qty_delivery = 1)
+{
+    $stock = (int) $stock;
+    $min_qty_delivery = max(1, (int) $min_qty_delivery);
+
+    if ($stock <= 1) {
+        return $stock;
+    }
+
+    $mapping = [
+        [1, 3, 1.0],
+        [3, 7, 0.8],
+        [7, 15, 0.7],
+        [15, 50, 0.6],
+        [50, 200, 0.5],
+        [200, 600, 0.4],
+        [600, 1800, 0.3],
+        [1800, 4000, 0.2],
+    ];
+
+    $ratio = 0.1;
+    $floor = 4000;
+    foreach ($mapping as $range) {
+        if ($stock >= $range[0] && $stock < $range[1]) {
+            $ratio = $range[2];
+            $floor = $range[0];
+            break;
+        }
+    }
+
+    // Half-even come l'arrotondamento applicato dalle API
+    $rounded = $ratio == 1.0 ? 1 : (int) round($ratio * $stock, 0, PHP_ROUND_HALF_EVEN);
+    $rounded = max($rounded, $floor);
+    $rounded = max($rounded, $min_qty_delivery);
+
+    return min($rounded, $stock);
+}
+
+/**
+ * Converte il payload API nel formato atteso da AccessoryImporter.
+ * Accetta sia il vecchio payload (API it2) sia quello unificato b2b.
+ *
+ * Ritorna null se manca il prezzo cliente: in quel caso il prodotto va saltato,
+ * altrimenti verrebbe importato a prezzo zero.
+ *
+ * @param array $data
+ * @param int   $external_id id già presente in life365_product, se noto
+ *
+ * @return object|null
+ */
+function normalizeApiProduct($data, $external_id = 0, &$reason = '')
+{
+    $module_name = getModuleInfo('name');
+    $country_l = Tools::strtolower(Configuration::get($module_name . '_country') ?: 'IT');
+    $warehouse_id = (int) getModuleInfo('warehouse_id');
+    $translator = getTranslator();
+    $reason = '';
+
+    if (!is_array($data) || empty($data['id'])) {
+        $reason = 'empty payload';
+
+        return null;
+    }
+
+    $stock = pickStockRow($data, $warehouse_id);
+    $product = json_decode(json_encode($data), false);
+
+    $product_id = (int) $data['id'];
+
+    if (empty($stock)) {
+        // Vecchio payload (API it2): nessuna riga di stock, i dati sono piatti
+        if (isset($data['product_stocks'])) {
+            $reason = 'not stocked in warehouse ' . $warehouse_id;
+
+            return null;
+        }
+        $stock = [];
+    }
+
+    $product_stock_id = 0;
+    if (isset($stock['product_stock_id'])) {
+        $product_stock_id = (int) $stock['product_stock_id'];
+    } elseif (isset($data['product_stock_id'])) {
+        $product_stock_id = (int) $data['product_stock_id'];
+    }
+
+    // La chiave esterna è il product_stock_id del magazzino della nazione:
+    // (product_id, warehouse_id) lo identifica in modo univoco ed è lo stesso
+    // id che il CSV prodstock ha sempre restituito.
+    $product->product_id = $product_id;
+    $product->product_stock_id = $product_stock_id;
+    if ($product_stock_id > 0) {
+        $product->id = $product_stock_id;
+    } elseif ($external_id > 0) {
+        $product->id = (int) $external_id;
+    } else {
+        $product->id = $product_id;
+    }
+    $product->warehouse_id = isset($stock['warehouse_id']) ? (int) $stock['warehouse_id'] : $warehouse_id;
+
+    // Chiavi con cui lo shop potrebbe avere mappato questo prodotto in passato:
+    // l'id prodotto o la riga di stock di un altro magazzino.
+    $legacy_ids = [$product_id];
+    if ($external_id > 0) {
+        $legacy_ids[] = (int) $external_id;
+    }
+    if (!empty($data['product_stocks']) && is_array($data['product_stocks'])) {
+        foreach ($data['product_stocks'] as $row) {
+            if (isset($row['product_stock_id'])) {
+                $legacy_ids[] = (int) $row['product_stock_id'];
+            }
+        }
+    }
+    $product->legacy_ids = array_values(array_diff(array_unique($legacy_ids), [(int) $product->id]));
+
+    // Prezzo cliente: nuove API dentro la riga di stock, vecchie a livello prodotto
+    $price = null;
+    if (isset($stock['price']['price']) && is_numeric($stock['price']['price'])) {
+        $price = $stock['price']['price'];
+    } elseif (isset($data['price']['price']) && is_numeric($data['price']['price'])) {
+        $price = $data['price']['price'];
+    } elseif (isset($data['price']) && is_numeric($data['price'])) {
+        $price = $data['price'];
+    }
+
+    if ($price === null) {
+        $reason = 'price not available from API';
+
+        return null;
+    }
+
+    $street_price = null;
+    if (isset($stock['price_a']) && is_numeric($stock['price_a'])) {
+        $street_price = $stock['price_a'];
+    } elseif (isset($data['price_a']) && is_numeric($data['price_a'])) {
+        $street_price = $data['price_a'];
+    }
+
+    $product->price = (float) $price;
+    $product->street_price = $street_price === null ? (float) $price : (float) $street_price;
+
+    $product->reference = isset($data['code_simple']) ? $data['code_simple'] : (isset($data['isin']) ? $data['isin'] : '');
+    $product->name = strip_tags(apiLangValue(isset($data['title']) ? $data['title'] : (isset($data['titles']) ? $data['titles'] : ''), $country_l));
+    $product->meta_keywords = apiLangValue(isset($data['keywords']) ? $data['keywords'] : '', $country_l);
+
+    $descr = isset($data['descr']) ? $data['descr'] : (isset($data['descriptions']) ? $data['descriptions'] : '');
+    $cleanDescription = strip_unsafe(apiLangValue($descr, $country_l), $img = false);
+    // Compress HTML: remove extra whitespace, tabs, and newlines
+    $cleanDescription = preg_replace('/\s+/', ' ', $cleanDescription);
+    $cleanDescription = preg_replace('/>\s+</', '><', $cleanDescription);
+    $cleanDescription = trim($cleanDescription);
+    // Decode HTML entities and validate with PrestaShop
+    $cleanDescription = html_entity_decode($cleanDescription, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $cleanDescription = Tools::purifyHTML($cleanDescription);
+    $product->description = !empty($cleanDescription) ? $cleanDescription : '';
+
+    if (isset($stock['qty_delivery'])) {
+        $product->qty_delivery = (int) $stock['qty_delivery'];
+    } elseif (empty($data['qty_delivery'])) {
+        $product->qty_delivery = 1;
+    }
+
+    if (isset($stock['stock'])) {
+        // Lo stock della riga API è quello reale: applichiamo lo stesso
+        // arrotondamento prudenziale che il CSV prodstock applica a monte.
+        $product->stock = warehouseStockRound((int) $stock['stock'], (int) $product->qty_delivery);
+    }
+    $product->quantity = isset($product->stock) ? (int) $product->stock : 0;
+
+    if (!isset($data['weight']) && isset($data['weight_gr'])) {
+        $product->weight = (float) $data['weight_gr'];
+    }
+
+    if (!isset($data['barcode'])) {
+        $barcodes = isset($data['barcodes']) ? (array) $data['barcodes'] : [];
+        $product->barcode = empty($barcodes) ? '' : (string) reset($barcodes);
+    }
+
+    if (!isset($data['dimensions'])) {
+        $dims = [];
+        foreach (['dim_length_mm', 'dim_width_mm', 'dim_height_mm'] as $dim) {
+            if (!empty($data[$dim])) {
+                $dims[] = (int) $data[$dim];
+            }
+        }
+        $product->dimensions = empty($dims) ? '' : implode('x', $dims) . ' mm';
+    }
+
+    if (isset($data['brand']) && is_array($data['brand'])) {
+        $product->brand = isset($data['brand']['brand_name']) ? $data['brand']['brand_name'] : '';
+    }
+
+    $photos = isset($data['photos']) ? (array) $data['photos'] : [];
+    $product->url_image = empty($photos) ? '' : (string) reset($photos);
+
+    $product->local_category = isset($data['level_3']) ? (int) $data['level_3'] : 0;
+    $product->meta_description = '';
+    $product->meta_title = $product->name;
+    $product->short_description = $translator->trans('Sizes') . ': ' . $product->dimensions
+        . '<br>' . $translator->trans('Box') . ': ' . (isset($data['qty_box']) ? $data['qty_box'] : '')
+        . '<br>' . $translator->trans('Color') . ': ' . (isset($data['color']) ? $data['color'] : '')
+        . '<br>' . $translator->trans('Certificate') . ': ' . (isset($data['certificate']) ? $data['certificate'] : '')
+        . '<br>' . $translator->trans('Comp. brand') . ': ' . $product->brand;
+    // Versione: quella della riga di stock del magazzino, che cambia anche
+    // quando la modifica riguarda solo prezzo o giacenza. Il last_update di
+    // prodotto resta come riserva per i payload che non la espongono.
+    $product->version = isset($data['last_update']) ? (int) $data['last_update'] : 0;
+    if (isset($stock['last_update']) && (int) $stock['last_update'] > $product->version) {
+        $product->version = (int) $stock['last_update'];
+    }
+    $product->manufacturer = $product->brand;
+
+    return $product;
 }
 
 function getProducts2($category_id)
@@ -229,6 +562,18 @@ function getProducts2($category_id)
     return $res;
 }
 
+/**
+ * Scarica un prodotto a partire dall'id salvato in life365_product.
+ *
+ * Quell'id è storicamente un product_stock_id (è l'id del CSV prodstock), che
+ * sulle nuove API b2b si risolve con /api/products/product_stocks/{id}.
+ * Se la ricerca fallisce si ritenta con /api/products/{id}, per le
+ * installazioni che avessero salvato un id prodotto.
+ *
+ * @param int $product_id
+ *
+ * @return array|null
+ */
 function getSingleProduct($product_id)
 {
     $module_name = getModuleInfo('name');
@@ -238,28 +583,30 @@ function getSingleProduct($product_id)
 
     $api_url_new = getModuleInfo('api_url_new');
 
-    $con = curl_init();
-    $url = $api_url_new . '/api/products/' . $product_id . '?jwt=' . $jwt;
+    $paths = [
+        '/api/products/product_stocks/' . (int) $product_id,
+        '/api/products/' . (int) $product_id,
+    ];
 
-    curl_setopt($con, CURLOPT_URL, $url);
-    curl_setopt($con, CURLOPT_HEADER, false);
-    curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
+    $last_code = 0;
+    foreach ($paths as $path) {
+        $retcode = 0;
+        $res = apiGetJson($api_url_new . $path . '?jwt=' . $jwt, $retcode);
 
-    $res_curl = curl_exec($con);
-    if ($debug) {
-        p($res_curl);
+        if ($debug) {
+            p($path . ' HTTP ' . $retcode . '<br />');
+        }
+
+        if ($retcode == 200 && is_array($res) && !empty($res['id'])) {
+            return $res;
+        }
+
+        $last_code = $retcode;
     }
 
-    $retcode = curl_getinfo($con, CURLINFO_HTTP_CODE);
-    if ($retcode != 200) {
-        p('API error HTTP ' . $retcode . ' for product ' . $product_id . ': ' . $res_curl . '<br />');
-    }
+    p('API error HTTP ' . $last_code . ' for product ' . $product_id . ': product not found<br />');
 
-    curl_close($con);
-    $res = json_decode($res_curl, true);
-
-    return $res;
+    return null;
 }
 
 function getProductsDisabled2($category_id)
@@ -316,6 +663,16 @@ function setProductsDisabled2($category_id)
                 $objectProduct = json_decode(json_encode($product), false);
 
                 $accessroyImport = new AccessoryImporter();
+                // getDisabledProducts restituisce l'id prodotto, mentre
+                // life365_product è indicizzato per product_stock_id: risaliamo
+                // alla chiave locale prima di disattivare.
+                $reference = isset($product['reference']) ? $product['reference'] : '';
+                $external_id = $accessroyImport->resolveExternalIdByProductId((int) $product['id'], $reference);
+                if (!$external_id) {
+                    continue;
+                }
+                $objectProduct->id = (int) $external_id;
+
                 $accessroyImport->setProductSource($objectProduct);
                 $accessroyImport->disable();
             }
@@ -368,12 +725,10 @@ function checkLogon()
 function getProds($opt_cat = 0)
 {
     $module_name = getModuleInfo('name');
-    $translator = getTranslator();
 
     $debug = (bool) Configuration::get($module_name . '_debug_mode');
     $offset = Tools::getValue('offset');
     $qty = Tools::getValue('qty');
-    $country_l = Tools::strtolower(Configuration::get($module_name . '_country') ?: 'IT');
     $macro_cat = 0;
 
     if ($opt_cat == 0) {
@@ -388,6 +743,10 @@ function getProds($opt_cat = 0)
 
     $result_html = '<pre>';
 
+    if (!apiLoginOk()) {
+        return $result_html . 'Login failed: check Life365 login and password in the module settings</pre>';
+    }
+
     if (array_filter($products = getProducts2($cat))) {
         $result_html .= 'CATEGORY ' . $cat . ': IMPORT offset ' . $offset . '<br />';
         $serviceAccessoryImport = new AccessoryImporter();
@@ -395,50 +754,32 @@ function getProds($opt_cat = 0)
             if ($debug) {
                 p($product);
             }
-            $objectProduct = json_decode(json_encode($product), false);
-            $macro_cat = $objectProduct->level_1;
+            $macro_cat = isset($product['level_1']) ? $product['level_1'] : 0;
 
-            if ($objectProduct->level_3 != $cat) {
-                $result_html .= 'Skip product ' . $product['id'] . ' not native category (' . $objectProduct->level_3 . ')<br />';
+            if (!isset($product['level_3']) || $product['level_3'] != $cat) {
+                $result_html .= 'Skip product ' . $product['id'] . ' not native category (' . (isset($product['level_3']) ? $product['level_3'] : '') . ')<br />';
                 continue;
             }
 
-            $result_html .= 'Set quantity product ' . $product['id'] . ' ' . $product['code_simple'] . ' ' . $product['last_update'] . '<br />';
+            $reason = '';
+            $objectProduct = normalizeApiProduct($product, 0, $reason);
+            if ($objectProduct === null) {
+                $result_html .= 'Skip product ' . $product['id'] . ': ' . $reason . '<br />';
+                continue;
+            }
+
+            $result_html .= 'Set quantity product ' . $objectProduct->id . ' ' . $objectProduct->reference . ' ' . $objectProduct->version . '<br />';
             $accessroyImport = new AccessoryImporter();
-            $accessroyImport->saveQuantity($product['id'], $product['stock']);
+            $accessroyImport->reconcileExternalId((int) $objectProduct->id, $objectProduct->legacy_ids);
+            $accessroyImport->saveQuantity($objectProduct->id, $objectProduct->quantity);
 
-            if ($serviceAccessoryImport->getVersion($objectProduct->id) >= $objectProduct->last_update) {
-                $result_html .= 'Skip product ' . $product['id'] . ' latest version already <br />';
+            if ($serviceAccessoryImport->getVersion($objectProduct->id) >= $objectProduct->version) {
+                $result_html .= 'Skip product ' . $objectProduct->id . ' latest version already <br />';
                 continue;
             }
-            $result_html .= 'Importing product ' . $product['id'] . '<br />';
+            $result_html .= 'Importing product ' . $objectProduct->id . '<br />';
 
-            $objectProduct->reference = $objectProduct->code_simple;
-            $objectProduct->name = strip_tags($objectProduct->title->{$country_l});
-            $objectProduct->meta_keywords = $objectProduct->keywords;
-            $objectProduct->price = $objectProduct->price->price;
-            $objectProduct->street_price = $objectProduct->price_a;
-
-            $cleanDescription = strip_unsafe($objectProduct->descr->{$country_l}, $img = false);
-            // Compress HTML: remove extra whitespace, tabs, and newlines
-            $cleanDescription = preg_replace('/\s+/', ' ', $cleanDescription);
-            $cleanDescription = preg_replace('/>\s+</', '><', $cleanDescription);
-            $cleanDescription = trim($cleanDescription);
-            // Decode HTML entities and validate with PrestaShop
-            $cleanDescription = html_entity_decode($cleanDescription, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            $cleanDescription = Tools::purifyHTML($cleanDescription);
-            $objectProduct->description = !empty($cleanDescription) ? $cleanDescription : '';
-
-            $objectProduct->quantity = $objectProduct->stock;
-            $photos = json_decode(json_encode($objectProduct->photos), true);
-            $objectProduct->url_image = !empty($photos) ? $photos[0] : '';
-            $objectProduct->local_category = $objectProduct->level_3;
-            $objectProduct->meta_description = '';
-            $objectProduct->meta_title = $objectProduct->name;
-            $objectProduct->short_description = $translator->trans('Sizes') . ': ' . $objectProduct->dimensions . '<br>' . $translator->trans('Box') . ': ' . $objectProduct->qty_box . '<br>' . $translator->trans('Color') . ': ' . $objectProduct->color . '<br>' . $translator->trans('Certificate') . ': ' . $objectProduct->certificate . '<br>' . $translator->trans('Comp. brand') . ': ' . $objectProduct->brand;
-            $objectProduct->version = $objectProduct->last_update;
-            $objectProduct->id_manufacturer = $serviceAccessoryImport->getManufacturerId($objectProduct->brand);
-            $objectProduct->manufacturer = $objectProduct->brand;
+            $objectProduct->id_manufacturer = $serviceAccessoryImport->getManufacturerId($objectProduct->manufacturer);
             $objectProduct->ean13 = $objectProduct->barcode;
 
             $accessroyImport->setProductSource($objectProduct);
@@ -460,7 +801,9 @@ function getCatStock($category_id)
     $login = Configuration::get($name . '_login');
     $password = Configuration::get($name . '_password');
 
-    $file = getModuleInfo('e_ecommerce_url') . '/api/utils/csvdata/prodstock?v=2&l=' . urlencode($login) . '&p=' . urlencode($password) . '&idcat=' . urlencode((string) $category_id);
+    $warehouse_id = (int) getModuleInfo('warehouse_id');
+
+    $file = getModuleInfo('e_ecommerce_url') . '/api/utils/csvdata/prodstock?v=2&l=' . urlencode($login) . '&p=' . urlencode($password) . '&idcat=' . urlencode((string) $category_id) . '&warehouse_id=' . $warehouse_id;
 
     if (!filter_var($file, FILTER_VALIDATE_URL)) {
         throw new Exception('Invalid URL format');
@@ -482,6 +825,14 @@ function getCatStock($category_id)
     $result = [];
     while (($line = fgetcsv($fileData, 0, ';')) !== false) {
         $new_entry = array_combine($header, array_map('trim', $line));
+
+        // Se il CSV espone il magazzino teniamo solo quello della nazione;
+        // altrimenti il filtro avviene più avanti, sulla risposta delle API.
+        if ($warehouse_id > 0 && isset($new_entry['warehouse_id'])
+            && (int) $new_entry['warehouse_id'] !== $warehouse_id) {
+            continue;
+        }
+
         if (in_array($new_entry['level_3'], $cats_array)) {
             $result[] = $new_entry;
         }
@@ -493,12 +844,15 @@ function getCatStock($category_id)
 
 function runCron3($macro_cat)
 {
-    $module_name = getModuleInfo('name');
-    $country_l = Tools::strtolower(Configuration::get($module_name . '_country') ?: 'IT');
-
     $result_html = '';
 
     p('Section: ' . $macro_cat . '<br />');
+
+    if (!apiLoginOk()) {
+        p('Login failed: check Life365 login and password in the module settings<br />');
+
+        return $result_html;
+    }
 
     if (Tools::strlen($macro_cat) > 0) {
         $offset = 0;
@@ -507,50 +861,47 @@ function runCron3($macro_cat)
             p('<h2>CATEGORY ' . $macro_cat . ': IMPORT offset ' . $offset . '</h2>');
             foreach ($products as $product) {
                 $accessroyImport = new AccessoryImporter();
-                if ($accessroyImport->ifExistId($product['id']) != 0 && $accessroyImport->getVersion($product['id']) >= $product['version_data']) {
-                    p('Skip product ' . $product['id'] . ' latest version already<br />');
-                } else {
-                    p('Importing product ' . $product['id'] . '<br />');
+                $csv_id = (int) $product['id'];
 
-                    $all_product_data = getSingleProduct($product['id']);
-                    if (!is_array($all_product_data) || empty($all_product_data['id'])) {
-                        p('Skip product ' . $product['id'] . ': not available from API<br />');
-                        continue;
-                    }
-                    $objectProduct = json_decode(json_encode($all_product_data), false);
-                    $objectProduct->reference = $objectProduct->code_simple;
-                    $objectProduct->name = strip_tags($objectProduct->title->{$country_l});
-                    $objectProduct->meta_keywords = $objectProduct->keywords;
-                    $objectProduct->price = $objectProduct->price->price;
-                    $objectProduct->street_price = $objectProduct->price_a;
-
-                    $cleanDescription = strip_unsafe($objectProduct->descr->{$country_l}, $img = false);
-                    // Compress HTML: remove extra whitespace, tabs, and newlines
-                    $cleanDescription = preg_replace('/\s+/', ' ', $cleanDescription);
-                    $cleanDescription = preg_replace('/>\s+</', '><', $cleanDescription);
-                    $cleanDescription = trim($cleanDescription);
-                    // Decode HTML entities and validate with PrestaShop
-                    $cleanDescription = html_entity_decode($cleanDescription, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                    $cleanDescription = Tools::purifyHTML($cleanDescription);
-                    $objectProduct->description = !empty($cleanDescription) ? $cleanDescription : '';
-
-                    $objectProduct->quantity = $objectProduct->stock;
-                    $photos = json_decode(json_encode($objectProduct->photos), true);
-                    $objectProduct->url_image = !empty($photos) ? $photos[0] : '';
-                    $objectProduct->local_category = $objectProduct->level_3;
-                    $objectProduct->meta_description = '';
-                    $objectProduct->meta_title = $objectProduct->name;
-                    $objectProduct->short_description = 'Sizes: ' . $objectProduct->dimensions . '<br>Box: ' . $objectProduct->qty_box . '<br>Color: ' . $objectProduct->color . '<br>Certificate: ' . $objectProduct->certificate . '<br>Comp. brand: ' . $objectProduct->brand;
-                    $objectProduct->version = $objectProduct->last_update;
-                    $objectProduct->id_manufacturer = $accessroyImport->getManufacturerId($objectProduct->brand);
-                    $objectProduct->manufacturer = $objectProduct->brand;
-                    $objectProduct->ean13 = $objectProduct->barcode;
-
-                    $accessroyImport->setProductSource($objectProduct);
-                    $accessroyImport->save();
+                if ($accessroyImport->ifExistId($csv_id) != 0 && $accessroyImport->getVersion($csv_id) >= $product['version_data']) {
+                    p('Skip product ' . $csv_id . ' latest version already<br />');
+                    p('Set quantity product ' . $csv_id . ' ' . $product['code'] . ' ' . $product['version_data'] . '<br />');
+                    $accessroyImport->saveQuantity($csv_id, $product['stock']);
+                    continue;
                 }
-                p('Set quantity product ' . $product['id'] . ' ' . $product['code'] . ' ' . $product['version_data'] . '<br />');
-                $accessroyImport->saveQuantity($product['id'], $product['stock']);
+
+                p('Importing product ' . $csv_id . '<br />');
+
+                $all_product_data = getSingleProduct($csv_id);
+                if (!is_array($all_product_data) || empty($all_product_data['id'])) {
+                    p('Skip product ' . $csv_id . ': not available from API<br />');
+                    continue;
+                }
+
+                // La riga di stock viene scelta sul magazzino della nazione:
+                // l'id del CSV può puntare a un altro magazzino.
+                $reason = '';
+                $objectProduct = normalizeApiProduct($all_product_data, $csv_id, $reason);
+                if ($objectProduct === null) {
+                    p('Skip product ' . $csv_id . ': ' . $reason . '<br />');
+                    // Il prodotto non è più vendibile da questo shop: azzeriamo
+                    // la giacenza senza toccare il prodotto in catalogo.
+                    if ($accessroyImport->ifExistId($csv_id) != 0) {
+                        $accessroyImport->saveQuantity($csv_id, 0);
+                    }
+                    continue;
+                }
+
+                $accessroyImport->reconcileExternalId((int) $objectProduct->id, $objectProduct->legacy_ids);
+
+                $objectProduct->id_manufacturer = $accessroyImport->getManufacturerId($objectProduct->manufacturer);
+                $objectProduct->ean13 = $objectProduct->barcode;
+
+                $accessroyImport->setProductSource($objectProduct);
+                $accessroyImport->save();
+
+                p('Set quantity product ' . $objectProduct->id . ' ' . $objectProduct->reference . ' ' . $objectProduct->version . '<br />');
+                $accessroyImport->saveQuantity($objectProduct->id, $objectProduct->quantity);
             }
             ++$offset;
         }
@@ -567,14 +918,21 @@ function getRootCategories()
     $available_cats = availableCategories();
     $root_cats = [];
 
+    $module_name = getModuleInfo('name');
+    $country_l = Tools::strtolower(Configuration::get($module_name . '_country') ?: 'IT');
+
     if (is_array($available_cats)) {
         $cat1 = 0;
         foreach ($available_cats as $cat) {
-            if ($cat1 != $cat['Cat1']) {
-                $new_cat = ['Cat1' => $cat['Cat1'], 'description1' => $cat['description1']];
+            // Vecchio albero: Cat1/description1. Nuovo albero b2b: id/title.
+            $cat_id = isset($cat['Cat1']) ? $cat['Cat1'] : (isset($cat['id']) ? $cat['id'] : 0);
+            $cat_name = isset($cat['description1']) ? $cat['description1'] : (isset($cat['title']) ? $cat['title'] : '');
+
+            if ($cat_id && $cat1 != $cat_id) {
+                $new_cat = ['Cat1' => $cat_id, 'description1' => apiLangValue($cat_name, $country_l)];
 
                 array_push($root_cats, $new_cat);
-                $cat1 = $cat['Cat1'];
+                $cat1 = $cat_id;
             }
         }
     }
@@ -584,14 +942,11 @@ function getRootCategories()
 
 function runCron()
 {
-    $module_name = getModuleInfo('name');
-    $country_l = Tools::strtolower(Configuration::get($module_name . '_country') ?: 'IT');
-
     $result_html = '';
 
     $root_cats = getRootCategories();
     foreach ($root_cats as $root_cat) {
-        $result_html = runCron3($root_cat);
+        $result_html = runCron3($root_cat['Cat1']);
     }
 
     return $result_html;

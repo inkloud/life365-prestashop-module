@@ -22,32 +22,36 @@
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
-<fieldset>
-    <legend><img src="{$module_path|escape:'html':'UTF-8'}logo.gif" alt="" title="" />{l s='Manage categories to import' mod='life365' d='Modules.Life365.Admin'}</legend>
+<div class="life365-admin life365-admin-wide">
     {if $root_cats|@count > 0}
-        <div id="tabs">
-            <ul>
-                {foreach $root_cats as $cat}
-                    {if $cat.Cat1 == $managed_cat}
-                        <li><a href="#tabs-{$cat.Cat1|escape:'html':'UTF-8'}">{$cat.description1|escape:'html':'UTF-8'}</a></li>
-                    {/if}
-                {/foreach}
-            </ul>
-            {foreach $root_cats as $cat}
-                {if $cat.Cat1 == $managed_cat}
-                    <div id="tabs-{$cat.Cat1|escape:'html':'UTF-8'}">
-                        <form action="{$request_uri|escape:'html':'UTF-8'}" method="post" id="{$module_name|escape:'html':'UTF-8'}_action_cats-{$cat.Cat1|escape:'html':'UTF-8'}">
-                            <div class="margin-form">
-                                {include file='./display_external_categories.tpl'}
-                            </div>
-                            <input class="button" type="button" onclick="history.back()" value="{l s='Cancel' mod='life365' d='Modules.Life365.Admin'}" />
-                            <input type="submit" name="{$module_name|escape:'html':'UTF-8'}_action_cats_b" value="{l s='Update settings' mod='life365' d='Modules.Life365.Admin'}" class="button" />
-                        </form>
+        {foreach $root_cats as $cat}
+            {if $cat.Cat1 == $managed_cat}
+                <div class="life365-panel">
+                    <div class="life365-panel-heading">
+                        <img src="{$module_path|escape:'html':'UTF-8'}logo.gif" alt="" title="" />
+                        {l s='Manage categories to import' mod='life365' d='Modules.Life365.Admin'}
+                        <span class="life365-version">{$cat.description1|escape:'html':'UTF-8'}</span>
                     </div>
-                {/if}
-            {/foreach}
-        </div>
+
+                    <form action="{$request_uri|escape:'html':'UTF-8'}" method="post" id="{$module_name|escape:'html':'UTF-8'}_action_cats-{$cat.Cat1|escape:'html':'UTF-8'}">
+                        <div class="life365-panel-body">
+                            {include file='./display_external_categories.tpl'}
+                        </div>
+
+                        <div class="life365-panel-footer">
+                            <button class="life365-btn" type="button" onclick="history.back()">
+                                {l s='Cancel' mod='life365' d='Modules.Life365.Admin'}
+                            </button>
+                            <span class="life365-spacer"></span>
+                            <button type="submit" name="{$module_name|escape:'html':'UTF-8'}_action_cats_b" class="life365-btn life365-btn-primary">
+                                <i class="icon-save"></i> {l s='Update settings' mod='life365' d='Modules.Life365.Admin'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            {/if}
+        {/foreach}
     {else}
-        <p>{l s='No categories available to manage.' mod='life365' d='Modules.Life365.Admin'}</p>
+        <p class="life365-alert">{l s='No categories available to manage.' mod='life365' d='Modules.Life365.Admin'}</p>
     {/if}
-</fieldset>
+</div>

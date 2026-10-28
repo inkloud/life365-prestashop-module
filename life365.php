@@ -33,18 +33,14 @@ class Life365 extends Module
 {
     private $c_html = '';
 
-    private $c_api_url_new = [
-        'IT' => 'https://it2.life365.eu',
-        'PT' => 'https://pt2.life365.eu',
-        'ES' => 'https://es2.life365.eu',
-        'NL' => 'https://nl2.life365.eu',
-    ];
+    // Portale unico per tutti i paesi: è il warehouse_id a distinguere la nazione
+    private $c_api_url_new = 'https://b2b.life365.eu';
 
     public function __construct()
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '8.1.113';
+        $this->version = '8.1.118';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => '9.2.0'];
@@ -362,12 +358,6 @@ class Life365 extends Module
     private function displayForm()
     {
         $myUrl = $this->siteURL();
-        $e_commerce_url = [
-            'IT' => 'https://b2b.life365.eu',
-            'PT' => 'https://b2b.life365.pt',
-            'ES' => 'https://b2b.inkloud.es',
-            'NL' => 'https://b2b.inkloud.eu',
-        ];
         $country_id = Configuration::get($this->name . '_country') ?: 'IT';
 
         $module_token = md5(_COOKIE_KEY_ . $this->name);
@@ -410,7 +400,7 @@ class Life365 extends Module
 
         $this->context->smarty->assign([
             'module_path' => $this->_path,
-            'e_commerce_url' => $e_commerce_url,
+            'e_commerce_url' => $this->c_api_url_new,
             'country_id' => $country_id,
             'cron_url' => $cron_url,
             'cron_url2' => $cron_url2,
@@ -438,9 +428,73 @@ class Life365 extends Module
         $this->c_html .= $this->context->smarty->fetch($this->local_path . 'views/templates/admin/display_form.tpl');
     }
 
+    /**
+     * Nome di un nodo dell'albero categorie. Le vecchie API davano una
+     * stringa in `name`, le nuove b2b un dizionario per lingua in `title`.
+     *
+     * @param array $node
+     *
+     * @return string
+     */
+    private function catName($node)
+    {
+        $country_l = Tools::strtolower(Configuration::get($this->name . '_country') ?: 'IT');
+
+        $label = '';
+        if (isset($node['name'])) {
+            $label = $node['name'];
+        } elseif (isset($node['title'])) {
+            $label = $node['title'];
+        }
+
+        if (is_array($label)) {
+            if (isset($label[$country_l]) && $label[$country_l] !== '') {
+                $label = $label[$country_l];
+            } elseif (isset($label['en']) && $label['en'] !== '') {
+                $label = $label['en'];
+            } else {
+                $label = array_filter($label, 'is_scalar');
+                $label = empty($label) ? '' : reset($label);
+            }
+        }
+
+        return (string) $label;
+    }
+
+    /**
+     * Riscrive i nomi dell'albero categorie nella lingua dello shop, così che
+     * i template possano continuare a leggere `name` su ogni livello.
+     *
+     * @param array $nodes
+     *
+     * @return array
+     */
+    private function localizeCatTree($nodes)
+    {
+        $localized = [];
+
+        if (!is_array($nodes)) {
+            return $localized;
+        }
+
+        foreach ($nodes as $node) {
+            if (!is_array($node)) {
+                continue;
+            }
+
+            $node['name'] = $this->catName($node);
+            if (isset($node['zchildren'])) {
+                $node['zchildren'] = $this->localizeCatTree($node['zchildren']);
+            }
+
+            $localized[] = $node;
+        }
+
+        return $localized;
+    }
+
     private function getRootCategories()
     {
-        $country_id = Configuration::get($this->name . '_country') ?: 'IT';
         $available_cats = $this->availableCategories();
         $root_cats = [];
 
@@ -448,7 +502,7 @@ class Life365 extends Module
             $cat1 = 0;
             foreach ($available_cats as $cat) {
                 if ($cat1 != $cat['id']) {
-                    $new_cat = ['Cat1' => $cat['id'], 'description1' => $cat['title']];
+                    $new_cat = ['Cat1' => $cat['id'], 'description1' => $this->catName($cat)];
 
                     array_push($root_cats, $new_cat);
                     $cat1 = $cat['id'];
@@ -461,8 +515,7 @@ class Life365 extends Module
 
     private function availableCategories()
     {
-        $country_id = Configuration::get($this->name . '_country') ?: 'IT';
-        $api_url_new = $this->c_api_url_new[$country_id];
+        $api_url_new = $this->c_api_url_new;
 
         if (function_exists('curl_init')) {
             $con = curl_init();
@@ -520,9 +573,9 @@ class Life365 extends Module
         if (is_array($available_cats)) {
             foreach ($available_cats as $cat) {
                 if ($managed_cat == 0 || $cat['id'] == $managed_cat) {
-                    $root_category_name = $cat['title'];
-                    $remote_tree_category = $cat['zchildren'];
-                    $cat1 = $cat['zchildren'];
+                    $root_category_name = $this->catName($cat);
+                    $remote_tree_category = $this->localizeCatTree($cat['zchildren']);
+                    $cat1 = $remote_tree_category;
                     foreach ($cat1 as $cat2) {
                         foreach ($cat2['zchildren'] as $cat3) {
                             $list_cat3 .= $cat3['id'] . ',';
@@ -541,7 +594,7 @@ class Life365 extends Module
 
                             $categories[] = [
                                 'cat3' => $cat3['id'],
-                                'description3' => $cat3['name'],
+                                'description3' => $this->catName($cat3),
                                 'checked' => $cat_checked,
                                 'id_cat_ps' => $id_cat_ps,
                                 'profit' => $profit,

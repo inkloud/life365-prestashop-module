@@ -22,20 +22,28 @@
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
-<fieldset>
-    <legend><img src="{$module_path|escape:'html':'UTF-8'}logo.gif" alt="" title="" />{l s='Manage categories to import' mod='life365' d='Modules.Life365.Admin'}</legend>
-    {if $root_cats|@count > 0}
-        <div class="col-sm-5">
-            {foreach $root_cats as $cat}
-                <div>
-                    <form action="{$request_uri|escape:'html':'UTF-8'}" method="post" id="{$module_name|escape:'html':'UTF-8'}_action_cats-{$cat.Cat1|escape:'html':'UTF-8'}">
-                        <input type="hidden" name="{$module_name|escape:'html':'UTF-8'}_cat_click" value="{$cat.Cat1|escape:'html':'UTF-8'}" />
-                        <input type="submit" name="{$module_name|escape:'html':'UTF-8'}_action_cat_click" value="{l s='Manage category' mod='life365' d='Modules.Life365.Admin'} {$cat.description1|escape:'html':'UTF-8'}" class="button" />
-                    </form>
-                </div>
-            {/foreach}
+<div class="life365-admin">
+    <div class="life365-panel">
+        <div class="life365-panel-heading">
+            <img src="{$module_path|escape:'html':'UTF-8'}logo.gif" alt="" title="" />
+            {l s='Manage categories to import' mod='life365' d='Modules.Life365.Admin'}
         </div>
-    {else}
-        <p>{l s='No categories available to manage.' mod='life365' d='Modules.Life365.Admin'}</p>
-    {/if}
-</fieldset>
+
+        <div class="life365-panel-body">
+            {if $root_cats|@count > 0}
+                <div class="life365-cat-buttons">
+                    {foreach $root_cats as $cat}
+                        <form action="{$request_uri|escape:'html':'UTF-8'}" method="post" id="{$module_name|escape:'html':'UTF-8'}_action_cats-{$cat.Cat1|escape:'html':'UTF-8'}">
+                            <input type="hidden" name="{$module_name|escape:'html':'UTF-8'}_cat_click" value="{$cat.Cat1|escape:'html':'UTF-8'}" />
+                            <button type="submit" name="{$module_name|escape:'html':'UTF-8'}_action_cat_click" class="life365-btn">
+                                <i class="icon-list"></i> {l s='Manage category' mod='life365' d='Modules.Life365.Admin'} {$cat.description1|escape:'html':'UTF-8'}
+                            </button>
+                        </form>
+                    {/foreach}
+                </div>
+            {else}
+                <p class="life365-alert">{l s='No categories available to manage.' mod='life365' d='Modules.Life365.Admin'}</p>
+            {/if}
+        </div>
+    </div>
+</div>
