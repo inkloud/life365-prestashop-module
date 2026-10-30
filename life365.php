@@ -40,7 +40,7 @@ class Life365 extends Module
     {
         $this->name = 'life365';
         $this->tab = 'quick_bulk_update';
-        $this->version = '8.1.119';
+        $this->version = '8.1.126';
         $this->author = 'Giancarlo Spadini';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => '9.2.0'];
@@ -211,6 +211,7 @@ class Life365 extends Module
 
         if (Tools::isSubmit($this->name . '_action_cat_click')) {
             $managed_cat = Tools::getValue($this->name . '_cat_click');
+
             return $this->manageCats2($managed_cat);
         }
 
@@ -270,6 +271,7 @@ class Life365 extends Module
             Configuration::updateValue($this->name . '_default_tax_id', Tools::getValue($this->name . '_default_tax_id'));
         }
         $this->displayForm();
+
         return $this->c_html;
     }
 
@@ -348,6 +350,7 @@ class Life365 extends Module
      * oppure URL friendly /module/life365/importer). Funziona anche su PS 1.7/8.
      *
      * @param array $params Parametri querystring (action, token, ...)
+     *
      * @return string
      */
     public function getImporterLink(array $params = [])
@@ -533,12 +536,12 @@ class Life365 extends Module
 
             if ($res) {
                 return $res;
-            } else {
-                return false;
             }
-        } else {
+
             return false;
         }
+
+        return false;
     }
 
     private function manageCats()
@@ -649,6 +652,7 @@ class Life365 extends Module
             'root_cats' => array_map(function ($cat) {
                 $categories_string = Configuration::get($this->name . '_' . $cat['Cat1'] . '_categories');
                 $categories_array = !empty($categories_string) ? array_map('intval', explode(',', $categories_string)) : [];
+
                 return [
                     'Cat1' => $cat['Cat1'],
                     'description1' => $cat['description1'],

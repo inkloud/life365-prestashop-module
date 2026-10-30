@@ -1,5 +1,4 @@
 <?php
-
 /**
  * 2007-2026 PrestaShop
  *
@@ -111,8 +110,8 @@ class AccessoryImporter
      * stock di un altro magazzino). Se troviamo una di quelle chiavi la
      * spostiamo sulla nuova, senza duplicare il prodotto in PrestaShop.
      *
-     * @param int       $external_id product_stock_id del magazzino della nazione
-     * @param array|int $legacy_ids  chiavi alternative con cui il prodotto può essere salvato
+     * @param int $external_id product_stock_id del magazzino della nazione
+     * @param array|int $legacy_ids chiavi alternative con cui il prodotto può essere salvato
      *
      * @return bool true se la riga è stata convertita
      */
@@ -158,7 +157,7 @@ class AccessoryImporter
      * Risale alla chiave locale partendo dall'id prodotto delle nuove API:
      * prima come chiave legacy, poi tramite la reference del prodotto PrestaShop.
      *
-     * @param int    $product_id
+     * @param int $product_id
      * @param string $reference
      *
      * @return int
@@ -181,10 +180,12 @@ class AccessoryImporter
             return 0;
         }
 
+        // Niente LIMIT: getValue() lo aggiunge da sé, e un LIMIT già scritto
+        // qui non verrebbe riconosciuto, finendo duplicato nella query.
         $id_external = Db::getInstance()->getValue(
             'SELECT lp.id_product_external FROM `' . _DB_PREFIX_ . 'life365_product` lp ' .
             'INNER JOIN `' . _DB_PREFIX_ . 'product` p ON p.id_product = lp.id_product_ps ' .
-            'WHERE p.reference = \'' . pSQL($reference) . '\' LIMIT 1'
+            'WHERE p.reference = \'' . pSQL($reference) . '\''
         );
 
         return (int) $id_external;
@@ -1066,14 +1067,17 @@ class AccessoryImporter
                 throw new Exception('Accessory Import Exception : No Manufacturer');
             }
 
-            if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
-                $employeeContext = PrestaShop\PrestaShop\Adapter\ServiceLocator::get('\\PrestaShop\\PrestaShop\\Core\\Context\\EmployeeContext');
-                $id_shop = (int) $employeeContext->getShop()->getId();
-                $language_id = (int) $employeeContext->getLanguage()->getId();
-            } else {
-                $id_shop = (int) Shop::getContextShopID();
-                $language_id = (int) Configuration::get('PS_LANG_DEFAULT');
+            // Niente EmployeeContext: non esiste in tutte le 8.x e qui giriamo
+            // da un controller front (cron), dove un impiegato non c'è.
+            $id_shop = (int) Shop::getContextShopID();
+            if ($id_shop <= 0) {
+                $context = Context::getContext();
+                $id_shop = ($context && isset($context->shop) && $context->shop)
+                    ? (int) $context->shop->id
+                    : (int) Configuration::get('PS_SHOP_DEFAULT');
             }
+
+            $language_id = (int) Configuration::get('PS_LANG_DEFAULT');
 
             Db::getInstance()->execute(
                 'INSERT INTO ' . _DB_PREFIX_ . 'manufacturer_shop VALUES (' . (int) $res[0]['id'] . ', ' . (int) $id_shop . ')'

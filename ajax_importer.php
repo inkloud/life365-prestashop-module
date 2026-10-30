@@ -28,6 +28,19 @@ header('Access-Control-Allow-Methods: GET, POST');
 header('Access-Control-Allow-Headers: X-Requested-With');
 ini_set('max_execution_time', 7200);
 
+// Output in streaming: il log arriva man mano, non in blocco alla fine.
+if (PHP_SAPI !== 'cli') {
+    @ini_set('zlib.output_compression', '0');
+    @ini_set('output_buffering', '0');
+    @ini_set('implicit_flush', '1');
+    header('Content-Type: text/html; charset=utf-8');
+    header('X-Accel-Buffering: no');
+    while (ob_get_level() > 0) {
+        @ob_end_flush();
+    }
+    ob_implicit_flush(true);
+}
+
 // Bootstrap PrestaShop
 $projectRoot = dirname(__DIR__, 2);
 require_once $projectRoot . '/config/config.inc.php';
@@ -42,7 +55,6 @@ require_once __DIR__ . '/ajax_importer_functions.php';
 
 use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
 
-/** @var \PrestaShop\PrestaShop\Adapter\LegacyContext $legacyContext */
 $container = SymfonyContainer::getInstance();
 if ($container) {
     $legacyContext = $container->get('prestashop.adapter.legacy.context');

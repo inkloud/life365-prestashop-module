@@ -111,20 +111,20 @@
 
         </div>
 
-        <div class="life365-panel-footer">
-            <span class="life365-spacer"></span>
-            <button type="submit" id="{$module_name|escape:'html':'UTF-8'}_submit" name="{$module_name|escape:'html':'UTF-8'}_submit" class="life365-btn life365-btn-primary">
-                <i class="icon-save"></i> {l s='Update settings' mod='life365' d='Modules.Life365.Admin'}
-            </button>
-        </div>
     </form>
 
+    {* I due bottoni stanno nella stessa barra: quello delle impostazioni resta
+       legato al form sopra tramite l'attributo form=. *}
     <div class="life365-panel-footer">
         <form action="{$smarty.server.REQUEST_URI|escape:'html':'UTF-8'}" method="post" id="{$module_name|escape:'html':'UTF-8'}_action_manage_cats" style="margin:0;">
             <button type="submit" name="{$module_name|escape:'html':'UTF-8'}_manage_cats" class="life365-btn">
                 <i class="icon-list"></i> {l s='Manage categories ...' mod='life365' d='Modules.Life365.Admin'}
             </button>
         </form>
+        <span class="life365-spacer"></span>
+        <button type="submit" form="{$module_name|escape:'html':'UTF-8'}_form_settings" id="{$module_name|escape:'html':'UTF-8'}_submit" name="{$module_name|escape:'html':'UTF-8'}_submit" class="life365-btn life365-btn-primary">
+            <i class="icon-save"></i> {l s='Update settings' mod='life365' d='Modules.Life365.Admin'}
+        </button>
     </div>
 </div>
 

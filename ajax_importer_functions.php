@@ -32,7 +32,18 @@ require_once dirname(__FILE__) . '/AccessoryImporter.php';
 if (!function_exists('p')) {
     function p($msg)
     {
+        if (is_array($msg) || is_object($msg)) {
+            $msg = '<pre>' . print_r($msg, true) . '</pre>';
+        }
+
         echo $msg;
+
+        // L'importer gira per minuti: mandiamo il log riga per riga invece di
+        // tenerlo in buffer fino alla fine, così si vede dove si ferma.
+        if (ob_get_level() > 0) {
+            @ob_flush();
+        }
+        @flush();
     }
 }
 
@@ -116,7 +127,7 @@ function getTranslator()
 {
     if (class_exists('\PrestaShop\PrestaShop\Adapter\SymfonyContainer')) {
         try {
-            $container = \PrestaShop\PrestaShop\Adapter\SymfonyContainer::getInstance();
+            $container = PrestaShop\PrestaShop\Adapter\SymfonyContainer::getInstance();
             if ($container) {
                 // PrestaShop 8.x: usa il servizio 'translator'
                 if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
@@ -125,6 +136,7 @@ function getTranslator()
                 // PrestaShop 1.7.x: usa il legacy context
                 if ($container->has('prestashop.adapter.legacy.context')) {
                     $legacyContext = $container->get('prestashop.adapter.legacy.context');
+
                     return $legacyContext->getTranslator();
                 }
             }
@@ -134,7 +146,7 @@ function getTranslator()
     }
 
     if (class_exists('Translate')) {
-        return new class() {
+        return new class {
             public function trans($string)
             {
                 return Translate::getModuleTranslation('life365', $string, 'life365');
@@ -142,7 +154,7 @@ function getTranslator()
         };
     }
 
-    return new class() {
+    return new class {
         public function trans($string)
         {
             return $string;
@@ -211,11 +223,19 @@ function getAccessToken()
  * Chiamata GET alle API, con il codice HTTP restituito nel secondo parametro.
  *
  * @param string $url
- * @param int    $http_code
+ * @param int $http_code
  *
  * @return array|null
  */
-function apiGetJson($url, &$http_code)
+/**
+ * Scarica una risorsa dalle API e restituisce il corpo grezzo.
+ *
+ * @param string $url
+ * @param int $http_code
+ *
+ * @return string|null null se curl manca o la richiesta fallisce
+ */
+function apiGetRaw($url, &$http_code)
 {
     $http_code = 0;
 
@@ -229,12 +249,21 @@ function apiGetJson($url, &$http_code)
     curl_setopt($con, CURLOPT_HEADER, false);
     curl_setopt($con, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($con, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($con, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($con, CURLOPT_TIMEOUT, 600);
 
     $res_curl = curl_exec($con);
     $http_code = (int) curl_getinfo($con, CURLINFO_HTTP_CODE);
     curl_close($con);
 
-    if ($res_curl === false) {
+    return $res_curl === false ? null : $res_curl;
+}
+
+function apiGetJson($url, &$http_code)
+{
+    $res_curl = apiGetRaw($url, $http_code);
+
+    if ($res_curl === null) {
         return null;
     }
 
@@ -247,7 +276,7 @@ function apiGetJson($url, &$http_code)
  * Estrae il valore nella lingua dello shop da un campo che le nuove API
  * restituiscono come dizionario per lingua e le vecchie come stringa.
  *
- * @param mixed  $value
+ * @param mixed $value
  * @param string $lang
  *
  * @return string
@@ -281,7 +310,7 @@ function apiLangValue($value, $lang)
  * Senza riga per quel magazzino il prodotto non è vendibile dallo shop.
  *
  * @param array $data
- * @param int   $warehouse_id
+ * @param int $warehouse_id
  *
  * @return array
  */
@@ -358,7 +387,7 @@ function warehouseStockRound($stock, $min_qty_delivery = 1)
  * altrimenti verrebbe importato a prezzo zero.
  *
  * @param array $data
- * @param int   $external_id id già presente in life365_product, se noto
+ * @param int $external_id id già presente in life365_product, se noto
  *
  * @return object|null
  */
@@ -661,8 +690,9 @@ function setProductsDisabled2($category_id)
     if ($category_id > 0) {
         $products = getProductsDisabled2($category_id);
         if (!empty($products) && is_array($products)) {
-            $result_html .= 'MACROCATEGORY ' . $category_id . ' - CLEANING PHASE<br />Disabling products:';
+            p('MACROCATEGORY ' . $category_id . ' - CLEANING PHASE: ' . count($products) . ' candidates<br />');
             $accessroyImport = new AccessoryImporter();
+            $disabled = 0;
 
             foreach ($products as $product) {
                 if (!is_array($product)) {
@@ -693,14 +723,22 @@ function setProductsDisabled2($category_id)
                 $objectProduct = json_decode(json_encode($product), false);
                 $objectProduct->id = (int) $external_id;
 
-                $accessroyImport->setProductSource($objectProduct);
-                if ($accessroyImport->disable()) {
-                    $result_html .= ' ' . $reference;
+                try {
+                    $accessroyImport->setProductSource($objectProduct);
+                    if ($accessroyImport->disable()) {
+                        ++$disabled;
+                        p('Disabled product ' . $external_id . ' ' . $reference . '<br />');
+                    }
+                } catch (Throwable $e) {
+                    // Un prodotto rotto non deve far saltare tutta la pulizia.
+                    p('Disable failed for product ' . $external_id . ' ' . $reference . ': ' .
+                        htmlspecialchars($e->getMessage()) . '<br />');
                 }
             }
+
+            p('Cleaning done: ' . $disabled . ' products disabled<br />');
         }
     }
-    $result_html .= '<br />';
 
     return $result_html;
 }
@@ -725,12 +763,12 @@ function availableCategories()
 
         if ($res) {
             return $res;
-        } else {
-            return false;
         }
-    } else {
+
         return false;
     }
+
+    return false;
 }
 
 function checkLogon()
@@ -739,9 +777,9 @@ function checkLogon()
 
     if (Tools::strlen($jwt) > 1) {
         return '<span style="color:green;font-weight:bold;">&#10004; Ok</span>';
-    } else {
-        return '<span style="color:red;font-weight:bold;">&#10008; Error</span>';
     }
+
+    return '<span style="color:red;font-weight:bold;">&#10008; Error</span>';
 }
 
 function getProds($opt_cat = 0)
@@ -825,18 +863,46 @@ function getCatStock($category_id)
 
     $warehouse_id = (int) getModuleInfo('warehouse_id');
 
-    $file = getModuleInfo('e_ecommerce_url') . '/api/utils/csvdata/prodstock?v=2&l=' . urlencode($login) . '&p=' . urlencode($password) . '&idcat=' . urlencode((string) $category_id) . '&warehouse_id=' . $warehouse_id;
+    // Il jwt viaggia insieme a login e password: se il confronto diretto
+    // delle credenziali non passa, le API ripiegano sul token già ottenuto.
+    $jwt = getAccessJWT();
+
+    $file = getModuleInfo('e_ecommerce_url') . '/api/utils/csvdata/prodstock?v=2&l=' . urlencode($login) . '&p=' . urlencode($password) . '&idcat=' . urlencode((string) $category_id) . '&warehouse_id=' . $warehouse_id . '&jwt=' . urlencode($jwt);
 
     if (!filter_var($file, FILTER_VALIDATE_URL)) {
         throw new Exception('Invalid URL format');
     }
 
-    $fileData = fopen($file, 'r');
-    if ($fileData === false) {
-        throw new Exception('Unable to open remote file');
+    // Niente fopen() sull'URL: molti hosting hanno allow_url_fopen disattivato.
+    // Scarichiamo con curl, come il resto del modulo, e leggiamo da un buffer.
+    $csv = apiGetRaw($file, $http_code);
+
+    if ($csv === null || $csv === '') {
+        throw new Exception('Unable to download the product list (HTTP ' . $http_code . ') from ' . getModuleInfo('e_ecommerce_url'));
     }
 
+    if ($http_code !== 200) {
+        // Login e password sono case sensitive: stampiamo il login così com'è
+        // configurato, da confrontare con quello registrato su b2b.
+        throw new Exception('The product list returned HTTP ' . $http_code . ' for login "' . $login . '" (password length ' . Tools::strlen($password) . ', jwt ' . (Tools::strlen($jwt) > 1 ? 'ok' : 'missing') . '): the credentials in the module settings do not match the ones registered on ' . getModuleInfo('e_ecommerce_url'));
+    }
+
+    $fileData = fopen('php://temp', 'r+');
+    if ($fileData === false) {
+        throw new Exception('Unable to open the temporary buffer');
+    }
+
+    fwrite($fileData, $csv);
+    rewind($fileData);
+    unset($csv);
+
     $line = fgetcsv($fileData, 0, ';');
+    if (!is_array($line)) {
+        fclose($fileData);
+
+        throw new Exception('The product list is empty or not a CSV');
+    }
+
     $header = [];
     foreach ($line as $val) {
         $header[] = trim($val);
@@ -861,6 +927,7 @@ function getCatStock($category_id)
     }
 
     fclose($fileData);
+
     return $result;
 }
 
@@ -914,16 +981,23 @@ function runCron3($macro_cat)
                     continue;
                 }
 
-                $accessroyImport->reconcileExternalId((int) $objectProduct->id, $objectProduct->legacy_ids);
+                try {
+                    $accessroyImport->reconcileExternalId((int) $objectProduct->id, $objectProduct->legacy_ids);
 
-                $objectProduct->id_manufacturer = $accessroyImport->getManufacturerId($objectProduct->manufacturer);
-                $objectProduct->ean13 = $objectProduct->barcode;
+                    $objectProduct->id_manufacturer = $accessroyImport->getManufacturerId($objectProduct->manufacturer);
+                    $objectProduct->ean13 = $objectProduct->barcode;
 
-                $accessroyImport->setProductSource($objectProduct);
-                $accessroyImport->save();
+                    $accessroyImport->setProductSource($objectProduct);
+                    $accessroyImport->save();
 
-                p('Set quantity product ' . $objectProduct->id . ' ' . $objectProduct->reference . ' ' . $objectProduct->version . '<br />');
-                $accessroyImport->saveQuantity($objectProduct->id, $objectProduct->quantity);
+                    p('Set quantity product ' . $objectProduct->id . ' ' . $objectProduct->reference . ' ' . $objectProduct->version . '<br />');
+                    $accessroyImport->saveQuantity($objectProduct->id, $objectProduct->quantity);
+                } catch (Throwable $e) {
+                    // Un prodotto che non si lascia importare non deve fermare
+                    // l'intera categoria: lo segnaliamo e si prosegue.
+                    p('Import failed for product ' . $objectProduct->id . ' ' . $objectProduct->reference . ': ' .
+                        htmlspecialchars(get_class($e) . ': ' . $e->getMessage()) . '<br />');
+                }
             }
             ++$offset;
         }

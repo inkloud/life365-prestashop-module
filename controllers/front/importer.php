@@ -1,5 +1,4 @@
 <?php
-
 /**
  * 2007-2026 PrestaShop
  *
@@ -49,14 +48,60 @@ class Life365ImporterModuleFrontController extends ModuleFrontController
         // Aumenta il tempo di esecuzione
         ini_set('max_execution_time', 7200);
 
+        // Output in streaming: il log dell'import arriva al browser man mano
+        // che viene prodotto, non in blocco alla fine.
+        @ini_set('zlib.output_compression', '0');
+        @ini_set('output_buffering', '0');
+        @ini_set('implicit_flush', '1');
+        header('Content-Type: text/html; charset=utf-8');
+        header('X-Accel-Buffering: no');
+        while (ob_get_level() > 0) {
+            @ob_end_flush();
+        }
+        ob_implicit_flush(true);
+
+        // Gli errori fatali veri (memoria, tempo) non sono intercettabili con
+        // try/catch: li recuperiamo allo shutdown per non restare con un 500 muto.
+        register_shutdown_function([$this, 'reportFatal']);
+
         // Include tutte le funzioni dal file ajax_importer.php
         require_once dirname(__FILE__) . '/../../ajax_importer_functions.php';
 
-        // Gestisce l'azione richiesta
-        $this->processAction();
+        // Gestisce l'azione richiesta. Un'eccezione qui dentro verrebbe
+        // intercettata da PrestaShop, che butta via tutto il log e mostra la
+        // pagina 500: meglio scriverla in coda all'output.
+        try {
+            $this->processAction();
+        } catch (Throwable $e) {
+            echo '<br /><strong>IMPORT ABORTED: ' . htmlspecialchars(get_class($e) . ': ' . $e->getMessage()) .
+                '</strong><br />' . htmlspecialchars($e->getFile() . ':' . $e->getLine()) .
+                '<br /><pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+        }
 
         // Termina senza template
         exit;
+    }
+
+    /**
+     * Stampa l'ultimo errore fatale, se c'è stato.
+     */
+    public function reportFatal()
+    {
+        $err = error_get_last();
+
+        if ($err === null) {
+            return;
+        }
+
+        $fatals = [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR];
+        if (!in_array($err['type'], $fatals, true)) {
+            return;
+        }
+
+        echo '<br /><strong>IMPORT FATAL: ' . htmlspecialchars($err['message']) . '</strong><br />' .
+            htmlspecialchars($err['file'] . ':' . $err['line']) .
+            '<br />memory peak: ' . round(memory_get_peak_usage(true) / 1048576, 1) . ' MB' .
+            ' / limit: ' . htmlspecialchars((string) ini_get('memory_limit')) . '<br />';
     }
 
     /**
